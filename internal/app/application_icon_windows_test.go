@@ -364,8 +364,8 @@ func TestInitializePersistedNativeBrandIconAppliesActiveIcon(t *testing.T) {
 	if shortcutIconPath != iconPath {
 		t.Fatalf("shortcut icon path = %q, want %q", shortcutIconPath, iconPath)
 	}
-	if got := strings.Join(identityEvents, ","); got != "shortcut,window,refresh" {
-		t.Fatalf("startup identity order = %q, want shortcut,window,refresh", got)
+	if got := strings.Join(identityEvents, ","); got != "shortcut,window" {
+		t.Fatalf("startup identity order = %q, want shortcut,window", got)
 	}
 	if err := InitializePersistedNativeBrandIcon(application, ctx); err != nil {
 		t.Fatalf("initialize persisted native brand icon again: %v", err)
