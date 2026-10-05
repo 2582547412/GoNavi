@@ -36,12 +36,14 @@
             Source="$(var.SourceExe)"
             Name="GoNavi.exe"
             KeyPath="yes">
-        <!-- Keep shortcut icons bound to the stable executable path. Referencing the MSI Icon table
-             can leave Windows shell caches pointing at the removed product cache after a major upgrade. -->
+        <!-- Give a fresh install a real icon before GoNavi has launched and rewritten the
+             shortcut to the user's content-addressed ICO. Runtime brand switches replace
+             IconLocation with that stable per-user path. -->
         <Shortcut Id="StartMenuShortcut"
                   Directory="ProgramMenuFolder"
                   Name="$(var.ProductName)"
                   WorkingDirectory="INSTALLFOLDER"
+                  Icon="GoNaviIcon"
                   Advertise="no">
           <ShortcutProperty Key="System.AppUserModel.ID" Value="Syngnat.GoNavi" />
         </Shortcut>
@@ -81,6 +83,7 @@
                 Name="$(var.ProductName)"
                 Target="[#GoNaviExe]"
                 WorkingDirectory="INSTALLFOLDER"
+                Icon="GoNaviIcon"
                 Advertise="no">
         <ShortcutProperty Key="System.AppUserModel.ID" Value="Syngnat.GoNavi" />
       </Shortcut>
