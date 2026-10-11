@@ -62,7 +62,7 @@ vi.mock('./brandAssetLoader', () => ({
 vi.mock('./macDockIcon', () => ({
   composeWindowsNativeIconBase64: composeWindowsNativeIcon,
   composeMacOSDockIconBase64: composeMacOSDockIcon,
-  LEGACY_MASCOT_DOCK_ICON_INSET: 100,
+  APPLE_DOCK_ICON_GRID_INSET: 100,
   shouldSyncApplicationBrandIcon: () => environmentState.shouldSync,
 }));
 
@@ -227,7 +227,7 @@ describe('useBrandIconSync native dock icon composition', () => {
     brandDefinitionState.value = { mascot: true };
   });
 
-  it('composes the bundled dark-tile default full-bleed without the mascot safe-area inset', async () => {
+  it('composes every family onto the strict Apple grid on macOS', async () => {
     let renderer: ReactTestRenderer | undefined;
     await act(async () => {
       renderer = create(React.createElement(DarwinHarness));
@@ -236,13 +236,21 @@ describe('useBrandIconSync native dock icon composition', () => {
     void renderer;
 
     expect(composeMacOSDockIcon).toHaveBeenCalledTimes(1);
-    expect(composeMacOSDockIcon).toHaveBeenCalledWith('dock:legacy', { inset: undefined });
+    // zoom 走 mock 默认值 1：接线测试只验证参数透传，真实家族取值（缎带
+    // 1.25）由 brandIcons.test 锁定，这里不重复。
+    expect(composeMacOSDockIcon).toHaveBeenCalledWith('dock:legacy', {
+      inset: 100,
+      zoom: 1,
+      fillTileBackground: false,
+    });
     expect(composeWindowsNativeIcon).not.toHaveBeenCalled();
     expect(setApplicationBrandIcon).toHaveBeenCalledWith('b64');
   });
 
-  it('keeps the white-tile mascot safe-area inset on macOS', async () => {
+  it('keeps the mascot white-tile base and family zoom on the Apple grid', async () => {
     brandDefinitionState.value = { mascot: true, bundled: false };
+    nativeIconZoomState.forId = 'legacy';
+    nativeIconZoomState.value = 1.25;
     let renderer: ReactTestRenderer | undefined;
     await act(async () => {
       renderer = create(React.createElement(DarwinHarness));
@@ -251,7 +259,11 @@ describe('useBrandIconSync native dock icon composition', () => {
     void renderer;
 
     expect(composeMacOSDockIcon).toHaveBeenCalledTimes(1);
-    expect(composeMacOSDockIcon).toHaveBeenCalledWith('dock:legacy', { inset: 100 });
+    expect(composeMacOSDockIcon).toHaveBeenCalledWith('dock:legacy', {
+      inset: 100,
+      zoom: 1.25,
+      fillTileBackground: true,
+    });
     expect(setApplicationBrandIcon).toHaveBeenCalledWith('b64');
   });
 });
