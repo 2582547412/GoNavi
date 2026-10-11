@@ -4,7 +4,7 @@ import {
   SkinOutlined,
   TableOutlined,
   FolderOpenOutlined,
-  CloudDownloadOutlined,
+  LinkOutlined,
   SafetyCertificateOutlined,
   InfoCircleOutlined,
   AppstoreOutlined,
@@ -15,7 +15,7 @@ import AiSparkOutlined from '../../components/icons/AiSparkOutlined';
 import { AI_SETTINGS_NAV_ITEMS } from '../../components/ai/AISettingsSidebar';
 import LanguageSettingsPanel from '../../components/LanguageSettingsPanel';
 import WebAuthSettingsPanel from '../../components/WebAuthSettingsPanel';
-import CloudBackupSettings from '../../components/CloudBackupSettings';
+import ShortcutSettingsPane from '../../components/settings/ShortcutSettingsPane';
 import BrandIconPicker from '../../components/BrandIconPicker';
 import AIPanelErrorBoundary from '../../components/ai/AIPanelErrorBoundary';
 import {
@@ -60,7 +60,15 @@ export interface UseAppSettingsCenterRenderInput {
   renderSidebarMetadataSettingsPane: AppSettingsPanesRenderApi['renderSidebarMetadataSettingsPane'];
   renderSidebarObjectVisibilitySettingsPane: AppSettingsPanesRenderApi['renderSidebarObjectVisibilitySettingsPane'];
   renderProxySettingsContent: AppSettingsPanesRenderApi['renderProxySettingsContent'];
-  renderDownloadSourceSettingsContent: AppSettingsPanesRenderApi['renderDownloadSourceSettingsContent'];
+  setCapturingShortcutAction: AppProxySettingsApi['setCapturingShortcutAction'];
+  resetShortcutOptions: AppCoreStateApi['resetShortcutOptions'];
+  isMacRuntime: AppShellStateApi['isMacRuntime'];
+  shortcutOptions: AppCoreStateApi['shortcutOptions'];
+  activeShortcutPlatform: AppUpdateAndDiagnosticsApi['activeShortcutPlatform'];
+  capturingShortcutAction: AppProxySettingsApi['capturingShortcutAction'];
+  shortcutConflictMap: AppProxySettingsApi['shortcutConflictMap'];
+  resolvedMonoFontFamily: AppShellStateApi['resolvedMonoFontFamily'];
+  updateShortcut: AppCoreStateApi['updateShortcut'];
   darkMode: AppCoreStateApi['darkMode'];
   aiSettingsRenderNonce: AppShellStateApi['aiSettingsRenderNonce'];
   handleAIPanelRenderError: AppWorkbenchActionsApi['handleAIPanelRenderError'];
@@ -108,7 +116,9 @@ export const useAppSettingsCenterRender = ({
   toolCenterDetailBodyStyle, utilityPanelStyle, overlayTheme, utilityMutedTextStyle,
   renderThemeSettingsContent, renderSidebarMetadataSettingsPane,
   renderSidebarObjectVisibilitySettingsPane, renderProxySettingsContent,
-  renderDownloadSourceSettingsContent, darkMode, aiSettingsRenderNonce, handleAIPanelRenderError,
+  setCapturingShortcutAction, resetShortcutOptions, isMacRuntime, shortcutOptions,
+  activeShortcutPlatform, capturingShortcutAction, shortcutConflictMap, resolvedMonoFontFamily,
+  updateShortcut, darkMode, aiSettingsRenderNonce, handleAIPanelRenderError,
   handleRetryAISettingsRender, LazyAISettingsContent, isSettingsModalOpen, aiSettingsSection,
   aiSettingsProviderView, handleCancelSettingsCenterPane, handlePrepareExternalMCPUse,
   registerAISettingsLeaveGuard, applicationQuitModalZIndex, renderSettingsCenterAboutPane,
@@ -179,6 +189,13 @@ export const useAppSettingsCenterRender = ({
                   description: t('app.settings.entry.brand_icon.description'),
                   onClick: () => handleOpenSettingsCenterPane('preferences', 'brand-icon'),
               },
+              {
+                  key: 'shortcut-settings',
+                  icon: <LinkOutlined />,
+                  title: t('app.tools.entry.shortcuts.title'),
+                  description: t('app.tools.entry.shortcuts.description'),
+                  onClick: () => handleOpenSettingsCenterPane('preferences', 'shortcut-settings'),
+              },
           ],
       },
       {
@@ -194,13 +211,6 @@ export const useAppSettingsCenterRender = ({
                   description: t('app.settings.entry.proxy.description'),
                   onClick: () => handleOpenSettingsCenterPane('services', 'proxy'),
               },
-              {
-                  key: 'download-source',
-                  icon: <CloudDownloadOutlined />,
-                  title: t('app.settings.entry.download_source.title'),
-                  description: t('app.settings.entry.download_source.description'),
-                  onClick: () => handleOpenSettingsCenterPane('services', 'download-source'),
-              },
               ...(isWebRuntime ? [{
                   key: 'web-auth' as const,
                   icon: <SafetyCertificateOutlined />,
@@ -208,13 +218,6 @@ export const useAppSettingsCenterRender = ({
                   description: t('app.settings.entry.web_auth.description'),
                   onClick: () => handleOpenSettingsCenterPane('services', 'web-auth'),
               }] : []),
-              {
-                  key: 'cloud-backup',
-                  icon: <CloudDownloadOutlined />,
-                  title: t('app.settings.entry.cloud_backup.title'),
-                  description: t('app.settings.entry.cloud_backup.description'),
-                  onClick: () => handleOpenSettingsCenterPane('services', 'cloud-backup'),
-              },
               {
                   key: 'ai',
                   icon: <AiSparkOutlined />,
@@ -314,6 +317,25 @@ export const useAppSettingsCenterRender = ({
               </div>
           );
       }
+      if (activeSettingsCenterPane.key === 'shortcut-settings') {
+          return (
+              <ShortcutSettingsPane
+                  t={t}
+                  darkMode={darkMode}
+                  utilityPanelStyle={utilityPanelStyle}
+                  isMacRuntime={isMacRuntime}
+                  shortcutOptions={shortcutOptions}
+                  activeShortcutPlatform={activeShortcutPlatform}
+                  capturingShortcutAction={capturingShortcutAction}
+                  setCapturingShortcutAction={setCapturingShortcutAction}
+                  shortcutConflictMap={shortcutConflictMap}
+                  resolvedMonoFontFamily={resolvedMonoFontFamily}
+                  updateShortcut={updateShortcut}
+                  resetShortcutOptions={resetShortcutOptions}
+                  onClose={handleCancelSettingsCenterPane}
+              />
+          );
+      }
       if (activeSettingsCenterPane.key === 'theme') {
           return (
               <div style={{ height: '100%', minHeight: 0 }}>
@@ -330,9 +352,6 @@ export const useAppSettingsCenterRender = ({
       if (activeSettingsCenterPane.key === 'proxy') {
           return renderProxySettingsContent();
       }
-      if (activeSettingsCenterPane.key === 'download-source') {
-          return renderDownloadSourceSettingsContent();
-      }
       if (activeSettingsCenterPane.key === 'web-auth') {
           return (
               <WebAuthSettingsPanel
@@ -341,11 +360,6 @@ export const useAppSettingsCenterRender = ({
                 mutedColor={String(utilityMutedTextStyle.color || overlayTheme.mutedText)}
                 titleColor={overlayTheme.titleText}
               />
-          );
-      }
-      if (activeSettingsCenterPane.key === 'cloud-backup') {
-          return (
-              <CloudBackupSettings t={t} />
           );
       }
       if (activeSettingsCenterPane.key === 'ai') {

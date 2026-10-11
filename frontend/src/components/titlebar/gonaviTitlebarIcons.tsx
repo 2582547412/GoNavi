@@ -86,8 +86,41 @@ export function TitlebarPlugIcon({ size, className }: GonaviTitlebarIconProps) {
   );
 }
 
-/** 表格（新建查询）：顶行与左列实心、右下留空的网格，带绿色加号角标。 */
-export function TitlebarGridIcon({ size, className }: GonaviTitlebarIconProps) {
+/** 双向箭头（连接工具）：连接配置的导入与导出，兼含健康检查；不用插头，避免与「新建连接」混淆。 */
+export function TitlebarConnectionToolsIcon({ size, className }: GonaviTitlebarIconProps) {
+  const primary = GONAVI_TITLEBAR_ICON_COLORS.primary;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={resolveSize(size)}
+      height={resolveSize(size)}
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      {/* 上箭头向右：导出连接配置 */}
+      <path
+        d="M4.6 8.6h13.5M15 5.5l3.1 3.1-3.1 3.1"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        style={{ stroke: primary }}
+      />
+      {/* 下箭头向左：导入连接配置 */}
+      <path
+        d="M19.4 15.4H5.9M9 12.3 5.9 15.4 9 18.5"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        style={{ stroke: primary }}
+      />
+    </svg>
+  );
+}
+
+/** 表格（新建查询）：顶行与左列实心、右下留空的网格，带绿色加号角标。 */export function TitlebarGridIcon({ size, className }: GonaviTitlebarIconProps) {
   const soft = GONAVI_TITLEBAR_ICON_COLORS.primarySoft;
   const primary = GONAVI_TITLEBAR_ICON_COLORS.primary;
   return (

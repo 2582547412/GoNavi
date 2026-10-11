@@ -1,4 +1,9 @@
-/** How to open a settings-center destination through `onOpenSettingsNavigation`. */
+/**
+ * How to open a settings-center destination through `onOpenSettingsNavigation`.
+ * `'workflow'` is not a settings-center group any more, but stays a valid target
+ * because title-bar 数据同步/数据对比 entries navigate with it and the handler
+ * dispatches on `action` alone.
+ */
 export type SettingsCenterNavigationTarget = {
   group: 'preferences' | 'services' | 'config' | 'workflow' | 'workspace' | 'about';
   pane?: string;
@@ -7,6 +12,8 @@ export type SettingsCenterNavigationTarget = {
   action?:
     | 'import-connections'
     | 'export-connections'
+    | 'connection-health'
+    | 'cloud-backup'
     | 'schema-compare'
     | 'data-compare'
     | 'compare'
@@ -72,12 +79,11 @@ export const SETTINGS_CENTER_MENU_CATALOG: ReadonlyArray<SettingsCenterMenuNode>
   )),
   pane('preferences', 'sidebar-metadata', 'app.settings.sidebar_metadata'),
   pane('preferences', 'sidebar-objects', 'app.settings.sidebar_objects'),
+  pane('preferences', 'shortcut-settings', 'app.tools.entry.shortcuts'),
 
   group('services', 'app.settings.group.services.title', 'app.settings.group.services.description'),
   pane('services', 'proxy', 'app.settings.entry.proxy'),
-  pane('services', 'download-source', 'app.settings.entry.download_source'),
   { ...pane('services', 'web-auth', 'app.settings.entry.web_auth'), webOnly: true },
-  pane('services', 'cloud-backup', 'app.settings.entry.cloud_backup'),
   pane('services', 'ai', 'app.settings.entry.ai'),
   ...AI_SECTIONS.map((section) => pane(
     'services',
@@ -94,9 +100,6 @@ export const SETTINGS_CENTER_MENU_CATALOG: ReadonlyArray<SettingsCenterMenuNode>
   },
 
   group('config', 'app.tools.group.config.title', 'app.tools.group.config.description'),
-  pane('config', 'import', 'app.tools.entry.import'),
-  pane('config', 'export', 'app.tools.entry.export', { action: 'export-connections' }),
-  pane('config', 'connection-health', 'app.tools.entry.connection_health'),
   pane('config', 'data-root', 'app.tools.entry.data_root'),
   {
     group: 'config',
@@ -108,18 +111,6 @@ export const SETTINGS_CENTER_MENU_CATALOG: ReadonlyArray<SettingsCenterMenuNode>
   pane('config', 'data-root-agent', 'app.data_root.agent_data'),
   pane('config', 'data-root-saved-queries', 'app.data_root.saved_query_directory'),
   pane('config', 'security-update', 'app.tools.entry.security_update'),
-
-  group('workflow', 'app.tools.group.workflow.title', 'app.tools.group.workflow.description'),
-  pane('workflow', 'sync', 'app.tools.entry.sync', { action: 'sync' }),
-  pane('workflow', 'compare', 'app.tools.entry.compare', { action: 'compare' }),
-
-  group('workspace', 'app.tools.group.workspace.title', 'app.tools.group.workspace.description'),
-  pane('workspace', 'drivers', 'app.tools.entry.drivers', { action: 'drivers' }),
-  pane('workspace', 'snippet-settings', 'app.tools.entry.snippets'),
-  pane('workspace', 'shortcut-settings', 'app.tools.entry.shortcuts'),
-  pane('workspace', 'sql-audit', 'app.tools.entry.sql_audit', { action: 'sql-audit' }),
-  pane('workspace', 'request-diagnostics', 'app.tools.entry.request_diagnostics', { action: 'request-diagnostics' }),
-  pane('workspace', 'dml-snapshot', 'dml_snapshot.workbench', { action: 'dml-snapshot' }),
 
   {
     group: 'about',

@@ -39,7 +39,7 @@ import {
   type ConnectionPackageDialogState,
   createClosedConnectionPackageDialogState,
 } from '../connectionPackageImport';
-import type { ConnectionImportNotice } from '../../components/settings/ConnectionImportSettingsPanel';
+import type { ConnectionImportNotice } from '../../components/settings/connectionImportPlacement';
 import { createLazyAIChatPanel, createLazyAISettingsContent } from '../appLayoutParts';
 import {
   resolveDocumentPlatform,
@@ -149,7 +149,6 @@ export const useAppShellState = ({
   const [connectionImportTargetTagId, setConnectionImportTargetTagId] = useState('');
   const [connectionImportNotice, setConnectionImportNotice] = useState<ConnectionImportNotice | null>(null);
   const browserConnectionImportInputRef = useRef<HTMLInputElement>(null);
-  const browserConnectionImportSourceGroupRef = useRef<ToolCenterGroupKey | undefined>(undefined);
   const [aiPanelRenderNonce, setAiPanelRenderNonce] = useState(0);
   const [aiSettingsRenderNonce, setAiSettingsRenderNonce] = useState(0);
   const LazyAIChatPanel = useMemo(createLazyAIChatPanel, [aiPanelRenderNonce]);
@@ -309,7 +308,7 @@ export const useAppShellState = ({
     setConnectionPackageDialog, pendingConnectionImportPayload, setPendingConnectionImportPayload,
     connectionImportTargetTagId, setConnectionImportTargetTagId, connectionImportNotice,
     setConnectionImportNotice, browserConnectionImportInputRef,
-    browserConnectionImportSourceGroupRef, aiPanelRenderNonce, setAiPanelRenderNonce,
+    aiPanelRenderNonce, setAiPanelRenderNonce,
     aiSettingsRenderNonce, setAiSettingsRenderNonce, LazyAIChatPanel, LazyAISettingsContent,
     sidebarWidth, setSidebarWidth, documentPlatform, isMacRuntime,
     shouldDockCollapsedSidebarActionsInTitlebar, collapsedSidebarActionsTarget,
