@@ -61,16 +61,22 @@ func run(ctx context.Context, repoName, prText, sha string, gateOnly bool, env f
 	findings := reviewFiles(files)
 	modelSummary := ""
 	modelNotice := ""
+	modelInfo := "未配置语义模型"
 	if !gateOnly {
-		summary, modelFindings, modelErr := reviewWithFreeModels(ctx, nil, env, files)
+		summary, modelFindings, modelLabel, modelErr := reviewWithFreeModels(ctx, nil, env, files)
 		if modelErr != nil {
 			// 失败写进评论自曝，避免语义评审静默失效。
 			modelNotice = "模型评审本次不可用：" + clipText(modelErr.Error(), 300)
+			modelInfo = ""
 			fmt.Fprintf(os.Stderr, "模型评审跳过：%v\n", modelErr)
-		} else {
+		} else if modelLabel != "" {
 			modelSummary = summary
+			modelInfo = modelLabel
 			findings = append(findings, modelFindings...)
 		}
+	} else {
+		// gate-only 不重跑模型，概览里不提模型。
+		modelInfo = ""
 	}
 	checks, err := client.listCheckRuns(ctx, sha)
 	if err != nil {
@@ -83,7 +89,13 @@ func run(ctx context.Context, repoName, prText, sha string, gateOnly bool, env f
 		}
 		return nil
 	}
-	body := renderComment(findings, modelSummary, modelNotice, gate)
+	body := renderComment(reviewReport{
+		stats:        renderStatsSection(computeDiffStats(files), findings, localeSync(files), modelInfo),
+		findings:     findings,
+		modelSummary: modelSummary,
+		modelNotice:  modelNotice,
+		gate:         gate,
+	})
 	if err := client.upsertComment(ctx, pr, body); err != nil {
 		return err
 	}
@@ -109,7 +121,12 @@ func refreshGateOnly(ctx context.Context, client *githubClient, pr int, gate str
 	if err != nil {
 		return err
 	}
-	return client.upsertComment(ctx, pr, renderComment(reviewFiles(files), "", "", gate))
+	findings := reviewFiles(files)
+	return client.upsertComment(ctx, pr, renderComment(reviewReport{
+		stats:    renderStatsSection(computeDiffStats(files), findings, localeSync(files), ""),
+		findings: findings,
+		gate:     gate,
+	}))
 }
 
 func resolvePullRequest(ctx context.Context, client *githubClient, prText, sha string) (int, error) {

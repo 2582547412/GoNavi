@@ -82,7 +82,7 @@ func TestRenderCommentAndInlineComments(t *testing.T) {
 		{Path: "a.go", Line: 3, Severity: severityError, Rule: "panic-in-runtime", Message: "不要 panic"},
 		{Path: "b.tsx", Line: 4, Severity: severityWarning, Rule: "hardcoded-ui-text", Message: "走 i18n"},
 	}
-	body := renderComment(findings, "看起来还有一个空指针。", "", "")
+	body := renderComment(reviewReport{findings: findings, modelSummary: "看起来还有一个空指针。"})
 	if !containsAll(body, reviewMarker, "需要处理", "建议", "模型评审", "a.go", "b.tsx") {
 		t.Fatalf("comment = %s", body)
 	}
@@ -90,13 +90,14 @@ func TestRenderCommentAndInlineComments(t *testing.T) {
 	if len(comments) != 1 || comments[0].Path != "a.go" || comments[0].Line != 3 {
 		t.Fatalf("inline = %#v", comments)
 	}
-	if renderComment(nil, "", "", "") == "" || !containsAll(renderComment(nil, "", "", ""), "没有发现") {
+	empty := renderComment(reviewReport{})
+	if empty == "" || !containsAll(empty, "没有发现") {
 		t.Fatal("empty review should still reply")
 	}
 }
 
 func TestRenderCommentShowsModelFailureNotice(t *testing.T) {
-	body := renderComment(nil, "", "模型评审本次不可用：groq: 模型接口返回 HTTP 404", "")
+	body := renderComment(reviewReport{modelNotice: "模型评审本次不可用：groq: 模型接口返回 HTTP 404"})
 	if !containsAll(body, "模型评审", "HTTP 404") {
 		t.Fatalf("notice = %s", body)
 	}
@@ -143,11 +144,11 @@ func TestGateReportFollowsCIGateCheck(t *testing.T) {
 }
 
 func TestRefreshGateSectionReplacesOnlyGate(t *testing.T) {
-	old := renderComment(
-		[]Finding{{Path: "a.go", Line: 3, Severity: severityError, Rule: "panic-in-runtime", Message: "不要 panic"}},
-		"模型还有一处空指针。", "",
-		gateReport([]checkRun{{Name: gateCheckName, Status: "in_progress"}}),
-	)
+	old := renderComment(reviewReport{
+		findings:     []Finding{{Path: "a.go", Line: 3, Severity: severityError, Rule: "panic-in-runtime", Message: "不要 panic"}},
+		modelSummary: "模型还有一处空指针。",
+		gate:         gateReport([]checkRun{{Name: gateCheckName, Status: "in_progress"}}),
+	})
 	updated, ok := refreshGateSection(old, gateReport([]checkRun{
 		{Name: gateCheckName, Status: "completed", Conclusion: "success"},
 	}))

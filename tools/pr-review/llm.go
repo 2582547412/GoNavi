@@ -74,20 +74,21 @@ func customModelEndpoint(env func(string) string, key string) modelEndpoint {
 }
 
 // reviewWithFreeModels 依次尝试可用的免费或自定义模型。都失败时返回最后一个错误。
-func reviewWithFreeModels(ctx context.Context, client *http.Client, env func(string) string, files []FileChange) (string, []Finding, error) {
+// 成功时一并返回端点标签（如 groq · openai/gpt-oss-120b），供变更概览展示。
+func reviewWithFreeModels(ctx context.Context, client *http.Client, env func(string) string, files []FileChange) (string, []Finding, string, error) {
 	endpoints := freeModelEndpoints(env)
 	if len(endpoints) == 0 {
-		return "", nil, nil
+		return "", nil, "", nil
 	}
 	var lastErr error
 	for _, endpoint := range endpoints {
 		summary, findings, err := reviewWithModel(ctx, client, endpoint.BaseURL, endpoint.APIKey, endpoint.Model, files)
 		if err == nil {
-			return summary, findings, nil
+			return summary, findings, endpoint.Name + " · " + endpoint.Model, nil
 		}
 		lastErr = fmt.Errorf("%s: %w", endpoint.Name, err)
 	}
-	return "", nil, lastErr
+	return "", nil, "", lastErr
 }
 
 // reviewWithModel 把 diff 交给 OpenAI 兼容接口。失败时返回错误，调用方仍发布规约评审。
