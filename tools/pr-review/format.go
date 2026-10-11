@@ -24,7 +24,7 @@ type reviewReport struct {
 func renderComment(report reviewReport) string {
 	var b strings.Builder
 	b.WriteString(reviewMarker)
-	b.WriteString("\n## GoNavi 自动评审\n\n")
+	b.WriteString("\n\n")
 	if report.stats != "" {
 		b.WriteString(report.stats)
 		b.WriteString("\n")
