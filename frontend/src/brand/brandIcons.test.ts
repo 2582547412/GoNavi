@@ -11,9 +11,11 @@ import {
   resolveBrandIcon,
   resolveBrandIconSrc,
   resolveBrandIconRemoteSrc,
+  resolveBrandNativeIconZoom,
   resolveBrandTitlebarSrc,
   BRAND_ICON_FALLBACK_SRC,
   DEFAULT_BRAND_ICON_ID,
+  RIBBON_TILE_ART_FRACTION,
   sanitizeBrandIconId,
   setLoadedBrandIconSources,
 } from './brandIcons';
@@ -102,6 +104,21 @@ describe('brand icon asset resolution', () => {
     // white-tile Dock safe-area inset and shrink the running default icon.
     expect(resolveBrandIcon('01').mascot).toBeFalsy();
     expect(resolveBrandIcon('01').bundled).toBe(true);
+  });
+
+  it('scales the Windows native tile per asset family framing', () => {
+    // Ribbon SVGs frame their tile at ~80% of the canvas; cropping exactly
+    // that breathing margin makes the visible tile read full-bleed like
+    // neighbouring apps (the user-reported "icon is ~20% too small").
+    expect(resolveBrandNativeIconZoom('02')).toBeCloseTo(1 / RIBBON_TILE_ART_FRACTION);
+    expect(resolveBrandNativeIconZoom('06')).toBeCloseTo(1 / RIBBON_TILE_ART_FRACTION);
+    // Remote mascots compose from server-trimmed transparent artwork that
+    // already fills the canvas; cropping would clip the mark itself.
+    expect(resolveBrandNativeIconZoom('09')).toBe(1);
+    // The bundled full-bleed default must never be cropped.
+    expect(resolveBrandNativeIconZoom('01')).toBe(1);
+    // Unknown ids resolve to the default definition (full-bleed) → no crop.
+    expect(resolveBrandNativeIconZoom('nope')).toBe(1);
   });
 
   it('fetches only ribbons and the selected icon at startup, mascot previews on demand', () => {

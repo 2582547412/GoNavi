@@ -308,6 +308,23 @@ export function resolveBrandNativeSrc(id?: unknown): string {
   }
   return resolveBrandDockSrc(id);
 }
+
+/** Zoom for composing the Windows native tile so its visible artwork reads at
+ * the same size as the picker previews and neighbouring apps' full-bleed
+ * icons. Ribbon SVGs frame their tile at RIBBON_TILE_ART_FRACTION (the exact
+ * ~20% margin users reported as "the icon is too small"), bundled mascot
+ * artworks carry white margins measured against BUNDLED_BRAND_ICON_ZOOM, and
+ * full-bleed or server-trimmed artwork already fills the canvas. */
+export function resolveBrandNativeIconZoom(id?: unknown): number {
+  const definition = resolveBrandIcon(id);
+  if (definition.mascot) {
+    return definition.bundled ? BUNDLED_BRAND_ICON_ZOOM : 1;
+  }
+  if (definition.slug.startsWith('ribbon-') && !definition.bundled) {
+    return 1 / RIBBON_TILE_ART_FRACTION;
+  }
+  return 1;
+}
 export function resolveBrandDockSrc(id?: unknown): string {
   const definition = resolveBrandIcon(id);
   return loadedBrandAssetSources.get(definition.id) || (definition.bundled ? definition.iconPath : '');

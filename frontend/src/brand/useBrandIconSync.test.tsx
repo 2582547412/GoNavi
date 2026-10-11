@@ -26,6 +26,8 @@ const environmentState = vi.hoisted(() => ({ shouldSync: false, platform: 'windo
 const brandDefinitionState = vi.hoisted(() => ({
   value: { mascot: true } as { mascot?: boolean; bundled?: boolean },
 }));
+// Windows 原生合成的取景缩放：默认 1（不裁切），按用例覆写断言透传。
+const nativeIconZoomState = vi.hoisted(() => ({ value: 1 }));
 
 vi.mock('antd', () => ({ message: messageApi }));
 vi.mock('../store', () => ({
@@ -45,6 +47,7 @@ vi.mock('./brandIcons', () => ({
   resolveBrandIconSrc: () => 'asset:icon',
   resolveBrandDockSrc: (id: string) => `dock:${id}`,
   resolveBrandNativeSrc: (id: string) => `dock:${id}`,
+  resolveBrandNativeIconZoom: () => nativeIconZoomState.value,
   resolveBrandIcon: () => brandDefinitionState.value,
   brandAssetKeysFor: () => [],
   startupBrandAssetKeys: () => ['startup-keys'],
@@ -167,6 +170,23 @@ describe('useBrandIconSync handleBrandIconChange', () => {
     expect(storeState.setBrandIconId).toHaveBeenCalledWith('aurora');
     expect(messageApi.success).toHaveBeenCalledTimes(1);
     expect(messageApi.error).not.toHaveBeenCalled();
+  });
+
+  it('passes the asset-family native zoom into the Windows tile composition', async () => {
+    nativeIconZoomState.value = 1.25;
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(React.createElement(Harness));
+    });
+
+    setApplicationBrandIcon.mockImplementationOnce(async () => ({ success: true }));
+    await act(async () => {
+      await capturedHandler('aurora' as BrandIconId);
+    });
+    void renderer;
+
+    expect(composeWindowsNativeIcon).toHaveBeenCalledWith('dock:aurora', { zoom: 1.25 });
+    expect(setApplicationBrandIcon).toHaveBeenCalledWith('b64');
   });
 });
 
