@@ -26,8 +26,8 @@ const environmentState = vi.hoisted(() => ({ shouldSync: false, platform: 'windo
 const brandDefinitionState = vi.hoisted(() => ({
   value: { mascot: true } as { mascot?: boolean; bundled?: boolean },
 }));
-// Windows 原生合成的取景缩放：默认 1（不裁切），按用例覆写断言透传。
-const nativeIconZoomState = vi.hoisted(() => ({ value: 1 }));
+// Windows 原生合成的取景缩放：按 id 返回（捕获传错 id 的回归），默认 1。
+const nativeIconZoomState = vi.hoisted(() => ({ forId: '', value: 1 }));
 
 vi.mock('antd', () => ({ message: messageApi }));
 vi.mock('../store', () => ({
@@ -47,7 +47,8 @@ vi.mock('./brandIcons', () => ({
   resolveBrandIconSrc: () => 'asset:icon',
   resolveBrandDockSrc: (id: string) => `dock:${id}`,
   resolveBrandNativeSrc: (id: string) => `dock:${id}`,
-  resolveBrandNativeIconZoom: () => nativeIconZoomState.value,
+  resolveBrandNativeIconZoom: (id: unknown) =>
+    String(id) === nativeIconZoomState.forId ? nativeIconZoomState.value : 1,
   resolveBrandIcon: () => brandDefinitionState.value,
   brandAssetKeysFor: () => [],
   startupBrandAssetKeys: () => ['startup-keys'],
@@ -99,6 +100,8 @@ describe('useBrandIconSync handleBrandIconChange', () => {
     messageApi.warning.mockClear();
     messageApi.error.mockClear();
     setApplicationBrandIcon.mockReset();
+    nativeIconZoomState.forId = '';
+    nativeIconZoomState.value = 1;
     storeState.brandIconId = 'legacy';
     storeState.setBrandIconId = (id: string) => { storeState.brandIconId = id; };
     vi.spyOn(storeState, 'setBrandIconId');
@@ -173,6 +176,9 @@ describe('useBrandIconSync handleBrandIconChange', () => {
   });
 
   it('passes the asset-family native zoom into the Windows tile composition', async () => {
+    // forId 限定让 mock 只对被选 id 生效：实现若误传 previousId 或别的
+    // id，这里会拿到 1 而不是 1.25，断言即失败。
+    nativeIconZoomState.forId = 'aurora';
     nativeIconZoomState.value = 1.25;
     let renderer: ReactTestRenderer | undefined;
     await act(async () => {
