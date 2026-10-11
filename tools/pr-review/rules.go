@@ -115,35 +115,47 @@ func reviewAddedLines(filename, patch string) []Finding {
 	return findings
 }
 
-func reviewI18nLocales(files []FileChange) []Finding {
-	changed := map[string]string{}
+// localeSyncInfo 描述这次 PR 对六语言目录的覆盖情况。
+type localeSyncInfo struct {
+	involved bool
+	missing  []string
+	sample   string
+}
+
+// localeSync 检查改文案时六语言文件是否一起更新。
+func localeSync(files []FileChange) localeSyncInfo {
+	changed := map[string]struct{}{}
+	var info localeSyncInfo
 	for _, file := range files {
 		name := path.Clean(file.Filename)
 		if !strings.HasPrefix(name, "shared/i18n/") || !strings.HasSuffix(name, ".json") || file.Status == "removed" {
 			continue
 		}
-		changed[path.Base(name)] = name
+		if !info.involved {
+			info.sample = name
+			info.involved = true
+		}
+		changed[path.Base(name)] = struct{}{}
 	}
-	if len(changed) == 0 {
-		return nil
+	if !info.involved {
+		return info
 	}
-	var missing []string
 	for _, locale := range localeFiles {
 		if _, ok := changed[locale]; !ok {
-			missing = append(missing, locale)
+			info.missing = append(info.missing, locale)
 		}
 	}
-	if len(missing) == 0 {
+	return info
+}
+
+func reviewI18nLocales(files []FileChange) []Finding {
+	info := localeSync(files)
+	if !info.involved || len(info.missing) == 0 {
 		return nil
 	}
-	var sample string
-	for _, name := range changed {
-		sample = name
-		break
-	}
 	return []Finding{{
-		Path: sample, Severity: severityWarning, Rule: "i18n-locale-drift",
-		Message: "改了文案但这些语言文件没有一起更新：" + strings.Join(missing, "、") + "。",
+		Path: info.sample, Severity: severityWarning, Rule: "i18n-locale-drift",
+		Message: "改了文案但这些语言文件没有一起更新：" + strings.Join(info.missing, "、") + "。",
 	}}
 }
 

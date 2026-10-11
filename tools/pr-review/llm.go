@@ -34,6 +34,7 @@ type modelEndpoint struct {
 
 // freeModelEndpoints 按 coco-framework-agent 的方式接 OpenAI 兼容接口。
 // 显式配置优先；否则使用已填写的免费额度密钥，顺序为 Groq、Gemini、OpenRouter。
+// 免费档模型 ID 会下线（返回 HTTP 404），失效时按 provider 文档换现役模型。
 func freeModelEndpoints(env func(string) string) []modelEndpoint {
 	if env == nil {
 		return nil
@@ -44,7 +45,7 @@ func freeModelEndpoints(env func(string) string) []modelEndpoint {
 	var endpoints []modelEndpoint
 	if key := strings.TrimSpace(env("GROQ_API_KEY")); key != "" {
 		endpoints = append(endpoints, modelEndpoint{
-			Name: "groq", BaseURL: "https://api.groq.com/openai/v1", APIKey: key, Model: "llama-3.3-70b-versatile",
+			Name: "groq", BaseURL: "https://api.groq.com/openai/v1", APIKey: key, Model: "openai/gpt-oss-120b",
 		})
 	}
 	if key := strings.TrimSpace(env("GEMINI_API_KEY")); key != "" {
@@ -73,20 +74,21 @@ func customModelEndpoint(env func(string) string, key string) modelEndpoint {
 }
 
 // reviewWithFreeModels 依次尝试可用的免费或自定义模型。都失败时返回最后一个错误。
-func reviewWithFreeModels(ctx context.Context, client *http.Client, env func(string) string, files []FileChange) (string, []Finding, error) {
+// 成功时一并返回端点标签（如 groq · openai/gpt-oss-120b），供变更概览展示。
+func reviewWithFreeModels(ctx context.Context, client *http.Client, env func(string) string, files []FileChange) (string, []Finding, string, error) {
 	endpoints := freeModelEndpoints(env)
 	if len(endpoints) == 0 {
-		return "", nil, nil
+		return "", nil, "", nil
 	}
 	var lastErr error
 	for _, endpoint := range endpoints {
 		summary, findings, err := reviewWithModel(ctx, client, endpoint.BaseURL, endpoint.APIKey, endpoint.Model, files)
 		if err == nil {
-			return summary, findings, nil
+			return summary, findings, endpoint.Name + " · " + endpoint.Model, nil
 		}
 		lastErr = fmt.Errorf("%s: %w", endpoint.Name, err)
 	}
-	return "", nil, lastErr
+	return "", nil, "", lastErr
 }
 
 // reviewWithModel 把 diff 交给 OpenAI 兼容接口。失败时返回错误，调用方仍发布规约评审。
@@ -99,7 +101,7 @@ func reviewWithModel(ctx context.Context, client *http.Client, baseURL, apiKey, 
 	}
 	model = strings.TrimSpace(model)
 	if model == "" {
-		model = "llama-3.3-70b-versatile"
+		model = "openai/gpt-oss-120b"
 	}
 	payload := map[string]any{
 		"model": model,
