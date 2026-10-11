@@ -19,7 +19,8 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_run:
     # Backend Tests 结束后只刷新同一条评论里的 CI 门禁状态（-gate-only）。
-    # pull_requests 数组经常为空，PR 由程序按 head SHA 匹配开放列表兜底。
+    # 不要用 event 里的 pull_requests 数组：push 触发时它会填陈旧或错误的
+    # PR 关联，PR 一律由程序按 head SHA 匹配开放 PR 列表。
     workflows: ["Backend Tests"]
     types: [completed]
   workflow_dispatch:
@@ -69,7 +70,7 @@ jobs:
           PR_REVIEW_API_KEY: ${{ secrets.PR_REVIEW_API_KEY }}
           PR_REVIEW_API_BASE: ${{ vars.PR_REVIEW_API_BASE }}
           PR_REVIEW_MODEL: ${{ vars.PR_REVIEW_MODEL }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number || github.event.inputs.pr }}
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.workflow_run.head_sha }}
         run: |
           args=(-repo "${{ github.repository }}" -sha "${HEAD_SHA}")
