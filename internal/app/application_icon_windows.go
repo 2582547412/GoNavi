@@ -38,6 +38,11 @@ const (
 	windowsShellChangeUpdateItem = 0x00002000
 	windowsShellChangeUpdateDir  = 0x04000000
 	windowsShellChangePathFlags  = 0x0005 | 0x1000
+	// SHCNE_ASSOCCHANGED 配 SHCNF_IDLIST(0x0000)|SHCNF_FLUSH：唯一能让
+	// Explorer 重读固定任务栏按钮图标的刷新（UPDATEITEM/UPDATEDIR/属性提交
+	// 均无效，见 windowsGoNaviShortcutNamesIn 注释的实测结论）。
+	windowsShellChangeAssociationChanged = 0x08000000
+	windowsShellChangeFlushFlags         = 0x1000
 )
 
 var (
@@ -80,6 +85,8 @@ var (
 		)
 	}
 
+	windowsApplicationIconNotifyAssociationChanged = notifyWindowsAssociationChanged
+
 	windowsApplicationIconSendMessageCall = func(hwnd, message, wParam, lParam uintptr) uintptr {
 		result, _, _ := windowsApplicationIconSendMessage.Call(hwnd, message, wParam, lParam)
 		return result
@@ -95,6 +102,7 @@ var (
 	windowsApplicationIconLoad                 = loadWindowsApplicationIcon
 	windowsApplicationIconSystemDPI            = currentWindowsSystemDPI
 	windowsRefreshTaskbarButton                = refreshWindowsTaskbarButton
+	windowsRecreateTaskbarButtonForPinRefresh  = recreateWindowsTaskbarButtonForPinRefresh
 	windowsApplicationIconDestroyCall          = destroyWindowsApplicationIcon
 	windowsUpdateCurrentApplicationShortcuts   = updateCurrentWindowsApplicationShortcuts
 )
@@ -337,6 +345,22 @@ func windowsRefreshPinnedTaskbarIcon() bool {
 	return true
 }
 
+// notifyWindowsAssociationChanged flushes the global shell association cache.
+// It is the only refresh Explorer honours for an already created taskbar
+// button that is merged with a pinned shortcut: per-item notifications, the
+// window property store, WM_SETICON and ITaskbarList DeleteTab/AddTab all
+// leave that button's icon snapshot untouched. The cost — Explorer redrawing
+// every desktop icon once — confines its use to live brand switches while a
+// GoNavi pin exists.
+func notifyWindowsAssociationChanged() {
+	windowsApplicationIconChangeNotify.Call(
+		windowsShellChangeAssociationChanged,
+		windowsShellChangeFlushFlags,
+		0,
+		0,
+	)
+}
+
 func windowsSendShortcutRefreshNotifications() {
 	for _, directory := range windowsKnownGoNaviShortcutDirectories() {
 		for _, name := range windowsGoNaviShortcutNamesIn(directory) {
@@ -424,13 +448,18 @@ func windowsHandlePinsChange(runtimeContext context.Context, configDir string, a
 			logger.Warnf("固定项新增后重写 Windows 快捷方式图标失败：%v", err)
 			return false
 		}
+		windowsRefreshPinnedTaskbarIcon()
 	} else {
 		if _, err := setCurrentWindowsApplicationIcon(runtimeContext, iconPath); err != nil {
 			logger.Warnf("固定项移除后重应用 Windows 品牌图标失败：%v", err)
 			return false
 		}
+		windowsRefreshPinnedTaskbarIcon()
+		// 取消固定后按钮仍保留固定时期的图标快照，单项通知不会让它重采样；
+		// 补一次全局关联刷新，按钮立即恢复当前品牌图标，否则要等下一次品牌
+		// 切换才追上。新增固定不需要：按钮刚按当前图标创建。
+		windowsApplicationIconNotifyAssociationChanged()
 	}
-	windowsRefreshPinnedTaskbarIcon()
 	return true
 }
 
@@ -526,6 +555,15 @@ func setApplicationIconPNG(pngBytes []byte, configDir string, runtimeContext con
 	if _, err := setCurrentWindowsApplicationIconMode(runtimeContext, iconPath, true); err != nil {
 		return err
 	}
+	// 任务栏按钮（无论是否固定、是否刚取消固定）在 Explorer 里持有的图标快
+	// 照对单项通知、窗口属性提交、DeleteTab/AddTab、WM_SETICON 都不重采样，
+	// 只在全局关联刷新时按当时的全部图标来源重读一次。刷新必须放在快捷方
+	// 式改写与窗口属性提交都完成之后：放在中间会让 Explorer 采样到「快捷方
+	// 式已是新图标、窗口属性还是旧图标」的中间态，表现为固定后首次切换不
+	// 生效、第二次切换才追上一次。每次实时切换都发送：无法区分「从未固定」
+	// 和「刚取消固定」，而后者的按钮同样带着过期快照；代价是 Explorer 重绘
+	// 一次桌面图标（切换本身已会让开始菜单列表闪烁）。
+	windowsApplicationIconNotifyAssociationChanged()
 	if err := activatePersistedWindowsApplicationIcon(iconPath, configDir); err != nil {
 		return err
 	}
@@ -679,6 +717,15 @@ func applyWindowsApplicationIconMode(hwnd uintptr, iconPath string, small, large
 	if err := windowsRefreshTaskbarButton(hwnd); err != nil {
 		logger.Warnf("重注册 Windows 任务栏按钮失败：%v", err)
 		return fmt.Errorf("refresh Windows taskbar icon: %w", err)
+	}
+	// 已固定且运行中的任务栏按钮图标是 Explorer 的快照，对单项通知、窗口
+	// 属性提交、DeleteTab/AddTab、WM_SETICON 乃至全局关联刷新都不重采样
+	// （桌面会重绘，固定按钮纹丝不动）。Explorer 唯一重新解析固定项图标
+	// 的路径是按钮创建——与启动期依赖的机制相同。存在本应用固定项时把主
+	// 窗口按原状态短暂隐藏再恢复，强制按钮销毁重建。窗口与按钮会闪烁一
+	// 次，仅实时切换路径执行；最小化/最大化状态经 WINDOWPLACEMENT 保留。
+	if len(windowsGoNaviTaskbarPinPaths()) > 0 {
+		windowsRecreateTaskbarButtonForPinRefresh(hwnd)
 	}
 	logger.Infof("Windows 图标应用完成：WM_SETICON/类图标/任务栏属性/按钮重注册均成功，ico=%s", iconPath)
 	return nil
