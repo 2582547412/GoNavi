@@ -12,6 +12,7 @@ import {
   resolveBrandIconSrc,
   resolveBrandIconRemoteSrc,
   resolveBrandNativeIconZoom,
+  resolveBrandNativeSrc,
   resolveBrandTitlebarSrc,
   BRAND_ICON_FALLBACK_SRC,
   DEFAULT_BRAND_ICON_ID,
@@ -112,13 +113,24 @@ describe('brand icon asset resolution', () => {
     // neighbouring apps (the user-reported "icon is ~20% too small").
     expect(resolveBrandNativeIconZoom('02')).toBeCloseTo(1 / RIBBON_TILE_ART_FRACTION);
     expect(resolveBrandNativeIconZoom('06')).toBeCloseTo(1 / RIBBON_TILE_ART_FRACTION);
-    // Remote mascots compose from server-trimmed transparent artwork that
-    // already fills the canvas; cropping would clip the mark itself.
+    // Mascots compose from the rounded white-tile webp: the tile fills the
+    // canvas with its own designed margins and transparent rounded corners,
+    // so any crop would square the corners off.
     expect(resolveBrandNativeIconZoom('09')).toBe(1);
     // The bundled full-bleed default must never be cropped.
     expect(resolveBrandNativeIconZoom('01')).toBe(1);
     // Unknown ids resolve to the default definition (full-bleed) → no crop.
     expect(resolveBrandNativeIconZoom('nope')).toBe(1);
+  });
+
+  it('composes remote mascots from the rounded white-tile webp, not the trimmed about png', () => {
+    // f9eaab56 routed mascots to the about-v2 transparent artwork while the
+    // webp still shipped a square white plate; the v2 webp now carries
+    // transparent rounded corners, so the tile artwork is the better native
+    // source (the trimmed dog spanned ~61% of the square canvas). Uses #12:
+    // the loaded-source map is module state and #09 is asserted elsewhere.
+    setLoadedBrandIconSources({ '12': 'asset:12-icon', '12-about': 'asset:12-about' });
+    expect(resolveBrandNativeSrc('12')).toBe('asset:12-icon');
   });
 
   it('fetches only ribbons and the selected icon at startup, mascot previews on demand', () => {
