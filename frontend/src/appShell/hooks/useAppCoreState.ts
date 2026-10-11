@@ -70,6 +70,7 @@ export const useAppCoreState = ({ setFocusedTabDisplayElementKey }: UseAppCoreSt
   const [isConnectionModalMounted, setIsConnectionModalMounted] = useState(false);
   const [editingConnection, setEditingConnection] = useState<SavedConnection | null>(null);
   const [connectionHealthTargetIds, setConnectionHealthTargetIds] = useState<string[]>([]);
+  const [connectionHealthDialogOpen, setConnectionHealthDialogOpen] = useState(false);
   const pendingConnectionTagIdRef = useRef<string | null>(null);
   const connectionModalWarmupDoneRef = useRef(false);
   const windowState = useStore(state => state.windowState);
@@ -325,12 +326,13 @@ export const useAppCoreState = ({ setFocusedTabDisplayElementKey }: UseAppCoreSt
   return {
     language, t, notificationApi, notificationContextHolder, isModalOpen, setIsModalOpen,
     isConnectionModalMounted, setIsConnectionModalMounted, editingConnection, setEditingConnection,
-    connectionHealthTargetIds, setConnectionHealthTargetIds, pendingConnectionTagIdRef,
+    connectionHealthTargetIds, setConnectionHealthTargetIds, connectionHealthDialogOpen,
+    setConnectionHealthDialogOpen, pendingConnectionTagIdRef,
     connectionModalWarmupDoneRef, windowState, themeMode, appearance, setAppearance, setUiScale,
     setFontSize, startupMaximised, setStartupMaximised, autoCheckForUpdates, setAutoCheckForUpdates,
     autoCheckForUpdatesIntervalMinutes, setAutoCheckForUpdatesIntervalMinutes, globalProxy,
     replaceConnections, replaceConnectionSidebarLayout, replaceGlobalProxy, replaceSavedQueries,
-    reloadSavedQueryGroups, setQueryOptions, shortcutOptions, updateShortcut, resetShortcutOptions,
+    reloadSavedQueryGroups, queryOptions, setQueryOptions, shortcutOptions, updateShortcut, resetShortcutOptions,
     runtimePlatform, setRuntimePlatform, runtimeBuildType, setRuntimeBuildType, isLinuxRuntime,
     setIsLinuxRuntime, effectiveThemePreference, darkMode, setComputedCustomThemeAntTokens,
     customThemeStyleContextKey, customThemeAntTokens, effectiveUiScale, effectiveFontSize,

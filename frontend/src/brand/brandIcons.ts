@@ -296,17 +296,33 @@ export function resolveBrandTitlebarSrc(id?: unknown): string {
  * taskbar icon while the real asset update is still queued. Bundled
  * compatibility assets are already verified by being shipped with the app.
  */
-/** Native icon composition source: mascots compose from the trimmed
- * transparent v2 artwork (tile and background already gone server-side),
- * ribbons keep composing from their SVG. Returns '' while the mascot's
- * about asset is still downloading - the brand asset revision re-runs the
+/** Native icon composition source: every family composes from its tile
+ * artwork - ribbons from the SVG, mascots from the rounded white-tile webp.
+ * The mascot's server-trimmed transparent about-v2 PNG is for the about
+ * dialog only: fitted into the square canvas it spanned ~61% of the tile,
+ * which read as a size smaller than neighbouring apps, and a bare mark with
+ * no background. The v2 webp ships transparent ROUNDED corners, so the
+ * original white-square objection no longer applies. Returns '' while the
+ * asset is still downloading - the brand asset revision re-runs the
  * composition once it lands. */
 export function resolveBrandNativeSrc(id?: unknown): string {
-  const definition = resolveBrandIcon(id);
-  if (definition.mascot && !definition.bundled) {
-    return loadedBrandAssetSources.get(brandAssetKey(definition.id, 'about')) || '';
-  }
   return resolveBrandDockSrc(id);
+}
+
+/** Zoom for composing the Windows native tile so its visible artwork reads at
+ * the same size as neighbouring apps' full-bleed icons. Ribbon SVGs frame
+ * their tile at RIBBON_TILE_ART_FRACTION (the exact ~20% margin users
+ * reported as "the icon is too small"), so compose crops exactly that
+ * transparent breathing margin. Every other family composes at zoom 1:
+ * mascot rounded white-tile webps and the bundled full-bleed default carry
+ * their own designed margins, and cropping those would square the rounded
+ * corners off. */
+export function resolveBrandNativeIconZoom(id?: unknown): number {
+  const definition = resolveBrandIcon(id);
+  if (definition.slug.startsWith('ribbon-') && !definition.bundled) {
+    return 1 / RIBBON_TILE_ART_FRACTION;
+  }
+  return 1;
 }
 export function resolveBrandDockSrc(id?: unknown): string {
   const definition = resolveBrandIcon(id);

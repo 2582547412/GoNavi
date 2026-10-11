@@ -8,6 +8,7 @@ import {
   brandAssetKeysFor,
   previewBrandAssetKeys,
   resolveBrandNativeSrc,
+  resolveBrandNativeIconZoom,
   resolveBrandIconSrc,
   resolveBrandIcon,
   startupBrandAssetKeys,
@@ -57,6 +58,12 @@ export function useBrandIconSync(runtimePlatform: string) {
     // skip this sync while that apply is in flight so the shortcut update
     // and window icon refresh run exactly once.
     if (runtimePlatform === 'windows' && windowsBrandIconApplyingRef.current === brandIconId) {
+      return;
+    }
+    // Windows restores the persisted native icon before the Wails window is
+    // shown. A second bridge call here can race an explicit picker selection
+    // and apply the old icon after the new selection succeeds.
+    if (runtimePlatform === 'windows') {
       return;
     }
     // 同一品牌已经成功应用过（选择流程或上一轮同步），brandAssetRevision
@@ -144,7 +151,14 @@ export function useBrandIconSync(runtimePlatform: string) {
       // shortcut, so bundled mascots keep their full artwork (tile and
       // word mark) exactly as shown in the picker - cutting the tile away
       // made the desktop and Start Menu shortcuts look unfinished.
-      const b64 = await composeWindowsNativeIconBase64(source);
+      // The zoom normalizes each asset family's designed framing (ribbon
+      // breathing margin, mascot white margins) so the visible artwork
+      // reads at the same size as the picker preview; without it the
+      // ribbon tile lands at ~80% of the tile and users read the icon as
+      // a size smaller than neighbouring apps.
+      const b64 = await composeWindowsNativeIconBase64(source, {
+        zoom: resolveBrandNativeIconZoom(id),
+      });
       const result = await SetApplicationBrandIcon(b64);
       if (!result || result.success === false) {
         throw new Error(result?.message || 'Windows brand icon update failed');

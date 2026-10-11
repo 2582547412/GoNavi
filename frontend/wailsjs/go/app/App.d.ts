@@ -9,6 +9,7 @@ import {syncjob} from '../models';
 import {requesttrace} from '../models';
 import {jvm} from '../models';
 import {db} from '../models';
+import {mockdata} from '../models';
 import {redis} from '../models';
 import {resultdiff} from '../models';
 import {dbuser} from '../models';
@@ -180,6 +181,8 @@ export function DBQueryMultiTransactionalWithOptions(arg1:connection.ConnectionC
 export function DBQueryMultiTransactionalWithParams(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:Array<connection.QueryParamBinding>):Promise<connection.QueryResult>;
 
 export function DBQueryMultiWithOptions(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:app.QueryResultBudgetOptions):Promise<connection.QueryResult>;
+
+export function DBQueryMultiWithOptionsCompact(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:app.QueryResultBudgetOptions):Promise<app.CompactQueryResult>;
 
 export function DBQueryMultiWithParams(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:Array<connection.QueryParamBinding>):Promise<connection.QueryResult>;
 
@@ -509,6 +512,12 @@ export function LoadConnectionSidebarLayout():Promise<connection.ConnectionSideb
 
 export function LogWindowDiagnostic(arg1:string,arg2:string):Promise<void>;
 
+export function MockDataGenerate(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:mockdata.Plan,arg5:app.MockDataRunOptions):Promise<connection.QueryResult>;
+
+export function MockDataInspect(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string):Promise<connection.QueryResult>;
+
+export function MockDataPreview(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:mockdata.Plan):Promise<connection.QueryResult>;
+
 export function MongoDiscoverMembers(arg1:connection.ConnectionConfig):Promise<connection.QueryResult>;
 
 export function MoveSavedQueryGroup(arg1:string,arg2:string):Promise<void>;
@@ -630,6 +639,8 @@ export function ReadAppLogTail(arg1:number,arg2:string):Promise<connection.Query
 export function ReadSQLFile(arg1:string):Promise<connection.QueryResult>;
 
 export function RebindSavedQuery(arg1:string,arg2:string):Promise<connection.SavedQuery>;
+
+export function ReclaimMemory():Promise<connection.QueryResult>;
 
 export function RedisConnect(arg1:connection.ConnectionConfig):Promise<connection.QueryResult>;
 

@@ -491,6 +491,9 @@ const buildCompactObjectTabTitle = (tab: TabData, translate: TabDisplayTranslate
   if (tab.type === 'driver-manager') {
     return translate('app.tools.entry.drivers.title');
   }
+  if (tab.type === 'cloud-backup') {
+    return translate('app.settings.entry.cloud_backup.title');
+  }
   if (tab.type === 'settings-center') {
     return translate('app.settings.title');
   }
@@ -509,7 +512,7 @@ const buildCompactObjectTabTitle = (tab: TabData, translate: TabDisplayTranslate
   if (tab.type === 'table-export') {
     return replaceTitleObjectLabel(tab.title, tab.tableName);
   }
-  if (tab.type === 'data-import') {
+  if (tab.type === 'data-import' || tab.type === 'mock-data') {
     return replaceTitleObjectLabel(tab.title, tab.tableName);
   }
   if (tab.type === 'view-def') {
@@ -543,6 +546,7 @@ export const getTabDisplayKindLabel = (tab: TabData): string => {
   if (tab.type === 'table-overview') return 'DB';
   if (tab.type === 'table-export') return 'EXPORT';
   if (tab.type === 'data-import') return 'IMPORT';
+  if (tab.type === 'mock-data') return 'MOCK';
   if (tab.type === 'data-sync') {
     return tab.dataSyncEntryMode === 'compare' ||
       tab.dataSyncEntryMode === 'schemaCompare' ||
@@ -555,6 +559,7 @@ export const getTabDisplayKindLabel = (tab: TabData): string => {
   if (tab.type === 'dml-snapshot') return 'SNAPSHOT';
   if (tab.type === 'user-management') return 'USERS';
   if (tab.type === 'driver-manager') return 'DRIVER';
+  if (tab.type === 'cloud-backup') return 'BACKUP';
   if (tab.type === 'settings-center') return 'SETTINGS';
   if (tab.type === 'request-diagnostics') return 'TRACE';
   if (tab.type.startsWith('redis')) return 'REDIS';
@@ -584,6 +589,7 @@ const getTabRawObjectLabel = (tab: TabData, translate: TabDisplayTranslate = def
   if (tab.type.startsWith('redis')) return `db${tab.redisDB ?? 0}`;
   if (tab.type === 'sql-audit' || tab.type === 'dml-snapshot') return tab.title;
   if (tab.type === 'driver-manager') return translate('app.tools.entry.drivers.title');
+  if (tab.type === 'cloud-backup') return translate('app.settings.entry.cloud_backup.title');
   if (tab.type === 'settings-center') return translate('app.settings.title');
   if (tab.type === 'request-diagnostics') return translate('app.tools.entry.request_diagnostics.title');
   return tab.title;
@@ -719,6 +725,7 @@ export const buildTabDisplayTitle = (
     tab.type !== 'table-overview' &&
     tab.type !== 'table-export' &&
     tab.type !== 'data-import' &&
+    tab.type !== 'mock-data' &&
     tab.type !== 'sql-analysis'
   ) {
     return baseTitle;

@@ -33,6 +33,8 @@ import { useAppSettingsPanesRender } from './appShell/hooks/useAppSettingsPanesR
 import { useAppAboutSettingsRender } from './appShell/hooks/useAppAboutSettingsRender';
 import { useAppThemeSettingsRender } from './appShell/hooks/useAppThemeSettingsRender';
 import { useAppSettingsCenterRender } from './appShell/hooks/useAppSettingsCenterRender';
+import { useBuiltinAIAnnouncement } from './appShell/hooks/useBuiltinAIAnnouncement';
+import { resolveShortcutDisplay } from './utils/shortcutOptions';
 import { useLateBoundCallback } from './hooks/useLateBoundCallback';
 import { renderAppSettingsCenterModal } from './appShell/settings/renderAppSettingsCenterModal';
 import { AppTitleBar } from './appShell/layout/AppTitleBar';
@@ -45,12 +47,13 @@ function App() {
   const {
     language, t, notificationApi, notificationContextHolder, isModalOpen, setIsModalOpen,
     isConnectionModalMounted, setIsConnectionModalMounted, editingConnection, setEditingConnection,
-    connectionHealthTargetIds, setConnectionHealthTargetIds, pendingConnectionTagIdRef,
+    connectionHealthTargetIds, setConnectionHealthTargetIds, connectionHealthDialogOpen,
+    setConnectionHealthDialogOpen, pendingConnectionTagIdRef,
     connectionModalWarmupDoneRef, windowState, themeMode, appearance, setAppearance, setUiScale,
     setFontSize, startupMaximised, setStartupMaximised, autoCheckForUpdates, setAutoCheckForUpdates,
     autoCheckForUpdatesIntervalMinutes, setAutoCheckForUpdatesIntervalMinutes, globalProxy,
     replaceConnections, replaceConnectionSidebarLayout, replaceGlobalProxy, replaceSavedQueries,
-    reloadSavedQueryGroups, setQueryOptions, shortcutOptions, updateShortcut, resetShortcutOptions,
+    reloadSavedQueryGroups, queryOptions, setQueryOptions, shortcutOptions, updateShortcut, resetShortcutOptions,
     runtimePlatform, setRuntimePlatform, runtimeBuildType, setRuntimeBuildType, isLinuxRuntime,
     setIsLinuxRuntime, effectiveThemePreference, darkMode, setComputedCustomThemeAntTokens,
     customThemeStyleContextKey, customThemeAntTokens, effectiveUiScale, effectiveFontSize,
@@ -94,7 +97,7 @@ function App() {
     setConnectionPackageDialog, pendingConnectionImportPayload, setPendingConnectionImportPayload,
     connectionImportTargetTagId, setConnectionImportTargetTagId, connectionImportNotice,
     setConnectionImportNotice, browserConnectionImportInputRef,
-    browserConnectionImportSourceGroupRef, aiPanelRenderNonce, setAiPanelRenderNonce,
+    aiPanelRenderNonce, setAiPanelRenderNonce,
     aiSettingsRenderNonce, setAiSettingsRenderNonce, LazyAIChatPanel, LazyAISettingsContent,
     sidebarWidth, setSidebarWidth, documentPlatform, isMacRuntime,
     shouldDockCollapsedSidebarActionsInTitlebar, collapsedSidebarActionsTarget,
@@ -203,15 +206,13 @@ function App() {
   });
 
   const {
-    handleBrowserConnectionImportFileChange, handleImportConnections, handleExportConnections,
-    handleExportConnectionsRef, handleConfirmConnectionPackageDialog,
+    handleBrowserConnectionImportFileChange, handleImportConnections,
+    handleExportConnectionsRef, handleImportConnectionsRef, handleConfirmConnectionPackageDialog,
   } = useAppConnectionImportExport({
     t, connectionSidebarLayoutCoordinatorRef, connectionImportTargetTagId,
     setConnectionDisplaySortMode, refreshConnectionsAfterImport, moveConnectionsToTag,
     setConnectionImportNotice, setConnectionPackageDialog, setPendingConnectionImportPayload,
-    setToolCenterBackGroupKey: setToolCenterBackGroupKeyLate.call, setActiveSettingsCenterGroupKey,
-    setActiveSettingsCenterPane, browserConnectionImportSourceGroupRef,
-    openSettingsCenterWorkbenchTab, isWebRuntime, browserConnectionImportInputRef, connections,
+    isWebRuntime, browserConnectionImportInputRef, connections,
     connectionPackageDialog, pendingConnectionImportPayload,
   });
 
@@ -241,20 +242,22 @@ function App() {
   setToolCenterBackGroupKeyLate.bind(setToolCenterBackGroupKey);
   setIsProxyModalOpenLate.bind(setIsProxyModalOpen);
   const {
-    closeConnectionHealthSettingsPane, handleOpenToolsModal, handleOpenSettingsModal,
+    handleOpenToolsModal, handleOpenSettingsModal,
     handleOpenSettingsCenterPane, handleCancelSettingsCenterPane, handleOpenDataSyncWorkbench,
     handleOpenToolCenterPane, handleTitleBarSettingsNavigation, handleReturnToToolCenter,
     handleFocusSidebarSearch, handleSelectDataRoot, handleApplyDataRoot, handleOpenDataRoot,
     handleSelectLogDirectory, handleApplyLogDirectory, handleOpenLogDirectory,
     handleSelectSavedQueryDirectory, handleApplySavedQueryDirectory, handleOpenSavedQueryDirectory,
   } = useAppSettingsNavigation({
-    setConnectionHealthTargetIds, setActiveSettingsCenterPane, setCapturingShortcutAction,
-    activeSettingsCenterPaneRef, closeConnectionPackageDialog, setFocusedAIProviderId,
+    setConnectionHealthTargetIds, setConnectionHealthDialogOpen, setActiveSettingsCenterPane,
+    setCapturingShortcutAction,
+    activeSettingsCenterPaneRef, setFocusedAIProviderId,
     setSecurityUpdateRepairSource, aiSettingsLeaveGuardRef, setToolCenterBackGroupKey,
     setActiveSettingsCenterGroupKey, openSettingsCenterWorkbenchTab, securityUpdateRepairSource,
     openSecurityUpdateSettings, activeSettingsCenterPane, closeSettingsCenterWorkbenchTab, addTab,
     isSettingsModalOpen, updateCenterBridgeRef, openReleaseNotesOnManualCheckRef,
-    setReleaseNotesModalOpen, prepareAboutSurface, handleExportConnectionsRef, setThemeModalSection,
+    setReleaseNotesModalOpen, prepareAboutSurface, handleExportConnectionsRef,
+    handleImportConnectionsRef, setThemeModalSection,
     setAiSettingsSection, setAiSettingsProviderView, toolCenterBackGroupKey, setIsSidebarCollapsed,
     setDataRootLoading, t, setDataRootInfo, setSelectedDataRootPath, setSelectedLogDirectoryPath,
     setSelectedSavedQueryDirectoryPath, isDataRootModalOpen, selectedDataRootPath, dataRootInfo,
@@ -286,7 +289,8 @@ function App() {
     moveConnectionToTag, securityUpdateRepairSource, securityUpdateStatus, replaceConnections,
     replaceGlobalProxy, normalizeSecurityUpdateStatus, applySecurityUpdateStatus,
     setSecurityUpdateHasLegacySensitiveItems, setSecurityUpdateRawPayload, securityUpdateRawPayload,
-    openSecurityUpdateSettings, setConnectionHealthTargetIds, setToolCenterBackGroupKey,
+    openSecurityUpdateSettings, setConnectionHealthTargetIds, setConnectionHealthDialogOpen,
+    setToolCenterBackGroupKey,
     setActiveSettingsCenterGroupKey, setActiveSettingsCenterPane, openSettingsCenterWorkbenchTab,
     handleOpenDriverManagerWorkbench, setIsProxyModalOpen, aiSettingsLeaveGuardRef,
     setFocusedAIProviderId, setAiSettingsSection, setAiSettingsProviderView, setAiPanelRenderNonce,
@@ -298,6 +302,7 @@ function App() {
     darkMode, documentPlatform, effectiveFontSize, resolvedUiFontFamily, resolvedMonoFontFamily,
     effectiveUiScale, effectiveOpacity, effectiveDataTableFontSize, effectiveSidebarTreeFontSize,
     effectiveSidebarRailScale, tokenControlHeight, tokenControlHeightSM, handleOpenToolCenterPane,
+    handleOpenSettingsCenterPane,
     aiSettingsLeaveGuardRef, closeSettingsCenterWorkbenchTab, setThemeModalSection,
     setIsThemeModalOpen, setTabDisplaySettingsFocusRequest, handleNewQuery, isMacRuntime,
     useNativeMacWindowControls, closeShortcutScopeRef, capturingShortcutAction, shortcutOptions,
@@ -319,7 +324,7 @@ function App() {
     sidebarTableMetadataFieldOrder, setQueryOptions, sidebarTableMetadataFields,
   });
   const {
-    renderProxySettingsContent, renderDownloadSourceSettingsContent,
+    renderProxySettingsContent,
     renderSidebarMetadataSettingsPane, renderSidebarObjectVisibilitySettingsPane,
     updateInstallActionLabel, updateDownloadActionLabel,
   } = useAppSettingsPanesRender({
@@ -329,7 +334,7 @@ function App() {
     proxyDraftHost, proxyDraftPortValid, setProxyDraftClearPassword, proxyDraftClearPassword,
     proxyTestPresetItems, proxyTestUrlTrimmed, setProxyTestUrl, proxyTestUrl, proxyCanTest,
     handleTestGlobalProxyDraft, proxyTesting, resetProxyDraftToCurrent, proxyApplying,
-    handleApplyGlobalProxyDraft, downloadSource, downloadSourceSaving, handleDownloadSourceChange,
+    handleApplyGlobalProxyDraft,
     sidebarMetadataDragSensors, handleSidebarMetadataDragEnd, sidebarMetadataFieldItems,
     sidebarTableMetadataFields, toggleSidebarMetadataFieldFromSettings, setQueryOptions, appearance,
     setAppearance, updateInstallAction, lastUpdateInfo,
@@ -353,6 +358,7 @@ function App() {
   const { renderThemeSettingsContent } = useAppThemeSettingsRender({
     t, themeSettingsSections, themeModalSection, setThemeModalSection, renderThemeSettingsSection,
     effectiveThemePreference, selectPresetTheme, renderThemeModePreview, renderThemeSettingsRow,
+    queryOptions, setQueryOptions,
     effectiveUiScale, setUiScale, effectiveFontSize, setFontSize, effectiveSidebarRailScale,
     setAppearance, appearance, isFontFamiliesLoading, uiFontOptions, filterFontOption,
     renderFontOptionLabel, fontFamiliesLoadError, installedFontFamilies, linuxCJKFontInstallHint,
@@ -380,7 +386,9 @@ function App() {
     toolCenterDetailPanelStyle, toolCenterDetailBodyStyle, utilityPanelStyle, overlayTheme,
     utilityMutedTextStyle, renderThemeSettingsContent, renderSidebarMetadataSettingsPane,
     renderSidebarObjectVisibilitySettingsPane, renderProxySettingsContent,
-    renderDownloadSourceSettingsContent, darkMode, aiSettingsRenderNonce, handleAIPanelRenderError,
+    setCapturingShortcutAction, resetShortcutOptions, isMacRuntime, shortcutOptions,
+    activeShortcutPlatform, capturingShortcutAction, shortcutConflictMap, resolvedMonoFontFamily,
+    updateShortcut, darkMode, aiSettingsRenderNonce, handleAIPanelRenderError,
     handleRetryAISettingsRender, LazyAISettingsContent, isSettingsModalOpen, aiSettingsSection,
     aiSettingsProviderView, handleCancelSettingsCenterPane, handlePrepareExternalMCPUse,
     registerAISettingsLeaveGuard, applicationQuitModalZIndex, renderSettingsCenterAboutPane,
@@ -392,6 +400,11 @@ function App() {
     shouldDockCollapsedSidebarActionsInTitlebar, setCollapsedSidebarActionsTarget,
     handleExpandSidebarPanel, handleCollapseSidebarPanel, sidebarCollapsedToggleRef, brandIconId,
     handleBrandIconChange,
+  });
+
+  const builtinAIAnnouncement = useBuiltinAIAnnouncement({
+    isStoreHydrated, hasLoadedSecureConfig, isSecurityUpdateIntroOpen,
+    isSecurityUpdateProgressOpen, aiPanelVisible, onOpenPanel: handleToggleOrFocusAIPanel,
   });
 
   return (
@@ -531,26 +544,19 @@ function App() {
           />
           )}
           {isSettingsModalOpen && renderAppSettingsCenterModal({
-            t, handleOpenToolCenterPane, handleExportConnections, handleOpenConnectionHealth,
+            t, handleOpenToolCenterPane,
             securityUpdateEntryVisibility, securityUpdateHasLegacySensitiveItems,
-            securityUpdateStatusMeta, handleOpenDataSyncWorkbench, handleCancelSettingsCenterPane,
-            addTab, settingsCenterGroups, activeSettingsCenterGroupKey, activeSettingsCenterPane,
+            securityUpdateStatusMeta, handleCancelSettingsCenterPane,
+            settingsCenterGroups, activeSettingsCenterGroupKey, activeSettingsCenterPane,
             themeModalSection, aiSettingsSection, aiSettingsProviderView, handleOpenToolsModal,
-            handleOpenSettingsModal, connectionImportGroupOptions, connectionImportTargetTagId,
-            connectionPackageDialog, pendingConnectionImportPayload, connectionImportNotice,
-            setConnectionImportTargetTagId, setConnectionImportNotice, setConnectionPackageDialog,
-            handleImportConnections, handleConfirmConnectionPackageDialog,
-            setPendingConnectionImportPayload, utilityPanelStyle, utilityMutedTextStyle,
-            connections, closeConnectionPackageDialog, connectionHealthTargetIds,
-            closeConnectionHealthSettingsPane, isWebRuntime, renderDataDirectorySettings,
+            handleOpenSettingsModal, utilityPanelStyle, utilityMutedTextStyle,
+            isWebRuntime, renderDataDirectorySettings,
             darkMode, overlayTheme, effectiveOpacity, securityUpdateStatus,
             securityUpdateSettingsFocusTarget, securityUpdateSettingsFocusRequest,
             handleStartSecurityUpdate, handleRetrySecurityUpdate, handleRestartSecurityUpdate,
             handleSecurityUpdateIssueAction, handleOpenSettingsCenterPane,
             handleDownloadSourceChange, downloadSourceSaving, downloadSource,
-            setCapturingShortcutAction, resetShortcutOptions, isMacRuntime, shortcutOptions,
-            activeShortcutPlatform, capturingShortcutAction, shortcutConflictMap,
-            resolvedMonoFontFamily, updateShortcut, toolCenterModalWorkspaceStyle,
+            toolCenterModalWorkspaceStyle,
             toolCenterModalSplitStyle, toolCenterNavPanelStyle, toolCenterContentPanelStyle,
             activeSettingsCenterDetailPanelStyle, toolCenterDetailBodyStyle,
             settingsCenterDetailBodyStyle, renderSettingsCenterPane,
@@ -574,11 +580,14 @@ function App() {
             settingsChildModalZIndex={settingsChildModalZIndex}
             securityUpdateProgressStage={securityUpdateProgressStage}
             connectionPackageDialog={connectionPackageDialog}
-            isSettingsModalOpen={isSettingsModalOpen}
-            activeSettingsCenterPane={activeSettingsCenterPane} connections={connections}
+            connections={connections}
             setConnectionPackageDialog={setConnectionPackageDialog}
             closeConnectionPackageDialog={closeConnectionPackageDialog}
             handleConfirmConnectionPackageDialog={handleConfirmConnectionPackageDialog}
+            connectionHealthDialogOpen={connectionHealthDialogOpen}
+            connectionHealthTargetIds={connectionHealthTargetIds}
+            setConnectionHealthDialogOpen={setConnectionHealthDialogOpen}
+            setConnectionHealthTargetIds={setConnectionHealthTargetIds}
             releaseNotesModalVisible={releaseNotesModalVisible}
             closeReleaseNotesModal={closeReleaseNotesModal}
             handleReleaseNotesModalOpen={handleReleaseNotesModalOpen}
@@ -598,6 +607,10 @@ function App() {
             isProxyModalOpen={isProxyModalOpen}
             handleCloseGlobalProxySettings={handleCloseGlobalProxySettings}
             renderProxySettingsContent={renderProxySettingsContent}
+            builtinAIAnnouncement={builtinAIAnnouncement}
+            builtinAIAnnouncementShortcutLabel={
+              resolveShortcutDisplay(shortcutOptions, 'toggleAIPanel', activeShortcutPlatform)
+            }
           />
 
           {showLinuxResizeHandles && (

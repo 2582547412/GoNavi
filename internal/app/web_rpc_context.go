@@ -7,12 +7,13 @@ import (
 	"GoNavi-Wails/internal/connection"
 	"GoNavi-Wails/internal/db"
 	"GoNavi-Wails/internal/logger"
+	"GoNavi-Wails/internal/mockdata"
 	syncengine "GoNavi-Wails/internal/sync"
 	"GoNavi-Wails/internal/syncjob"
 )
 
 var requiredIssue1098WebRPCContextMethods = []string{
-	"DBQuery", "DBQueryApplicationWithCancel", "DBQueryWithCancel", "DBQueryMulti", "DBQueryMultiWithOptions", "DBQueryMultiCompact", "DBQueryAudited", "DBQueryAI", "DBQueryIsolated", "MySQLQuery",
+	"DBQuery", "DBQueryApplicationWithCancel", "DBQueryWithCancel", "DBQueryMulti", "DBQueryMultiWithOptions", "DBQueryMultiCompact", "DBQueryMultiWithOptionsCompact", "DBQueryAudited", "DBQueryAI", "DBQueryIsolated", "MySQLQuery",
 	"DBGetDatabases", "DBGetTables", "DBGetViews", "DBGetObjects", "DBGetAllColumns", "DBGetColumns", "DBGetIndexes",
 	"DBGetForeignKeys", "DBGetDatabaseForeignKeys", "DBGetTriggers", "DBShowCreateTable", "DBTableExists",
 	"DBListSessions", "DBListLockWaits", "DBListLongTransactions", "DBExecuteSessionAction",
@@ -22,6 +23,7 @@ var requiredIssue1098WebRPCContextMethods = []string{
 	"DataSyncErrorRowList", "DataSyncErrorRowGet", "DataSyncCheckpointGet", "DataSync", "DataSyncAnalyze", "DataSyncPreview",
 	"PreviewImportFile", "PreviewImportFileWithOptions", "ImportDataWithProgress", "ImportDataWithProgressOptions",
 	"ImportDatabaseSQL", "ImportDatabaseSQLWithOptions", "ExecuteSQLFile", "ResumeImportJob", "RetryImportJobFailedRows", "VerifySQLAuditIntegrity",
+	"MockDataInspect", "MockDataPreview", "MockDataGenerate",
 }
 
 // RequiredIssue1098WebRPCContextMethods returns the exact App method set whose
@@ -53,6 +55,9 @@ func WebRPCContextHandlers(a *App) map[string]any {
 		},
 		"DBQueryMultiCompact": func(ctx context.Context, config connection.ConnectionConfig, dbName, query, queryID string) CompactQueryResult {
 			return a.dbQueryMultiCompactContext(ctx, config, dbName, query, queryID)
+		},
+		"DBQueryMultiWithOptionsCompact": func(ctx context.Context, config connection.ConnectionConfig, dbName, query, queryID string, options QueryResultBudgetOptions) CompactQueryResult {
+			return a.dbQueryMultiWithOptionsCompactContext(ctx, config, dbName, query, queryID, options)
 		},
 		"DBQueryAudited": func(ctx context.Context, config connection.ConnectionConfig, dbName, query, source string) connection.QueryResult {
 			return a.dbQueryAuditedContext(ctx, config, dbName, query, source)
@@ -226,6 +231,15 @@ func WebRPCContextHandlers(a *App) map[string]any {
 		"VerifySQLAuditIntegrity": func(ctx context.Context) connection.QueryResult {
 			return a.verifySQLAuditIntegrity(ctx)
 		},
+		"MockDataInspect": func(ctx context.Context, config connection.ConnectionConfig, dbName, tableName, locale string) connection.QueryResult {
+			return a.mockDataInspectContext(ctx, config, dbName, tableName, locale)
+		},
+		"MockDataPreview": func(ctx context.Context, config connection.ConnectionConfig, dbName, tableName string, plan mockdata.Plan) connection.QueryResult {
+			return a.mockDataPreviewContext(ctx, config, dbName, tableName, plan)
+		},
+		"MockDataGenerate": func(ctx context.Context, config connection.ConnectionConfig, dbName, tableName string, plan mockdata.Plan, options MockDataRunOptions) connection.QueryResult {
+			return a.mockDataGenerateContext(ctx, config, dbName, tableName, plan, options)
+		},
 	}
 }
 
@@ -297,6 +311,23 @@ func (a *App) dbQueryMultiContext(ctx context.Context, config connection.Connect
 // the result set compacted for the Web RPC payload.
 func (a *App) dbQueryMultiCompactContext(ctx context.Context, config connection.ConnectionConfig, dbName, query, queryID string) CompactQueryResult {
 	return encodeCompactQueryResult(a.dbQueryMultiWithContextOptions(ctx, config, dbName, query, queryID, nil))
+}
+
+// dbQueryMultiWithOptionsCompactContext 是带预算的压缩传输：预算语义与
+// dbQueryMultiWithOptionsContext 完全一致，只是结果集同样经过压缩编码。
+//
+// 「不限」放开行数预算后，未压缩通道会把整份 JSON 内联成一条 JS 字面量；Web 模式
+// 下这条路径尤其重要，因为浏览器端一次性 JSON.parse 数百 MB 会直接卡住主线程。
+func (a *App) dbQueryMultiWithOptionsCompactContext(
+	ctx context.Context,
+	config connection.ConnectionConfig,
+	dbName string,
+	query string,
+	queryID string,
+	options QueryResultBudgetOptions,
+) CompactQueryResult {
+	budget := normalizeQueryResultBudgetOptions(options)
+	return encodeCompactQueryResult(a.dbQueryMultiWithContextOptions(ctx, config, dbName, query, queryID, &budget))
 }
 
 func (a *App) dbQueryAuditedContext(ctx context.Context, config connection.ConnectionConfig, dbName, query, source string) connection.QueryResult {

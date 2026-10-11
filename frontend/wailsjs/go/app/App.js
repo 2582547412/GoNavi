@@ -338,6 +338,10 @@ export function DBQueryMultiWithOptions(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['app']['App']['DBQueryMultiWithOptions'](arg1, arg2, arg3, arg4, arg5);
 }
 
+export function DBQueryMultiWithOptionsCompact(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['app']['App']['DBQueryMultiWithOptionsCompact'](arg1, arg2, arg3, arg4, arg5);
+}
+
 export function DBQueryMultiWithParams(arg1, arg2, arg3, arg4, arg5) {
   return window['go']['app']['App']['DBQueryMultiWithParams'](arg1, arg2, arg3, arg4, arg5);
 }
@@ -994,6 +998,18 @@ export function LogWindowDiagnostic(arg1, arg2) {
   return window['go']['app']['App']['LogWindowDiagnostic'](arg1, arg2);
 }
 
+export function MockDataGenerate(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['app']['App']['MockDataGenerate'](arg1, arg2, arg3, arg4, arg5);
+}
+
+export function MockDataInspect(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['MockDataInspect'](arg1, arg2, arg3, arg4);
+}
+
+export function MockDataPreview(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['MockDataPreview'](arg1, arg2, arg3, arg4);
+}
+
 export function MongoDiscoverMembers(arg1) {
   return window['go']['app']['App']['MongoDiscoverMembers'](arg1);
 }
@@ -1236,6 +1252,10 @@ export function ReadSQLFile(arg1) {
 
 export function RebindSavedQuery(arg1, arg2) {
   return window['go']['app']['App']['RebindSavedQuery'](arg1, arg2);
+}
+
+export function ReclaimMemory() {
+  return window['go']['app']['App']['ReclaimMemory']();
 }
 
 export function RedisConnect(arg1) {

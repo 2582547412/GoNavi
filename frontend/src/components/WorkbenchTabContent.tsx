@@ -18,6 +18,7 @@ const DefinitionViewer = React.lazy(() => import('./DefinitionViewer'));
 const TableOverview = React.lazy(() => import('./TableOverview'));
 const TableExportWorkbench = React.lazy(() => import('./TableExportWorkbench'));
 const DataImportWorkbench = React.lazy(() => import('./DataImportWorkbench'));
+const MockDataWorkbench = React.lazy(() => import('./mockData/MockDataWorkbench'));
 const DataSyncWorkbench = React.lazy(() => import('./DataSyncWorkbench'));
 const SQLFileExecutionWorkbench = React.lazy(() => import('./SQLFileExecutionWorkbench'));
 const JVMOverview = React.lazy(() => import('./JVMOverview'));
@@ -29,6 +30,7 @@ const SqlAnalysisWorkbench = React.lazy(() => import('./explain/SqlAnalysisWorkb
 const SqlAuditWorkbench = React.lazy(() => import('./audit/SqlAuditWorkbench'));
 const QueryHistoryWorkbench = React.lazy(() => import('./queryHistory/QueryHistoryWorkbench'));
 const DriverManagerWorkbench = React.lazy(() => import('./DriverManagerWorkbench'));
+const CloudBackupSettings = React.lazy(() => import('./CloudBackupSettings'));
 const SettingsCenterWorkbench = React.lazy(() => import('./settings/SettingsCenterWorkbench'));
 const RequestDiagnosticsWorkbench = React.lazy(() => import('./requestDiagnostics/RequestDiagnosticsWorkbench'));
 const DMLSnapshotWorkbench = React.lazy(() => import('./dmlSnapshot/DMLSnapshotWorkbench'));
@@ -155,6 +157,8 @@ export const WorkbenchTabContent: React.FC<WorkbenchTabContentProps> = React.mem
     content = <TableExportWorkbench tab={tab} />;
   } else if (tab.type === 'data-import') {
     content = <DataImportWorkbench tab={tab} />;
+  } else if (tab.type === 'mock-data') {
+    content = <MockDataWorkbench tab={tab} />;
   } else if (tab.type === 'data-sync') {
     content = <DataSyncWorkbench tab={tab} />;
   } else if (tab.type === 'sql-file-execution') {
@@ -177,6 +181,8 @@ export const WorkbenchTabContent: React.FC<WorkbenchTabContentProps> = React.mem
         onRequestClose={onRequestClose}
       />
     );
+  } else if (tab.type === 'cloud-backup') {
+    content = <CloudBackupSettings />;
   } else if (tab.type === 'settings-center') {
     content = <SettingsCenterWorkbench tab={tab} isActive={isActive} />;
   } else if (tab.type === 'request-diagnostics') {

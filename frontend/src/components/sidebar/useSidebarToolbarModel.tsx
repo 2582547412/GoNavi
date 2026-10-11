@@ -1,18 +1,25 @@
 import { t } from '../../i18n';
 import React, { useCallback } from 'react';
 import { useSidebarWorkbenchLaunchers } from './useSidebarWorkbenchLaunchers';
+import { useSidebarMockDataLauncher } from './useSidebarMockDataLauncher';
 import type { TitleBarQuickAction } from '../TitleBarQuickActions';
-import { TitlebarGraphIcon, TitlebarSqlToolIcon } from '../titlebar/gonaviTitlebarIcons';
+import { TitlebarConnectionToolsIcon, TitlebarGraphIcon, TitlebarSqlToolIcon } from '../titlebar/gonaviTitlebarIcons';
 import {
   CloudOutlined,
   TableOutlined,
   DatabaseOutlined,
+  ExperimentOutlined,
   ImportOutlined,
   UploadOutlined,
+  DownloadOutlined,
   SwitcherOutlined,
   HistoryOutlined,
   AuditOutlined,
   SafetyCertificateOutlined,
+  CodeOutlined,
+  LinkOutlined,
+  BugOutlined,
+  CloudUploadOutlined,
 } from '@ant-design/icons';
 import { buildTitlebarTrailingActions } from './titlebarTrailingActions';
 import { useSidebarCommandSearchCopy } from './useSidebarCommandSearchCopy';
@@ -108,6 +115,7 @@ export const useSidebarToolbarModel = ({
   const v2RailObjectActionsLabel = t('sidebar.rail.object_actions');
   const v2RailSystemActionsLabel = t('sidebar.rail.system_actions');
   const v2NewGroupLabel = t('sidebar.action.new_group');
+  const v2ConnectionToolsLabel = t('app.titlebar.toolbar.connection_tools');
   const v2DataWorkflowLabel = t('app.tools.group.workflow.title');
   const v2BatchTablesLabel = t('sidebar.action.batch_tables');
   const v2BatchDatabasesLabel = t('sidebar.action.batch_databases');
@@ -176,6 +184,7 @@ export const useSidebarToolbarModel = ({
 
     openDataImportWorkbench({ connectionId, dbName, tableName, mode });
   }, [activeContext?.connectionId, activeContext?.dbName, activeTabId, openDataImportWorkbench, tabs]);
+  const handleOpenMockDataWorkbench = useSidebarMockDataLauncher({ selectedNodesRef, tabs, activeTabId, connections, addTab });
 
   const {
     openSlowQueryWorkbench,
@@ -188,6 +197,49 @@ export const useSidebarToolbarModel = ({
   });
 
   const v2TitlebarQuickActions: TitleBarQuickAction[] = [
+    {
+      key: 'connection-tools',
+      label: v2ConnectionToolsLabel,
+      icon: <TitlebarConnectionToolsIcon size="100%" />,
+      menu: [
+        {
+          key: 'import-connections',
+          label: t('app.tools.entry.import.title'),
+          icon: <UploadOutlined aria-hidden="true" />,
+          onClick: () => onOpenSettingsNavigation?.({ group: 'config', action: 'import-connections' }),
+        },
+        {
+          key: 'export-connections',
+          label: t('app.tools.entry.export.title'),
+          icon: <DownloadOutlined aria-hidden="true" />,
+          onClick: () => onOpenSettingsNavigation?.({ group: 'config', action: 'export-connections' }),
+        },
+        {
+          key: 'connection-health',
+          label: t('app.tools.entry.connection_health.title'),
+          icon: <SafetyCertificateOutlined aria-hidden="true" />,
+          onClick: () => onOpenSettingsNavigation?.({ group: 'config', action: 'connection-health' }),
+        },
+        {
+          key: 'cloud-backup',
+          label: t('app.settings.entry.cloud_backup.title'),
+          icon: <CloudUploadOutlined aria-hidden="true" />,
+          onClick: () => onOpenSettingsNavigation?.({ group: 'services', action: 'cloud-backup' }),
+        },
+        {
+          key: 'shortcut-settings',
+          label: t('app.tools.entry.shortcuts.title'),
+          icon: <LinkOutlined aria-hidden="true" />,
+          onClick: () => onOpenSettingsNavigation?.({ group: 'workspace', pane: 'shortcut-settings' }),
+        },
+        {
+          key: 'request-diagnostics',
+          label: t('app.tools.entry.request_diagnostics.title'),
+          icon: <BugOutlined aria-hidden="true" />,
+          onClick: () => onOpenSettingsNavigation?.({ group: 'workspace', action: 'request-diagnostics' }),
+        },
+      ],
+    },
     {
       key: 'data-workflow',
       label: v2DataWorkflowLabel,
@@ -216,6 +268,12 @@ export const useSidebarToolbarModel = ({
           label: v2DataImportLabel,
           icon: <ImportOutlined aria-hidden="true" />,
           onClick: handleOpenDataImportWorkbench,
+        },
+        {
+          key: 'mock-data',
+          label: t('mock_data.entry.title'),
+          icon: <ExperimentOutlined aria-hidden="true" />,
+          onClick: handleOpenMockDataWorkbench,
         },
         {
           key: 'sync',
@@ -255,6 +313,12 @@ export const useSidebarToolbarModel = ({
           label: t('dml_snapshot.workbench.title'),
           icon: <SafetyCertificateOutlined aria-hidden="true" />,
           onClick: openDMLSnapshotWorkbench,
+        },
+        {
+          key: 'snippet-settings',
+          label: t('app.tools.entry.snippets.title'),
+          icon: <CodeOutlined aria-hidden="true" />,
+          onClick: () => onOpenSettingsNavigation?.({ group: 'workspace', pane: 'snippet-settings' }),
         },
       ],
     },
