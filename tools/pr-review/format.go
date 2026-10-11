@@ -5,11 +5,18 @@ import (
 	"strings"
 )
 
-func renderComment(findings []Finding, modelSummary, gateSummary string) string {
+// gateHeading 和 commentFooter 是评论里门禁段的定位锚点，
+// refreshGateSection 靠它们只替换门禁状态、保留已有评审内容。
+const (
+	gateHeading   = "### CI 门禁"
+	commentFooter = "规约意见不会代替 CI 门禁。这条评论会在后续推送和测试完成后更新。"
+)
+
+func renderComment(findings []Finding, modelSummary, modelNotice, gateSummary string) string {
 	var b strings.Builder
 	b.WriteString(reviewMarker)
 	b.WriteString("\n## GoNavi 自动评审\n\n")
-	if len(findings) == 0 && strings.TrimSpace(modelSummary) == "" {
+	if len(findings) == 0 && strings.TrimSpace(modelSummary) == "" && strings.TrimSpace(modelNotice) == "" {
 		b.WriteString("对照仓库规约看过这次 diff，没有发现需要处理的问题。\n")
 	} else {
 		errors, warnings := splitFindings(findings)
@@ -21,17 +28,37 @@ func renderComment(findings []Finding, modelSummary, gateSummary string) string 
 			if !strings.HasSuffix(summary, "\n") {
 				b.WriteString("\n")
 			}
+		} else if notice := strings.TrimSpace(modelNotice); notice != "" {
+			// 模型失败要在评论里自曝，避免语义评审静默失效没人发现。
+			b.WriteString("### 模型评审\n\n")
+			b.WriteString("> " + notice + "\n")
 		}
 	}
 	if gate := strings.TrimSpace(gateSummary); gate != "" {
-		b.WriteString("\n")
-		b.WriteString(gate)
-		if !strings.HasSuffix(gate, "\n") {
-			b.WriteString("\n")
-		}
+		b.WriteString(gateBlock(gate))
 	}
-	b.WriteString("\n规约意见不会代替 CI 门禁。这条评论会在后续推送和测试完成后更新。\n")
+	b.WriteString(commentFooter + "\n")
 	return b.String()
+}
+
+// gateBlock 是门禁段的完整文本：前后空行包住，方便整体替换。
+func gateBlock(gateSummary string) string {
+	return "\n" + strings.TrimRight(gateSummary, "\n") + "\n\n"
+}
+
+// refreshGateSection 把旧评论里的门禁段换成最新状态，评审意见原样保留。
+// 评论没有门禁段（老版本或被手工改过）时返回 false，由调用方走全量覆盖。
+func refreshGateSection(body, gateSummary string) (string, bool) {
+	start := strings.Index(body, gateHeading)
+	if start < 0 {
+		return body, false
+	}
+	end := strings.Index(body[start:], commentFooter)
+	if end < 0 {
+		return body, false
+	}
+	end += start
+	return body[:start] + strings.TrimLeft(gateBlock(gateSummary), "\n") + body[end:], true
 }
 
 func splitFindings(findings []Finding) (errors, warnings []Finding) {

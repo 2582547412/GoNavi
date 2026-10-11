@@ -34,6 +34,7 @@ type modelEndpoint struct {
 
 // freeModelEndpoints 按 coco-framework-agent 的方式接 OpenAI 兼容接口。
 // 显式配置优先；否则使用已填写的免费额度密钥，顺序为 Groq、Gemini、OpenRouter。
+// 免费档模型 ID 会下线（返回 HTTP 404），失效时按 provider 文档换现役模型。
 func freeModelEndpoints(env func(string) string) []modelEndpoint {
 	if env == nil {
 		return nil
@@ -44,7 +45,7 @@ func freeModelEndpoints(env func(string) string) []modelEndpoint {
 	var endpoints []modelEndpoint
 	if key := strings.TrimSpace(env("GROQ_API_KEY")); key != "" {
 		endpoints = append(endpoints, modelEndpoint{
-			Name: "groq", BaseURL: "https://api.groq.com/openai/v1", APIKey: key, Model: "llama-3.3-70b-versatile",
+			Name: "groq", BaseURL: "https://api.groq.com/openai/v1", APIKey: key, Model: "openai/gpt-oss-120b",
 		})
 	}
 	if key := strings.TrimSpace(env("GEMINI_API_KEY")); key != "" {
@@ -99,7 +100,7 @@ func reviewWithModel(ctx context.Context, client *http.Client, baseURL, apiKey, 
 	}
 	model = strings.TrimSpace(model)
 	if model == "" {
-		model = "llama-3.3-70b-versatile"
+		model = "openai/gpt-oss-120b"
 	}
 	payload := map[string]any{
 		"model": model,

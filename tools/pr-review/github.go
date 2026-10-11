@@ -53,21 +53,51 @@ func (g *githubClient) listCheckRuns(ctx context.Context, sha string) ([]checkRu
 	return runs, nil
 }
 
+// openPullRequest 是 pulls 列表接口里和按 SHA 匹配有关的字段。
+type openPullRequest struct {
+	Number int        `json:"number"`
+	Head   pullBranch `json:"head"`
+}
+
+type pullBranch struct {
+	Sha string `json:"sha"`
+}
+
+// pullRequestForSHA 按 head SHA 找开放中的 PR。workflow_run 事件的
+// pull_requests 数组经常为空，只能靠列表匹配；commits/{sha}/pulls 只返回
+// 已合并的 PR，对开放 PR 的 head commit 查不到。
 func (g *githubClient) pullRequestForSHA(ctx context.Context, sha string) (int, error) {
-	endpoint := fmt.Sprintf("%s/repos/%s/commits/%s/pulls", g.baseURL, g.repo, url.PathEscape(strings.TrimSpace(sha)))
-	var pulls []struct {
-		Number int    `json:"number"`
-		State  string `json:"state"`
-	}
-	if err := g.get(ctx, endpoint, &pulls); err != nil {
-		return 0, err
+	sha = strings.TrimSpace(sha)
+	var pulls []openPullRequest
+	for page := 1; page <= 3; page++ {
+		endpoint := fmt.Sprintf("%s/repos/%s/pulls?state=open&per_page=100&page=%d", g.baseURL, g.repo, page)
+		var batch []openPullRequest
+		if err := g.get(ctx, endpoint, &batch); err != nil {
+			return 0, err
+		}
+		pulls = append(pulls, batch...)
+		if len(batch) < 100 {
+			break
+		}
 	}
 	for _, pr := range pulls {
-		if pr.State == "open" {
+		if strings.EqualFold(pr.Head.Sha, sha) {
 			return pr.Number, nil
 		}
 	}
 	return 0, nil
+}
+
+// pullRequestHead 取 PR 当前 head commit，供 workflow_dispatch 只带 PR 编号时使用。
+func (g *githubClient) pullRequestHead(ctx context.Context, pr int) (string, error) {
+	endpoint := fmt.Sprintf("%s/repos/%s/pulls/%d", g.baseURL, g.repo, pr)
+	var payload struct {
+		Head pullBranch `json:"head"`
+	}
+	if err := g.get(ctx, endpoint, &payload); err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(payload.Head.Sha), nil
 }
 
 func (g *githubClient) listFiles(ctx context.Context, pr int) ([]FileChange, error) {
@@ -86,17 +116,33 @@ func (g *githubClient) listFiles(ctx context.Context, pr int) ([]FileChange, err
 	return files, nil
 }
 
-func (g *githubClient) upsertComment(ctx context.Context, pr int, body string) error {
+// findComment 返回 PR 里最近的机器人评论；没有则返回 nil。
+func (g *githubClient) findComment(ctx context.Context, pr int) (*issueComment, error) {
 	endpoint := fmt.Sprintf("%s/repos/%s/issues/%d/comments?per_page=100&sort=created&direction=desc", g.baseURL, g.repo, pr)
 	var comments []issueComment
 	if err := g.get(ctx, endpoint, &comments); err != nil {
+		return nil, err
+	}
+	for i := range comments {
+		if strings.Contains(comments[i].Body, reviewMarker) {
+			return &comments[i], nil
+		}
+	}
+	return nil, nil
+}
+
+func (g *githubClient) updateComment(ctx context.Context, id int64, body string) error {
+	endpoint := fmt.Sprintf("%s/repos/%s/issues/comments/%d", g.baseURL, g.repo, id)
+	return g.send(ctx, http.MethodPatch, endpoint, map[string]string{"body": body}, nil)
+}
+
+func (g *githubClient) upsertComment(ctx context.Context, pr int, body string) error {
+	comment, err := g.findComment(ctx, pr)
+	if err != nil {
 		return err
 	}
-	for i := len(comments) - 1; i >= 0; i-- {
-		if strings.Contains(comments[i].Body, reviewMarker) {
-			update := fmt.Sprintf("%s/repos/%s/issues/comments/%d", g.baseURL, g.repo, comments[i].ID)
-			return g.send(ctx, http.MethodPatch, update, map[string]string{"body": body}, nil)
-		}
+	if comment != nil {
+		return g.updateComment(ctx, comment.ID, body)
 	}
 	create := fmt.Sprintf("%s/repos/%s/issues/%d/comments", g.baseURL, g.repo, pr)
 	return g.send(ctx, http.MethodPost, create, map[string]string{"body": body}, nil)
