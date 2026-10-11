@@ -54,6 +54,45 @@ func TestGitHubClientListsFilesAndUpdatesExistingComment(t *testing.T) {
 	}
 }
 
+func TestPullRequestForSHAMatchesHeadAndIgnoresClosed(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != "/repos/Syngnat/GoNavi/pulls" || r.URL.Query().Get("state") != "open" {
+			t.Fatalf("unexpected request %s %s", r.Method, r.URL.String())
+		}
+		pulls := []openPullRequest{
+			{Number: 7, Head: pullBranch{Sha: "aaa"}},
+			{Number: 12, Head: pullBranch{Sha: "91E692F3DB471B588679C69BB25AC65F48756C0B"}},
+		}
+		_ = json.NewEncoder(w).Encode(pulls)
+	}))
+	defer server.Close()
+
+	client := &githubClient{baseURL: server.URL, repo: "Syngnat/GoNavi", token: "token", client: server.Client()}
+	number, err := client.pullRequestForSHA(context.Background(), "91e692f3db471b588679c69bb25ac65f48756c0b")
+	if err != nil || number != 12 {
+		t.Fatalf("number = %d err=%v", number, err)
+	}
+	if number, err := client.pullRequestForSHA(context.Background(), "bbb"); err != nil || number != 0 {
+		t.Fatalf("unmatched = %d err=%v", number, err)
+	}
+}
+
+func TestPullRequestHeadReturnsHeadSha(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != "/repos/Syngnat/GoNavi/pulls/12" {
+			t.Fatalf("unexpected request %s %s", r.Method, r.URL.String())
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"number": 12, "head": pullBranch{Sha: "abc"}})
+	}))
+	defer server.Close()
+
+	client := &githubClient{baseURL: server.URL, repo: "Syngnat/GoNavi", token: "token", client: server.Client()}
+	sha, err := client.pullRequestHead(context.Background(), 12)
+	if err != nil || sha != "abc" {
+		t.Fatalf("sha = %q err=%v", sha, err)
+	}
+}
+
 func TestParseRepoAndPRNumber(t *testing.T) {
 	repo, err := parseRepo("Syngnat/GoNavi")
 	if err != nil || repo != "Syngnat/GoNavi" {
@@ -111,7 +150,7 @@ func TestFreeModelEndpointsUseGroqBeforeGemini(t *testing.T) {
 			return ""
 		}
 	})
-	if len(endpoints) != 2 || endpoints[0].Name != "groq" || endpoints[0].Model != "llama-3.3-70b-versatile" || endpoints[1].Name != "gemini" {
+	if len(endpoints) != 2 || endpoints[0].Name != "groq" || endpoints[0].Model != "openai/gpt-oss-120b" || endpoints[1].Name != "gemini" {
 		t.Fatalf("endpoints = %#v", endpoints)
 	}
 	custom := freeModelEndpoints(func(key string) string {

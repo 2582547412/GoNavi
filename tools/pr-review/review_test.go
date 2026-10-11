@@ -82,7 +82,7 @@ func TestRenderCommentAndInlineComments(t *testing.T) {
 		{Path: "a.go", Line: 3, Severity: severityError, Rule: "panic-in-runtime", Message: "不要 panic"},
 		{Path: "b.tsx", Line: 4, Severity: severityWarning, Rule: "hardcoded-ui-text", Message: "走 i18n"},
 	}
-	body := renderComment(findings, "看起来还有一个空指针。", "")
+	body := renderComment(reviewReport{findings: findings, modelSummary: "看起来还有一个空指针。"})
 	if !containsAll(body, reviewMarker, "需要处理", "建议", "模型评审", "a.go", "b.tsx") {
 		t.Fatalf("comment = %s", body)
 	}
@@ -90,28 +90,82 @@ func TestRenderCommentAndInlineComments(t *testing.T) {
 	if len(comments) != 1 || comments[0].Path != "a.go" || comments[0].Line != 3 {
 		t.Fatalf("inline = %#v", comments)
 	}
-	if renderComment(nil, "", "") == "" || !containsAll(renderComment(nil, "", ""), "没有发现") {
+	empty := renderComment(reviewReport{})
+	if empty == "" || !containsAll(empty, "没有发现") {
 		t.Fatal("empty review should still reply")
 	}
 }
 
-func TestGateReportRequiresThreeSuccesses(t *testing.T) {
-	open := gateReport([]checkRun{
+func TestRenderCommentShowsModelFailureNotice(t *testing.T) {
+	body := renderComment(reviewReport{modelNotice: "模型评审本次不可用：groq: 模型接口返回 HTTP 404"})
+	if !containsAll(body, "模型评审", "HTTP 404") {
+		t.Fatalf("notice = %s", body)
+	}
+	if contains(body, "没有发现") {
+		t.Fatal("notice should replace the clean message")
+	}
+}
+
+func TestGateReportFollowsCIGateCheck(t *testing.T) {
+	// 列表按创建时间倒序，首个 CI Gate 即最新一次。
+	retrying := gateReport([]checkRun{
 		{Name: "Full backend suite", Status: "completed", Conclusion: "success"},
 		{Name: "Platform-sensitive tests (macos-latest)", Status: "completed", Conclusion: "success"},
 		{Name: "Platform-sensitive tests (windows-latest)", Status: "in_progress"},
-		{Name: "Platform-sensitive tests (windows-latest)", Status: "completed", Conclusion: "failure"},
+		{Name: gateCheckName, Status: "in_progress"},
+		{Name: gateCheckName, Status: "completed", Conclusion: "failure"},
 	})
-	if !containsAll(open, "进行中", "门禁未通过", "Full backend suite：成功") {
-		t.Fatalf("open gate = %s", open)
+	if !containsAll(retrying, "**CI Gate**：进行中", "门禁未通过", "(windows-latest)：进行中") {
+		t.Fatalf("retrying gate = %s", retrying)
+	}
+	failed := gateReport([]checkRun{
+		{Name: gateCheckName, Status: "completed", Conclusion: "failure"},
+	})
+	if !containsAll(failed, "**CI Gate**：失败", "门禁未通过") {
+		t.Fatalf("failed gate = %s", failed)
 	}
 	closed := gateReport([]checkRun{
 		{Name: "Full backend suite", Status: "completed", Conclusion: "success"},
 		{Name: "Platform-sensitive tests (macos-latest)", Status: "completed", Conclusion: "success"},
 		{Name: "Platform-sensitive tests (windows-latest)", Status: "completed", Conclusion: "success"},
+		{Name: botCheckName, Status: "completed", Conclusion: "success"},
+		{Name: gateCheckName, Status: "completed", Conclusion: "success"},
 	})
-	if !containsAll(closed, "门禁已通过") || containsAll(closed, "门禁未通过") {
+	if !containsAll(closed, "门禁已通过", "**CI Gate**：成功", "Full backend suite：成功") ||
+		contains(closed, botCheckName) || contains(closed, "门禁未通过") {
 		t.Fatalf("closed gate = %s", closed)
+	}
+	missing := gateReport([]checkRun{
+		{Name: "Full backend suite", Status: "completed", Conclusion: "success"},
+	})
+	if !containsAll(missing, "**CI Gate**：未开始", "门禁未通过", "Full backend suite：成功") {
+		t.Fatalf("missing gate = %s", missing)
+	}
+}
+
+func TestRefreshGateSectionReplacesOnlyGate(t *testing.T) {
+	old := renderComment(reviewReport{
+		findings:     []Finding{{Path: "a.go", Line: 3, Severity: severityError, Rule: "panic-in-runtime", Message: "不要 panic"}},
+		modelSummary: "模型还有一处空指针。",
+		gate:         gateReport([]checkRun{{Name: gateCheckName, Status: "in_progress"}}),
+	})
+	updated, ok := refreshGateSection(old, gateReport([]checkRun{
+		{Name: gateCheckName, Status: "completed", Conclusion: "success"},
+	}))
+	if !ok {
+		t.Fatal("gate section should be recognized")
+	}
+	if !containsAll(updated, "门禁已通过", "不要 panic", "模型还有一处空指针。") {
+		t.Fatalf("updated = %s", updated)
+	}
+	if contains(updated, "进行中") {
+		t.Fatalf("stale gate status survived: %s", updated)
+	}
+	if body, ok := refreshGateSection(old+"\n尾部补丁\n", gateReport(nil)); !ok || !contains(body, "尾部补丁") {
+		t.Fatalf("trailing content should survive, ok=%v body=%s", ok, body)
+	}
+	if _, ok := refreshGateSection("随手写的评论", gateReport(nil)); ok {
+		t.Fatal("comment without gate heading should not be spliced")
 	}
 }
 
