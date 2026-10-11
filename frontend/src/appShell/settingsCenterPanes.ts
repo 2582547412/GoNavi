@@ -1,17 +1,12 @@
 export type ToolCenterGroupKey = 'config' | 'workflow' | 'workspace';
 export type ToolCenterPaneKey =
-  | 'connection-package'
-  | 'import'
-  | 'export'
-  | 'connection-health'
   | 'data-root'
   | 'data-root-application'
   | 'data-root-agent'
   | 'data-root-saved-queries'
   | 'security-update'
   | 'drivers'
-  | 'snippet-settings'
-  | 'shortcut-settings';
+  | 'snippet-settings';
 
 export type SettingsCenterGroupKey = 'preferences' | 'services' | ToolCenterGroupKey | 'about' | 'brand-icon';
 export type SettingsCenterPaneKey =
@@ -20,10 +15,9 @@ export type SettingsCenterPaneKey =
   | 'sidebar-metadata'
   | 'sidebar-objects'
   | 'brand-icon'
+  | 'shortcut-settings'
   | 'proxy'
-  | 'download-source'
   | 'web-auth'
-  | 'cloud-backup'
   | 'ai'
   | ToolCenterPaneKey
   | 'about-go-navi';
@@ -35,10 +29,6 @@ export type SettingsCenterPaneState = {
 export const isToolCenterGroupKey = (group: SettingsCenterGroupKey): group is ToolCenterGroupKey => (
   group === 'config' || group === 'workflow' || group === 'workspace'
 );
-
-export const isConnectionPackageSettingsPaneKey = (
-  key: SettingsCenterPaneKey | string | null | undefined,
-): boolean => key === 'connection-package' || key === 'import' || key === 'export';
 
 export const resolveSettingsCenterGroupInitialPane = (group: SettingsCenterGroupKey): SettingsCenterPaneState | null => {
   switch (group) {

@@ -53,6 +53,7 @@ export interface UseAppLayoutEffectsInput {
   tokenControlHeight: AppCoreStateApi['tokenControlHeight'];
   tokenControlHeightSM: AppCoreStateApi['tokenControlHeightSM'];
   handleOpenToolCenterPane: AppSettingsNavigationApi['handleOpenToolCenterPane'];
+  handleOpenSettingsCenterPane: AppSettingsNavigationApi['handleOpenSettingsCenterPane'];
   aiSettingsLeaveGuardRef: AppShellStateApi['aiSettingsLeaveGuardRef'];
   closeSettingsCenterWorkbenchTab: AppShellStateApi['closeSettingsCenterWorkbenchTab'];
   setThemeModalSection: AppProxySettingsApi['setThemeModalSection'];
@@ -83,6 +84,7 @@ export const useAppLayoutEffects = ({
   darkMode, documentPlatform, effectiveFontSize, resolvedUiFontFamily, resolvedMonoFontFamily,
   effectiveUiScale, effectiveOpacity, effectiveDataTableFontSize, effectiveSidebarTreeFontSize,
   effectiveSidebarRailScale, tokenControlHeight, tokenControlHeightSM, handleOpenToolCenterPane,
+  handleOpenSettingsCenterPane,
   aiSettingsLeaveGuardRef, closeSettingsCenterWorkbenchTab, setThemeModalSection,
   setIsThemeModalOpen, setTabDisplaySettingsFocusRequest, handleNewQuery, isMacRuntime,
   useNativeMacWindowControls, closeShortcutScopeRef, capturingShortcutAction, shortcutOptions,
@@ -156,13 +158,13 @@ export const useAppLayoutEffects = ({
 
   useEffect(() => {
       const handleOpenShortcutSettingsEvent = () => {
-          handleOpenToolCenterPane('workspace', 'shortcut-settings');
+          handleOpenSettingsCenterPane('preferences', 'shortcut-settings');
       };
       window.addEventListener('gonavi:open-shortcut-settings', handleOpenShortcutSettingsEvent as EventListener);
       return () => {
           window.removeEventListener('gonavi:open-shortcut-settings', handleOpenShortcutSettingsEvent as EventListener);
       };
-  }, [handleOpenToolCenterPane]);
+  }, [handleOpenSettingsCenterPane]);
 
   useEffect(() => {
       const handleOpenSnippetSettingsEvent = () => {
@@ -345,7 +347,7 @@ export const useAppLayoutEffects = ({
                   selectPresetTheme(themeMode === 'dark' ? 'light' : 'dark');
                   break;
               case 'openShortcutManager':
-                  handleOpenToolCenterPane('workspace', 'shortcut-settings');
+                  handleOpenSettingsCenterPane('preferences', 'shortcut-settings');
                   break;
               case 'toggleMacFullscreen':
                   if (isMacRuntime && useNativeMacWindowControls) {
@@ -362,7 +364,7 @@ export const useAppLayoutEffects = ({
       return () => {
           window.removeEventListener('keydown', handleGlobalShortcut, true);
       };
-  }, [activeShortcutPlatform, capturingShortcutAction, handleCreateConnection, handleFocusSidebarSearch, handleManualResetWindowZoom, handleNewQuery, handleOpenToolCenterPane, handleTitleBarWindowToggle, handleToggleLogPanel, handleToggleOrFocusAIPanel, isMacRuntime, selectPresetTheme, shortcutOptions, switchActiveTabByOffset, themeMode, useNativeMacWindowControls]);
+  }, [activeShortcutPlatform, capturingShortcutAction, handleCreateConnection, handleFocusSidebarSearch, handleManualResetWindowZoom, handleNewQuery, handleOpenSettingsCenterPane, handleTitleBarWindowToggle, handleToggleLogPanel, handleToggleOrFocusAIPanel, isMacRuntime, selectPresetTheme, shortcutOptions, switchActiveTabByOffset, themeMode, useNativeMacWindowControls]);
 
   useEffect(() => {
       if (!capturingShortcutAction) {

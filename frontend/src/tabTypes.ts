@@ -12,6 +12,7 @@ export type WorkbenchTabType =
   | "sql-analysis"
   | "sql-audit"
   | "dml-snapshot"
+  | "cloud-backup"
   | "driver-manager"
   | "settings-center"
   | "request-diagnostics"

@@ -2,7 +2,6 @@ import { useCallback, useRef, useEffect } from 'react';
 import { message } from 'antd';
 import {
   resolveSettingsCenterGroupInitialPane,
-  isConnectionPackageSettingsPaneKey,
   type ToolCenterGroupKey,
   type SettingsCenterGroupKey,
   type SettingsCenterPaneKey,
@@ -49,10 +48,10 @@ import type { AppConnectionImportExportApi } from './useAppConnectionImportExpor
 
 export interface UseAppSettingsNavigationInput {
   setConnectionHealthTargetIds: AppCoreStateApi['setConnectionHealthTargetIds'];
+  setConnectionHealthDialogOpen: AppCoreStateApi['setConnectionHealthDialogOpen'];
   setActiveSettingsCenterPane: AppShellStateApi['setActiveSettingsCenterPane'];
   setCapturingShortcutAction: AppProxySettingsApi['setCapturingShortcutAction'];
   activeSettingsCenterPaneRef: AppShellStateApi['activeSettingsCenterPaneRef'];
-  closeConnectionPackageDialog: AppQuitAndUpdateApi['closeConnectionPackageDialog'];
   setFocusedAIProviderId: AppShellStateApi['setFocusedAIProviderId'];
   setSecurityUpdateRepairSource: AppShellStateApi['setSecurityUpdateRepairSource'];
   aiSettingsLeaveGuardRef: AppShellStateApi['aiSettingsLeaveGuardRef'];
@@ -70,6 +69,7 @@ export interface UseAppSettingsNavigationInput {
   setReleaseNotesModalOpen: AppUpdateAndDiagnosticsApi['setReleaseNotesModalOpen'];
   prepareAboutSurface: AppUpdateAndDiagnosticsApi['prepareAboutSurface'];
   handleExportConnectionsRef: AppConnectionImportExportApi['handleExportConnectionsRef'];
+  handleImportConnectionsRef: AppConnectionImportExportApi['handleImportConnectionsRef'];
   setThemeModalSection: AppProxySettingsApi['setThemeModalSection'];
   setAiSettingsSection: AppShellStateApi['setAiSettingsSection'];
   setAiSettingsProviderView: AppShellStateApi['setAiSettingsProviderView'];
@@ -94,13 +94,15 @@ export interface UseAppSettingsNavigationInput {
 }
 
 export const useAppSettingsNavigation = ({
-  setConnectionHealthTargetIds, setActiveSettingsCenterPane, setCapturingShortcutAction,
-  activeSettingsCenterPaneRef, closeConnectionPackageDialog, setFocusedAIProviderId,
+  setConnectionHealthTargetIds, setConnectionHealthDialogOpen, setActiveSettingsCenterPane,
+  setCapturingShortcutAction,
+  activeSettingsCenterPaneRef, setFocusedAIProviderId,
   setSecurityUpdateRepairSource, aiSettingsLeaveGuardRef, setToolCenterBackGroupKey,
   setActiveSettingsCenterGroupKey, openSettingsCenterWorkbenchTab, securityUpdateRepairSource,
   openSecurityUpdateSettings, activeSettingsCenterPane, closeSettingsCenterWorkbenchTab, addTab,
   isSettingsModalOpen, updateCenterBridgeRef, openReleaseNotesOnManualCheckRef,
-  setReleaseNotesModalOpen, prepareAboutSurface, handleExportConnectionsRef, setThemeModalSection,
+  setReleaseNotesModalOpen, prepareAboutSurface, handleExportConnectionsRef,
+  handleImportConnectionsRef, setThemeModalSection,
   setAiSettingsSection, setAiSettingsProviderView, toolCenterBackGroupKey, setIsSidebarCollapsed,
   setDataRootLoading, t, setDataRootInfo, setSelectedDataRootPath, setSelectedLogDirectoryPath,
   setSelectedSavedQueryDirectoryPath, isDataRootModalOpen, selectedDataRootPath, dataRootInfo,
@@ -108,25 +110,13 @@ export const useAppSettingsNavigation = ({
   selectedSavedQueryDirectoryPath, setSavedQueryDirectoryApplying, replaceSavedQueries,
   reloadSavedQueryGroups,
 }: UseAppSettingsNavigationInput) => {
-  const closeConnectionHealthSettingsPane = useCallback(() => {
-      setConnectionHealthTargetIds([]);
-      setActiveSettingsCenterPane((current) => (
-          current?.key === 'connection-health' ? resolveSettingsCenterGroupInitialPane('config') : current
-      ));
-  }, []);
   const clearSettingsCenterTransientPaneState = useCallback(() => {
       setCapturingShortcutAction(null);
-      if (isConnectionPackageSettingsPaneKey(activeSettingsCenterPaneRef.current?.key)) {
-          closeConnectionPackageDialog();
-      }
-      if (activeSettingsCenterPaneRef.current?.key === 'connection-health') {
-          setConnectionHealthTargetIds([]);
-      }
       if (activeSettingsCenterPaneRef.current?.key === 'ai') {
           setFocusedAIProviderId(undefined);
           setSecurityUpdateRepairSource(null);
       }
-  }, [closeConnectionPackageDialog]);
+  }, []);
   const handleOpenToolsModal = useCallback((group: ToolCenterGroupKey = 'config') => withAISettingsLeaveGuard(aiSettingsLeaveGuardRef.current, () => {
       clearSettingsCenterTransientPaneState();
       setToolCenterBackGroupKey(null);
@@ -156,12 +146,6 @@ export const useAppSettingsNavigation = ({
   }, [openSecurityUpdateSettings, securityUpdateRepairSource]);
   const handleCancelSettingsCenterPane = useCallback(() => withAISettingsLeaveGuard(aiSettingsLeaveGuardRef.current, () => {
       const leavingAI = activeSettingsCenterPane?.key === 'ai';
-      if (isConnectionPackageSettingsPaneKey(activeSettingsCenterPane?.key)) {
-          closeConnectionPackageDialog();
-      }
-      if (activeSettingsCenterPane?.key === 'connection-health') {
-          setConnectionHealthTargetIds([]);
-      }
       setCapturingShortcutAction(null);
       setToolCenterBackGroupKey(null);
       setActiveSettingsCenterPane(null);
@@ -169,7 +153,7 @@ export const useAppSettingsNavigation = ({
       if (leavingAI) {
           finalizeSecurityRepairReturnFromAISettings();
       }
-  }), [activeSettingsCenterPane?.key, closeConnectionPackageDialog, closeSettingsCenterWorkbenchTab, finalizeSecurityRepairReturnFromAISettings]);
+  }), [activeSettingsCenterPane?.key, closeSettingsCenterWorkbenchTab, finalizeSecurityRepairReturnFromAISettings]);
   const handleOpenDataSyncWorkbench = useCallback((entryMode: DataSyncEntryModeAlias) => withAISettingsLeaveGuard(aiSettingsLeaveGuardRef.current, () => {
       const normalized = normalizeDataSyncEntryMode(entryMode);
       const nextTab = buildDataSyncWorkbenchTab({ entryMode: normalized });
@@ -188,12 +172,6 @@ export const useAppSettingsNavigation = ({
           return;
       }
       // Tab closed via workbench chrome (X) — mirror cancel cleanup without re-entering leave guard.
-      if (isConnectionPackageSettingsPaneKey(activeSettingsCenterPaneRef.current?.key)) {
-          closeConnectionPackageDialog();
-      }
-      if (activeSettingsCenterPaneRef.current?.key === 'connection-health') {
-          setConnectionHealthTargetIds([]);
-      }
       const leavingAI = activeSettingsCenterPaneRef.current?.key === 'ai';
       setCapturingShortcutAction(null);
       setToolCenterBackGroupKey(null);
@@ -201,7 +179,7 @@ export const useAppSettingsNavigation = ({
       if (leavingAI) {
           finalizeSecurityRepairReturnFromAISettings();
       }
-  }, [closeConnectionPackageDialog, finalizeSecurityRepairReturnFromAISettings, isSettingsModalOpen]);
+  }, [finalizeSecurityRepairReturnFromAISettings, isSettingsModalOpen]);
   const isSettingsAboutPaneOpenRef = useRef(false);
   useEffect(() => {
       isSettingsAboutPaneOpenRef.current = isSettingsAboutPaneOpen;
@@ -244,11 +222,16 @@ export const useAppSettingsNavigation = ({
   /** Title-bar / explorer settings entries → settings center navigation. */
   const handleTitleBarSettingsNavigation = useCallback((spec: SettingsCenterNavigationTarget) => withAISettingsLeaveGuard(aiSettingsLeaveGuardRef.current, () => {
       if (spec.action === 'import-connections') {
-          handleOpenToolCenterPane('config', 'import');
+          void handleImportConnectionsRef.current();
           return;
       }
       if (spec.action === 'export-connections') {
-          void handleExportConnectionsRef.current('config');
+          void handleExportConnectionsRef.current();
+          return;
+      }
+      if (spec.action === 'connection-health') {
+          setConnectionHealthTargetIds([]);
+          setConnectionHealthDialogOpen(true);
           return;
       }
       if (
@@ -540,7 +523,7 @@ export const useAppSettingsNavigation = ({
       }
   }, [t]);
   return {
-    closeConnectionHealthSettingsPane, handleOpenToolsModal, handleOpenSettingsModal,
+    handleOpenToolsModal, handleOpenSettingsModal,
     handleOpenSettingsCenterPane, handleCancelSettingsCenterPane, handleOpenDataSyncWorkbench,
     handleOpenToolCenterPane, handleTitleBarSettingsNavigation, handleReturnToToolCenter,
     handleFocusSidebarSearch, handleSelectDataRoot, handleApplyDataRoot, handleOpenDataRoot,
