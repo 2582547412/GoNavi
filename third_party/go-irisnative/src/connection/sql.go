@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"io"
+	"net"
 	"slices"
 	"strconv"
 	"strings"
@@ -23,6 +24,16 @@ const timeLayloutShort = "2006-01-02 15:04:05"
 // 自身 50000 行预算的值，让预算先触发并如实上报截断，既不静默丢数据，也不依赖
 // 服务端对 0 的解释。
 const maxResultRows = 100000
+
+// emptyResultProbeTimeout 是「列定义帧之后等待数据帧」的探测窗口。
+//
+// Caché 旧协议对 0 行结果不发数据帧，而 IRIS 对任何结果都会发。用一个小窗口
+// 区分两者：窗口内拿到数据帧就是正常结果，拿不到按空结果集处理。
+//
+// 取值依据实测：同机 100 行与 808 行的数据帧都在 1.6s 内到达（与查询总耗时同批），
+// 所以 2s 窗口对「有数据的查询」不会误判。远程慢链路下单次往返更长，这里宁可
+// 判空偏保守也不引入等待——真正的慢查询由 queryTimeout 与上层预算兜底。
+const emptyResultProbeTimeout = 2 * time.Second
 
 type StatementFeature struct {
 	featureOption   int
@@ -234,13 +245,27 @@ func fromODBC(coltype SQLTYPE, li list.ListItem) (result interface{}, err error)
 		var value string
 		li.Get(&value)
 	case TYPE_TIMESTAMP:
+		// 注意：Caché/IRIS 的日期时间列在 DIRECT_QUERY 下常以 91/92/93
+		// （DATE/TIME/TIMESTAMP 的 ODBC 码）返回，且值本身就是可读字符串。
+		// 解析失败时退回原始字符串，不要丢掉值。
 		var strval string
 		li.Get(&strval)
-		result, err = time.Parse(timeLayloutShort, strval)
+		parsed, perr := time.Parse(timeLayloutShort, strval)
+		if perr != nil {
+			result = strval
+			break
+		}
+		result = parsed
+	case TYPE_DATE, TYPE_TIME:
+		// 日期与时间列直接透传字符串：早先落入 default 分支，每行都会往 stderr
+		// 打一行 fmt.Printf，既污染日志又显著拖慢大结果集（实测 100 行会刷
+		// 满终端），把 TIMESTAMP 的分支补全后这里不再需要噪音输出。
+		var value string
+		li.Get(&value)
+		result = value
 	default:
 		var value string
 		li.Get(&value)
-		fmt.Printf("fromODBC: invalid type: %v - %#v - %#v", coltype, li, value)
 		result = value
 	}
 	return
@@ -482,12 +507,28 @@ func (c *Connection) DirectQuery(sqlText string, args ...interface{}) (*ResultSe
 		stmtId:  statementId,
 	}
 
-	msg, err = ReadMessageWithTimeout(c.conn, c.queryTimeout)
-	rs.sqlCode = int16(msg.GetStatus())
+	// 数据帧只在这条 statement 真的产生行时才来。Caché 2018.1 对 0 行结果
+	// （如 SELECT * 命中空表）只发列定义帧，之后不再发送任何消息；原实现无条件
+	// 读第二帧，于是永久阻塞在 90s 读超时上，这正是「查询空表/TOP N 直接报错、
+	// 侧栏点开库转圈」的根因（issue #1427/#1430）。
+	//
+	// 用一个短探测窗口读第二帧：拿不到就按「空结果集」返回，让 Next() 立即 EOF；
+	// 拿到就正常解析。窗口取驱动查询超时与 emptyResultProbeTimeout 的较小值，
+	// 既不为空结果白等 90s，也不会把慢链路上真的数据帧误判成空。
+	probeTimeout := c.queryTimeout
+	if probeTimeout <= 0 || probeTimeout > emptyResultProbeTimeout {
+		probeTimeout = emptyResultProbeTimeout
+	}
+	msg, err = ReadMessageWithTimeout(c.conn, probeTimeout)
 	if err != nil {
+		if ne, ok := err.(net.Error); ok && ne.Timeout() {
+			// 列定义已经拿到但没有数据帧 → 空结果集。
+			rs.sqlCode = 100
+			return rs, nil
+		}
 		return nil, err
 	}
-
+	rs.sqlCode = int16(msg.GetStatus())
 	msg.GetRaw(&rs.data)
 
 	return rs, nil
