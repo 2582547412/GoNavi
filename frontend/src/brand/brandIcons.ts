@@ -46,7 +46,8 @@ export const RIBBON_TILE_ART_FRACTION = 0.8;
 // horizontal white margins inside their 512px tiles (smallest measured margin
 // is 34px). A 1.13× centre crop is the largest uniform zoom that never clips
 // the artwork and keeps the mascot mark comparable to the ribbon marks at
-// small sizes, so previews and native taskbar icons share the same framing.
+// small sizes, so picker previews share the same framing. Native mascots
+// compose at zoom 1 instead: their v2 tiles already fill the canvas.
 export const BUNDLED_BRAND_ICON_ZOOM = 1.13;
 export const BRAND_ICON_REMOTE_BASE_URL = 'https://origin-download.syngnat.top:8443/gonavi/brand-assets/v1';
 export const BRAND_ICON_FALLBACK_SRC = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgcng9IjI0IiBmaWxsPSIjMTYxYzJhIi8+PHBhdGggZD0iTTI0IDM0aDgwYzAgMjAtMTIgMjktMjkgMjktMTcgMC0yOS05LTI5LTI5bDI5IDBjMTcgMCAyOS05IDI5LTI5em0wIDYwYzE3IDAgMjktOSAyOS0yOWgyMmMwIDIwLTEyIDI5LTI5IDI5LTE3IDAtMjktOS0yOS0yOWgyMmMwIDIwIDEyIDI5IDI5IDI5eiIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==';
@@ -61,10 +62,11 @@ export const BRAND_ICONS: BrandIconDefinition[] = [
     titleEn: 'Graphite air',
     iconPath: '/brand-fallback.svg',
     aboutPath: '/brand-fallback.svg',
-    // Dark-tile artwork cropped to a full-bleed viewBox. Never flag it as a
-    // mascot: that flag drives the macOS white-tile Dock safe-area inset,
-    // which would shrink the running default icon a ring smaller than the
-    // bundled icns and neighbouring apps.
+    // Same ribbon family framing as the remote 02-06 SVGs: the artwork keeps
+    // the unified transparent breathing margin inside its viewBox (the baked
+    // icns measures 820/1024), so native composition needs the family zoom to
+    // fill the tile. Never flag it as a mascot: that flag drives the macOS
+    // white-tile base behind the Apple grid, which a dark tile must not get.
     bundled: true,
   },
   {
@@ -309,17 +311,18 @@ export function resolveBrandNativeSrc(id?: unknown): string {
   return resolveBrandDockSrc(id);
 }
 
-/** Zoom for composing the Windows native tile so its visible artwork reads at
- * the same size as neighbouring apps' full-bleed icons. Ribbon SVGs frame
- * their tile at RIBBON_TILE_ART_FRACTION (the exact ~20% margin users
- * reported as "the icon is too small"), so compose crops exactly that
- * transparent breathing margin. Every other family composes at zoom 1:
- * mascot rounded white-tile webps and the bundled full-bleed default carry
- * their own designed margins, and cropping those would square the rounded
- * corners off. */
+/** Zoom for composing the native icon tile (Windows taskbar tile and the
+ * macOS Apple grid alike) so its visible artwork reads at the same size as
+ * neighbouring apps' full-bleed icons. Ribbon SVGs — bundled graphite air
+ * included — frame their tile at RIBBON_TILE_ART_FRACTION (the exact ~20%
+ * margin users reported as "the icon is too small"; the baked icns measures
+ * the same 820/1024), so compose crops exactly that transparent breathing
+ * margin. Every other family composes at zoom 1: mascot rounded white-tile
+ * webps carry their own designed margins, and cropping those would square
+ * the rounded corners off. */
 export function resolveBrandNativeIconZoom(id?: unknown): number {
   const definition = resolveBrandIcon(id);
-  if (definition.slug.startsWith('ribbon-') && !definition.bundled) {
+  if (definition.slug.startsWith('ribbon-')) {
     return 1 / RIBBON_TILE_ART_FRACTION;
   }
   return 1;
