@@ -2073,3 +2073,12 @@ jobs:
           body_path: ${{ steps.changelog.outputs.changelog_file }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 产物以草稿上传（中途失败重跑不会公开半成品），全部步骤成功后自动发布。
+      - name: Publish Release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release edit "${{ needs.validate_release_tag.outputs.tag }}" --draft=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
