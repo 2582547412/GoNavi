@@ -14,6 +14,7 @@ on:
 permissions:
   contents: write
   pull-requests: read
+  actions: write
 
 jobs:
   validate_release_tag:
@@ -2074,11 +2075,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 产物以草稿上传（中途失败重跑不会公开半成品），全部步骤成功后自动发布。
-      - name: Publish Release
+      # 产物以草稿上传（中途失败重跑不会公开半成品）。构建成功后自动触发
+      # Publish Draft Release 工作流：它负责资产契约校验、发布草稿并把
+      # latest.json 与产物部署到下载分发边缘节点——应用内检查更新读取该分发源。
+      - name: Dispatch publish-release workflow
         shell: bash
         run: |
           set -euo pipefail
-          gh release edit "${{ needs.validate_release_tag.outputs.tag }}" --draft=false
+          gh workflow run publish-release.yml --ref main -f tag="${{ needs.validate_release_tag.outputs.tag }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
