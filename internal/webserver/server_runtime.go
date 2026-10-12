@@ -245,6 +245,7 @@ func New(ctx context.Context, assetFS fs.FS, options Options) (*Server, error) {
 	app := appcore.NewWebApp()
 	appcore.InitializeLifecycle(app, lifecycleCtx)
 	ai := aiservice.NewService()
+	aiservice.PreloadConfig(ai)
 	aiservice.InitializeLifecycle(ai, lifecycleCtx)
 	invoker, err := newMethodInvoker(app, ai)
 	if err != nil {
