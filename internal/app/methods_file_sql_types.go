@@ -47,6 +47,8 @@ type sqlFileExecutionPolicy struct {
 	MySQLGTIDMode      mysqlGTIDImportMode
 	// PinDatabase 非空时，导入执行忽略 SQL 文件里的 USE，会话保持在这个库。
 	PinDatabase string
+	// SkipRollbackSnapshot 为真时，这次执行本身就是回滚，不能把当前库再拍成新的回滚点。
+	SkipRollbackSnapshot bool
 }
 
 type sqlFileExecutionResult struct {

@@ -369,6 +369,9 @@ func (a *App) executeSQLFileWithStatementLimitPolicyContextWithPolicy(parent con
 			}
 		}
 	}
+	if err := a.captureSQLFileRollbackPoint(ctx, managedJob, config, jobID, policy); err != nil {
+		return connection.QueryResult{Success: false, Message: err.Error()}
+	}
 	if containsMySQLGTIDPurged {
 		switch policy.MySQLGTIDMode {
 		case mysqlGTIDImportModeReject:

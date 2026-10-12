@@ -1478,6 +1478,14 @@ export function RevealSavedQueryInFolder(arg1) {
   return window['go']['app']['App']['RevealSavedQueryInFolder'](arg1);
 }
 
+export function RollbackDataSyncRun(arg1) {
+  return window['go']['app']['App']['RollbackDataSyncRun'](arg1);
+}
+
+export function RollbackImportJob(arg1) {
+  return window['go']['app']['App']['RollbackImportJob'](arg1);
+}
+
 export function SaveCloudBackupConfig(arg1) {
   return window['go']['app']['App']['SaveCloudBackupConfig'](arg1);
 }

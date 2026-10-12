@@ -370,6 +370,7 @@ export type DataSyncRunRecord = {
   rowsFailed: number;
   throughput: number;
   checkpoint: string;
+  rollbackReady?: boolean;
 };
 
 export type DataSyncRunCursor = {
