@@ -7,6 +7,7 @@ import "strings"
 // PostgreSQL/Kingbase 的 $$...$$ dollar-quoting，以及 Oracle PL/SQL 匿名块，
 // 避免在这些上下文中错误拆分。
 // 同时支持 SQL 标准的转义单引号（两个连续单引号 ” 表示字面量引号）。
+// SQL Server 的 GO 是客户端批处理分隔符，识别后会作为语句边界并丢弃。
 func splitSQLStatements(sql string) []string {
 	return splitSQLStatementsForDialect("", sql)
 }
@@ -35,6 +36,7 @@ func splitSQLStatementsForDialectMode(dbType, sql string, backslashEscapes bool)
 	text := strings.ReplaceAll(sql, "\r\n", "\n")
 	bracketIdentifiers := supportsSQLBracketIdentifier(dbType)
 	escapedBracketIdentifiers := supportsSQLEscapedBracketIdentifier(dbType)
+	sqlServerBatchSeparator := isSQLServerBatchSeparatorDialect(dbType)
 	if normalizeSQLClassifierDBType(dbType) == "elasticsearch" {
 		if source := strings.TrimSpace(text); source != "" {
 			return []string{source}
@@ -57,6 +59,7 @@ func splitSQLStatementsForDialectMode(dbType, sql string, backslashEscapes bool)
 	plsqlCaseDepth := 0
 	skipNextPLSQLCaseEndToken := false
 	justClosedPLSQLBlock := false
+	sqlServerBatchStart := 0
 
 	push := func() {
 		s := strings.TrimSpace(cur.String())
@@ -166,6 +169,19 @@ func splitSQLStatementsForDialectMode(dbType, sql string, backslashEscapes bool)
 		if inSingle || inDouble || inBacktick {
 			cur.WriteByte(ch)
 			continue
+		}
+
+		// SQL Server 批处理分隔符：GO 独占一行时结束当前批次并丢弃该行，
+		// 绝不能把它当作语句文本下发（服务端不认识 GO）。
+		if sqlServerBatchSeparator {
+			if repeat, lineEnd, matched := matchSQLServerGoLine(text, i); matched {
+				push()
+				repeatSQLServerBatchStatements(&statements, sqlServerBatchStart, repeat)
+				sqlServerBatchStart = len(statements)
+				justClosedPLSQLBlock = false
+				i = lineEnd - 1
+				continue
+			}
 		}
 
 		if isSQLIdentifierStart(ch) {
