@@ -159,6 +159,27 @@ log() {
   echo "[$(date '+%%Y-%%m-%%d %%H:%%M:%%S')] $*" >> "$LOG_FILE" 2>/dev/null || true
 }
 
+# 更新是脱离主进程静默执行的：失败时必须主动告知用户，
+# 否则表现就是「点了重启更新没任何反应」，用户拿不到日志路径也无法自助排查。
+notify_failure() {
+  local reason="$1"
+  log "update failed: $reason"
+  /usr/bin/osascript - "$reason" "$LOG_FILE" "$PACKAGE" "$TARGET_APP" <<'NOTIFY' >/dev/null 2>&1 || true
+on run argv
+  set reasonText to item 1 of argv
+  set logPath to item 2 of argv
+  set pkgPath to item 3 of argv
+  set appPath to item 4 of argv
+  display notification ("更新未完成：" & reasonText) with title "GoNavi 更新失败" subtitle ("日志：" & logPath) sound name "Basso"
+  display dialog ("GoNavi 自动更新未完成。" & return & return & ¬
+    "原因：" & reasonText & return & return & ¬
+    "安装包已保留：" & pkgPath & return & ¬
+    "更新日志：" & logPath & return & ¬
+    "目标应用：" & appPath) buttons {"好"} default button "好" with title "GoNavi 更新失败" giving up after 120
+end run
+NOTIFY
+}
+
 cleanup_mount() {
   if [ "$DETACH_NEEDED" = "1" ]; then
     /usr/bin/hdiutil detach "$MOUNT_DIR" -quiet >>"$LOG_FILE" 2>&1 || \
@@ -235,7 +256,10 @@ prepare_app_source_from_package() {
 }
 
 run_admin_replace() {
-  /usr/bin/osascript <<'APPLESCRIPT' "$APP_SRC" "$TARGET_APP" "$TMP_APP" "$BACKUP_APP" "$APP_BIN_REL" "$LOG_FILE"
+  # 必须写成 osascript - args <<EOF：没有 - 时 osascript 会把第一个参数
+  # 当成脚本文件名（这里就是 .app 路径），转而报 -2740 语法错误并退出 1，
+  # 内置脚本从不执行，管理员替换必然失败。
+  /usr/bin/osascript - "$APP_SRC" "$TARGET_APP" "$TMP_APP" "$BACKUP_APP" "$APP_BIN_REL" "$LOG_FILE" <<'APPLESCRIPT'
 on run argv
   set srcPath to item 1 of argv
   set dstPath to item 2 of argv
@@ -262,8 +286,14 @@ replace_app_direct() {
     log "tmp app binary missing: $TMP_APP/$APP_BIN_REL"
     return 1
   fi
+  # 把旧包挪走这一步必须判失败：挪不动时（App Management / uchg / 权限）若继续往下走，
+  # 下面的 mv 会把新包塞进旧包内部，而旧包的可执行文件仍在原位，
+  # 后面的存在性校验照样通过 —— 结果就是「更新成功但版本没变」。
   if [ -d "$TARGET_APP" ]; then
-    /bin/mv "$TARGET_APP" "$BACKUP_APP" >>"$LOG_FILE" 2>&1
+    if ! /bin/mv "$TARGET_APP" "$BACKUP_APP" >>"$LOG_FILE" 2>&1; then
+      log "move existing app aside failed: $TARGET_APP -> $BACKUP_APP"
+      return 1
+    fi
   fi
   if ! /bin/mv "$TMP_APP" "$TARGET_APP" >>"$LOG_FILE" 2>&1; then
     log "move new app failed, trying rollback"
@@ -302,7 +332,7 @@ relaunch_app() {
 log "updater started package=$PACKAGE target=$TARGET_APP pid=$PID"
 while /bin/kill -0 "$PID" 2>/dev/null; do
   if [ "$WAIT_PID_SECONDS" -ge "$MAX_WAIT_PID_SECONDS" ]; then
-    log "host process still running after ${WAIT_PID_SECONDS}s, aborting update"
+    notify_failure "主程序在 ${MAX_WAIT_PID_SECONDS} 秒内仍未退出"
     exit 1
   fi
   /bin/sleep 1
@@ -312,12 +342,13 @@ log "host process exited after ${WAIT_PID_SECONDS}s"
 /bin/sleep 1
 
 if [ ! -f "$PACKAGE" ]; then
-  log "package file missing: $PACKAGE"
+  notify_failure "安装包已丢失：$PACKAGE"
   exit 1
 fi
 
 if ! prepare_app_source_from_package; then
   cleanup_mount
+  notify_failure "无法从安装包中解出应用（dmg/zip 挂载或解压失败）"
   exit 1
 fi
 
@@ -325,20 +356,20 @@ log "install target: $TARGET_APP"
 if ! replace_app_direct; then
   log "direct replace failed, trying admin replace"
   if ! run_admin_replace >>"$LOG_FILE" 2>&1; then
-    log "admin replace failed — package kept at: $PACKAGE"
     cleanup_mount
+    notify_failure "无权限替换应用，且管理员授权替换失败"
     exit 1
   fi
 fi
 
 if ! resolve_app_binary_rel "$TARGET_APP"; then
-  log "target app binary missing after replace: $TARGET_APP — package kept at: $PACKAGE"
   cleanup_mount
+  notify_failure "替换后目标应用缺少可执行文件"
   exit 1
 fi
 if [ ! -x "$TARGET_APP/$APP_BIN_REL" ]; then
-  log "target app binary not executable: $TARGET_APP/$APP_BIN_REL — package kept at: $PACKAGE"
   cleanup_mount
+  notify_failure "替换后目标应用可执行文件不可运行：$APP_BIN_REL"
   exit 1
 fi
 
@@ -347,8 +378,8 @@ cleanup_mount
 /bin/rm -rf "$EXTRACT_DIR" >>"$LOG_FILE" 2>&1 || true
 
 if ! relaunch_app; then
-  log "update files replaced but relaunch failed — package kept for manual install: $PACKAGE"
   log "please open: $TARGET_APP"
+  notify_failure "应用已替换但自动重启失败，请手动打开 $TARGET_APP"
   exit 1
 fi
 
