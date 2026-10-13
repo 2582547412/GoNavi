@@ -161,21 +161,53 @@ log() {
 
 # 更新是脱离主进程静默执行的：失败时必须主动告知用户，
 # 否则表现就是「点了重启更新没任何反应」，用户拿不到日志路径也无法自助排查。
+# 用中英双语文案：脚本脱离主进程跑，调不到 i18n，双语让用户至少能看懂关键词。
 notify_failure() {
-  local reason="$1"
+  reason="$1"
   log "update failed: $reason"
-  /usr/bin/osascript - "$reason" "$LOG_FILE" "$PACKAGE" "$TARGET_APP" <<'NOTIFY' >/dev/null 2>&1 || true
+  # osascript 弹窗可能一直挂着（等用户点按钮），所以后台跑并给 10s 超时；
+  # 不用 GNU timeout，macOS 上没有。
+  _notify_applescript | /usr/bin/osascript - "$reason" "$LOG_FILE" "$PACKAGE" "$TARGET_APP" >/dev/null 2>&1 &
+  _notify_pid=$!
+  ( sleep 10; /bin/kill -9 "$_notify_pid" 2>/dev/null ) &
+  _watchdog_pid=$!
+  wait "$_notify_pid" 2>/dev/null || true
+  /bin/kill -0 "$_watchdog_pid" 2>/dev/null && /bin/kill "$_watchdog_pid" 2>/dev/null
+  wait "$_watchdog_pid" 2>/dev/null || true
+  return 0
+}
+
+_notify_applescript() {
+  cat <<'NOTIFY'
 on run argv
   set reasonText to item 1 of argv
   set logPath to item 2 of argv
   set pkgPath to item 3 of argv
   set appPath to item 4 of argv
-  display notification ("更新未完成：" & reasonText) with title "GoNavi 更新失败" subtitle ("日志：" & logPath) sound name "Basso"
-  display dialog ("GoNavi 自动更新未完成。" & return & return & ¬
-    "原因：" & reasonText & return & return & ¬
-    "安装包已保留：" & pkgPath & return & ¬
-    "更新日志：" & logPath & return & ¬
-    "目标应用：" & appPath) buttons {"好"} default button "好" with title "GoNavi 更新失败" giving up after 120
+  set isZh to ((system attribute "APPLE_LANGUAGE") starts with "zh")
+  if isZh then
+    set titleText to "GoNavi 更新失败"
+    set reasonLabel to "更新未完成"
+    set pkgLabel to "安装包已保留"
+    set logLabel to "更新日志"
+    set appLabel to "目标应用"
+    set okLabel to "好"
+    set introText to "GoNavi 自动更新未完成。"
+  else
+    set titleText to "GoNavi Update Failed"
+    set reasonLabel to "Update incomplete"
+    set pkgLabel to "Package kept at"
+    set logLabel to "Update log"
+    set appLabel to "Target app"
+    set okLabel to "OK"
+    set introText to "GoNavi update did not finish."
+  end if
+  display notification (reasonLabel & ": " & reasonText) with title titleText subtitle (logLabel & ": " & logPath) sound name "Basso"
+  display dialog (introText & return & return & ¬
+    reasonLabel & ": " & reasonText & return & return & ¬
+    pkgLabel & ": " & pkgPath & return & ¬
+    logLabel & ": " & logPath & return & ¬
+    appLabel & ": " & appPath) buttons {okLabel} default button okLabel with title titleText giving up after 120
 end run
 NOTIFY
 }
