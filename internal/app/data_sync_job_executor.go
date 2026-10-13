@@ -483,8 +483,15 @@ func buildDataSyncJobEngineConfig(definition syncjob.JobDefinition, runID string
 		// 缺失的目标表由运行前的补建步骤建好（prepareDataSyncTargetTables），数据阶段只写已有表。
 		config.TargetTableStrategy = "existing_only"
 		config.CreateIndexes = false
-	}
+		}
 	needsExplicitProjection := dataSyncJobMappingNeedsExplicitProjection(definition, mapping)
+	if definition.Kind == syncjob.JobKindReconcile && !needsExplicitProjection {
+		// 本可自动建表的映射遇到已存在的目标表时，用户预期仍是「把源数据灌进去」，
+		// 而不是行级差异同步；无物理主键时差异无从谈起，允许引擎降级为追加写入。
+		// 显式字段映射走自己的投影路径，不在此处处理。
+		capability := syncbackend.ResolveMigrationCapability(source.Config, target.Config)
+		config.ExistingTargetInsertWithoutKey = dataSyncJobMappingCanCreateTarget(definition, mapping, capability)
+	}
 	if definition.Kind == syncjob.JobKindReconcile && definition.AutoAddColumnsEnabled() && !needsExplicitProjection {
 		// 对账（差异同步）任务开启了「自动补字段」：引擎只有按结构同步内容运行才允许补齐目标缺失字段。
 		// 目标表策略仍由任务/映射决定（默认 existing_only，不会建表）；显式字段映射仍保持仅数据，

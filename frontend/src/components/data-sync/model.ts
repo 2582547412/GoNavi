@@ -194,6 +194,7 @@ export type DataSyncValidationCode =
   | 'target_columns_will_be_added'
   | 'key_columns_required'
   | 'source_primary_key_required'
+  | 'existing_target_no_key_append'
   | 'structure_migration_primary_key_required'
   | 'mapping_key_unmapped'
   | 'mapping_key_target_missing'

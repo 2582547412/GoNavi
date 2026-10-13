@@ -104,6 +104,10 @@ func (s *SyncEngine) tryApplyDirectImportInPages(config SyncConfig, res *SyncRes
 	}
 }
 
+// prepareDirectImportTargetColumnSet 返回目标表的可写列集合（小写列名），
+// 供 filterInsertRows/filterUpdateRows 过滤 INSERT/UPDATE。
+// 缺列检测基于存在性全集，返回值已剔除生成列：生成列由数据库算值，
+// 出现在写入列清单会报 MySQL 3105 之类的错。
 func (s *SyncEngine) prepareDirectImportTargetColumnSet(config SyncConfig, res *SyncResult, targetDB db.Database, plan SchemaMigrationPlan, sourceType, targetType string, sourceCols, targetCols []connection.ColumnDefinition) (map[string]struct{}, error) {
 	targetColsResolved := targetCols
 	if len(targetColsResolved) == 0 {
@@ -119,10 +123,24 @@ func (s *SyncEngine) prepareDirectImportTargetColumnSet(config SyncConfig, res *
 
 	targetColSet := buildTargetColumnSet(targetColsResolved)
 	missing := missingSourceColumns(sourceCols, targetColSet)
-	if len(missing) == 0 {
-		return targetColSet, nil
+	if len(missing) > 0 {
+		var err error
+		targetColSet, err = s.resolveDirectImportMissingColumns(config, res, targetDB, plan, sourceType, targetType, sourceCols, targetColSet, missing)
+		if err != nil {
+			return nil, err
+		}
 	}
+	writableSet := buildWritableTargetColumnSet(targetColsResolved)
+	for lower := range targetColSet {
+		writableSet[lower] = struct{}{}
+	}
+	return writableSet, nil
+}
 
+// resolveDirectImportMissingColumns 按 AutoAddColumns 配置处理源有目标无的列：
+// 允许时逐列 ALTER 补齐并把列名并入 targetColSet，否则记 warn 交给调用方忽略。
+// 返回更新后的存在性集合；自动补齐成功的列是普通列，天然可写。
+func (s *SyncEngine) resolveDirectImportMissingColumns(config SyncConfig, res *SyncResult, targetDB db.Database, plan SchemaMigrationPlan, sourceType, targetType string, sourceCols []connection.ColumnDefinition, targetColSet map[string]struct{}, missing []string) (map[string]struct{}, error) {
 	if config.AutoAddColumns && supportsAutoAddColumnsForPair(sourceType, targetType) {
 		if !syncContentAllowsSchemaChanges(config.Content) {
 			return nil, fmt.Errorf("目标表缺少字段，仅同步数据模式不允许自动补齐：%s", strings.Join(missing, ", "))

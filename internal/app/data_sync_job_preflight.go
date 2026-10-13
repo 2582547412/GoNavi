@@ -540,7 +540,11 @@ func dataSyncJobColumnSet(columns []connection.ColumnDefinition) map[string]stru
 // engine's default physical key, so a user-supplied business key cannot turn an
 // update into an apparently safe upsert. New targets have no prior rows to
 // match, so an initial auto-create import may proceed without a key.
-func preflightSourceComparisonKeyIssues(definition syncjob.JobDefinition, mapping syncjob.TableMapping, sourceColumns, targetColumns []connection.ColumnDefinition, targetExists bool, mappingID string) []DataSyncJobPreflightIssue {
+//
+// canCreateTarget 为 true 时，目标表已存在但映射仍满足自动建表条件（用户对
+// 这张表的预期是「新建导入」而非差异同步），此时无主键降级为警告而非阻断：
+// 运行时会跳过行级比对、按追加写入执行，预检提前把后果说清楚。
+func preflightSourceComparisonKeyIssues(definition syncjob.JobDefinition, mapping syncjob.TableMapping, sourceColumns, targetColumns []connection.ColumnDefinition, targetExists bool, canCreateTarget bool, mappingID string) []DataSyncJobPreflightIssue {
 	content := strings.ToLower(strings.TrimSpace(definition.Options.Content))
 	if !targetExists ||
 		!dataSyncJobUsesInsertUpdate(definition) ||
@@ -551,6 +555,15 @@ func preflightSourceComparisonKeyIssues(definition syncjob.JobDefinition, mappin
 
 	physicalKeys := dataSyncJobPhysicalPrimaryKeyColumns(sourceColumns)
 	if len(physicalKeys) == 0 {
+		if canCreateTarget {
+			return []DataSyncJobPreflightIssue{preflightIssue(
+				"existing_target_no_key_append",
+				DataSyncJobPreflightWarning,
+				"mappings",
+				"target table exists but the source has no physical primary key; rows will be appended without row-level diff",
+				mappingID,
+			)}
+		}
 		return []DataSyncJobPreflightIssue{preflightIssue(
 			"source_primary_key_required",
 			DataSyncJobPreflightBlocker,
