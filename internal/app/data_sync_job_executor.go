@@ -479,6 +479,11 @@ func buildDataSyncJobEngineConfig(definition syncjob.JobDefinition, runID string
 		}
 		return config, nil
 	}
+	if definition.Kind == syncjob.JobKindReconcile {
+		// 缺失的目标表由运行前的补建步骤建好（prepareDataSyncTargetTables），数据阶段只写已有表。
+		config.TargetTableStrategy = "existing_only"
+		config.CreateIndexes = false
+	}
 	needsExplicitProjection := dataSyncJobMappingNeedsExplicitProjection(definition, mapping)
 	if definition.Kind == syncjob.JobKindReconcile && definition.AutoAddColumnsEnabled() && !needsExplicitProjection {
 		// 对账（差异同步）任务开启了「自动补字段」：引擎只有按结构同步内容运行才允许补齐目标缺失字段。
