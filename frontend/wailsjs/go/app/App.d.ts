@@ -14,7 +14,7 @@ import {redis} from '../models';
 import {resultdiff} from '../models';
 import {dbuser} from '../models';
 
-export function AnalyzeQueryParameters(arg1:connection.ConnectionConfig,arg2:string,arg3:string):Promise<app.QueryParameterAnalysis>;
+export function AnalyzeQueryParameters(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:boolean):Promise<app.QueryParameterAnalysis>;
 
 export function ApplyChanges(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:connection.ChangeSet):Promise<connection.QueryResult>;
 
@@ -178,15 +178,15 @@ export function DBQueryMultiTransactional(arg1:connection.ConnectionConfig,arg2:
 
 export function DBQueryMultiTransactionalWithOptions(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:app.QueryResultBudgetOptions):Promise<connection.QueryResult>;
 
-export function DBQueryMultiTransactionalWithParams(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:Array<connection.QueryParamBinding>):Promise<connection.QueryResult>;
+export function DBQueryMultiTransactionalWithParams(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:Array<connection.QueryParamBinding>,arg6:boolean):Promise<connection.QueryResult>;
 
 export function DBQueryMultiWithOptions(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:app.QueryResultBudgetOptions):Promise<connection.QueryResult>;
 
 export function DBQueryMultiWithOptionsCompact(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:app.QueryResultBudgetOptions):Promise<app.CompactQueryResult>;
 
-export function DBQueryMultiWithParams(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:Array<connection.QueryParamBinding>):Promise<connection.QueryResult>;
+export function DBQueryMultiWithParams(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:Array<connection.QueryParamBinding>,arg6:boolean):Promise<connection.QueryResult>;
 
-export function DBQueryMultiWithParamsInTransaction(arg1:string,arg2:string,arg3:string,arg4:Array<connection.QueryParamBinding>):Promise<connection.QueryResult>;
+export function DBQueryMultiWithParamsInTransaction(arg1:string,arg2:string,arg3:string,arg4:Array<connection.QueryParamBinding>,arg5:boolean):Promise<connection.QueryResult>;
 
 export function DBQueryWithCancel(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string):Promise<connection.QueryResult>;
 
