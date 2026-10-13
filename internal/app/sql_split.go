@@ -43,6 +43,9 @@ func splitSQLStatementsForDialectMode(dbType, sql string, backslashEscapes bool)
 		}
 		return nil
 	}
+	if mysqlTextHasDelimiterDirective(dbType, text) {
+		return splitMySQLDelimiterScript(dbType, text, backslashEscapes)
+	}
 	var statements []string
 
 	var cur strings.Builder
