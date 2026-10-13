@@ -1,5 +1,8 @@
 import type { SidebarViewMetadataEntry } from '../../utils/sidebarMetadata';
 import type { OracleDatabaseLinkEntry } from './sidebarOracleDatabaseLinks';
+import type { DatabaseJobEntry } from '../../typeDefs/databaseJobTypes';
+import { supportsDatabaseJobs } from './sidebarDatabaseJobs';
+import { buildDatabaseJobGroup } from './sidebarJobObjects';
 import {
   dedupeSidebarTableEntries, groupSidebarPartitionTableEntries, getSidebarTableEntryIdentity,
 } from './sidebarPartitions';
@@ -62,6 +65,7 @@ export const createSidebarDatabaseChildrenBuilder = ({
       packagesResult,
       eventsResult,
       databaseLinksResult,
+      jobsResult,
   } = objectResults;
               const viewRows: SidebarViewMetadataEntry[] = Array.isArray(viewsResult.views) ? viewsResult.views : [];
               const materializedViewRows: SidebarViewMetadataEntry[] = Array.isArray(materializedViewsResult.views) ? materializedViewsResult.views : [];
@@ -71,6 +75,7 @@ export const createSidebarDatabaseChildrenBuilder = ({
               const packageRows: any[] = Array.isArray(packagesResult.packages) ? packagesResult.packages : [];
               const eventRows: any[] = Array.isArray(eventsResult.events) ? eventsResult.events : [];
   const databaseLinkEntries: OracleDatabaseLinkEntry[] = Array.isArray(databaseLinksResult.databaseLinks) ? databaseLinksResult.databaseLinks : [];
+  const jobEntries: DatabaseJobEntry[] = jobsResult.jobs;
               const schemaRows: string[] = Array.isArray(schemasResult.schemas) ? schemasResult.schemas : [];
               const normalizedSchemaRows = schemaRows
                   .map((schemaName) => String(schemaName || '').trim())
@@ -246,6 +251,7 @@ export const createSidebarDatabaseChildrenBuilder = ({
                   { label: t('sidebar.object_group.packages'), message: packagesResult.failureMessage },
                   { label: t('sidebar.object_group.events'), message: eventsResult.failureMessage },
       { label: t('sidebar.object_group.database_links'), message: databaseLinksResult.failureMessage },
+      { label: t('sidebar.object_group.jobs'), message: jobsResult.failureMessage },
               ].filter((failure) => failure.message);
               if (notifyMetadataIssues && metadataFailures.length > 0) {
                   const warningKey = `db-${key}-metadata-partial`;
@@ -502,6 +508,7 @@ export const createSidebarDatabaseChildrenBuilder = ({
           triggers: TreeNode[];
           events: TreeNode[];
           databaseLinks: OracleDatabaseLinkEntry[];
+          jobs: DatabaseJobEntry[];
       };
 
       const schemaMap = new Map<string, SchemaBucket>();
@@ -524,6 +531,7 @@ export const createSidebarDatabaseChildrenBuilder = ({
                   triggers: [],
                   events: [],
                   databaseLinks: [],
+                  jobs: [],
               };
               schemaMap.set(schemaKey, bucket);
           }
@@ -545,7 +553,8 @@ export const createSidebarDatabaseChildrenBuilder = ({
       const includeMaterializedViews = dialect === 'starrocks';
       const includeOracleObjects = isOracleLike;
       databaseLinkEntries.forEach((entry) => getSchemaBucket(entry.schemaName).databaseLinks.push(entry));
-      if (dialect === 'oracle') getSchemaBucket(String(dbName || '').trim());
+      jobEntries.forEach((entry) => getSchemaBucket(entry.schemaName).jobs.push(entry));
+      if (dialect === 'oracle' || supportsDatabaseJobs(conn as SavedConnection)) getSchemaBucket(String(dbName || '').trim());
       const includeSequences = supportsDatabaseSequences(conn as SavedConnection);
       const includeEvents = supportsDatabaseEvents(conn as SavedConnection);
 
@@ -576,6 +585,7 @@ export const createSidebarDatabaseChildrenBuilder = ({
                   buildObjectGroup(schemaNodeKey, 'triggers', t('sidebar.object_group.triggers'), renderSidebarObjectIcon('trigger'), bucket.triggers, { schemaName: bucket.schemaName }),
                   ...(includeEvents ? [buildObjectGroup(schemaNodeKey, 'events', t('sidebar.object_group.events'), renderSidebarObjectIcon('event'), bucket.events, { schemaName: bucket.schemaName })] : []),
                   ...(dialect === 'oracle' ? [buildOracleDatabaseLinkGroup(objectGroupConnection, schemaNodeKey, t('sidebar.object_group.database_links'), bucket.databaseLinks, bucket.schemaName)] : []),
+                  ...(supportsDatabaseJobs(conn as SavedConnection) ? [buildDatabaseJobGroup(objectGroupConnection, schemaNodeKey, bucket.jobs, bucket.schemaName)] : []),
               ]);
 
               return {
@@ -606,6 +616,7 @@ export const createSidebarDatabaseChildrenBuilder = ({
           buildObjectGroup(key as string, 'triggers', t('sidebar.object_group.triggers'), renderSidebarObjectIcon('trigger'), triggerEntries.map(buildTriggerNode)),
           ...(includeEvents ? [buildObjectGroup(key as string, 'events', t('sidebar.object_group.events'), renderSidebarObjectIcon('event'), eventEntries.map(buildEventNode))] : []),
           ...(dialect === 'oracle' ? [buildOracleDatabaseLinkGroup(objectGroupConnection, key as string, t('sidebar.object_group.database_links'), databaseLinkEntries)] : []),
+          ...(supportsDatabaseJobs(conn as SavedConnection) ? [buildDatabaseJobGroup(objectGroupConnection, String(key), jobEntries)] : []),
       ]);
 
       renderedDatabaseChildren = [queriesNode, ...groupedNodes];

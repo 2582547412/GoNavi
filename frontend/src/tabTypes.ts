@@ -25,6 +25,7 @@ export type WorkbenchTabType =
   | "trigger"
   | "view-def"
   | "event-def"
+  | "job-def"
   | "routine-def"
   | "sequence-def"
   | "package-def"

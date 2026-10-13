@@ -34,6 +34,7 @@ const emptyObjects = (): SidebarDatabaseObjectLoadResults => ({
   triggersResult: { triggers: [], supported: true }, routinesResult: { routines: [], supported: true },
   sequencesResult: { sequences: [], supported: true }, packagesResult: { packages: [], supported: true },
   eventsResult: { events: [], supported: true }, databaseLinksResult: { databaseLinks: [], supported: true },
+  jobsResult: { jobs: [], supported: true },
 });
 
 type SchemaLoadTask = {

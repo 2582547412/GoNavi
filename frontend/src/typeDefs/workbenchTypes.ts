@@ -1,4 +1,5 @@
 import type { WorkbenchTabType } from '../tabTypes';
+import type { DatabaseJobKind } from './databaseJobTypes';
 import type { JVMDiagnosticTransport } from './jvmTypes';
 
 export interface ColumnDefinition {
@@ -106,6 +107,8 @@ export interface TabData {
   viewName?: string; // View name for view definition tabs
   viewKind?: "view" | "materialized";
   eventName?: string; // Event name for MySQL event definition tabs
+  jobName?: string;
+  jobKind?: DatabaseJobKind;
   routineName?: string; // Routine name for function/procedure definition tabs
   routineType?: string; // 'FUNCTION' or 'PROCEDURE'
   sequenceName?: string; // Sequence name for sequence definition tabs
