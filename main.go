@@ -165,6 +165,10 @@ func main() {
 	application := app.NewApp()
 	aiService := aiservice.NewServiceWithConfigChangeHandler(app.NewCloudBackupChangeHandler(application))
 	aiservice.SetBuiltinAIClientVersion(app.CurrentVersion())
+	// Load the persisted AI configuration before any binding is served: Wails runs
+	// OnStartup in a goroutine, so the AI panel can read the provider list before
+	// InitializeLifecycle has run and would otherwise be told nothing is configured.
+	aiservice.PreloadConfig(aiService)
 	agentTools, agentToolsErr := newDesktopAgentToolCatalog(application, aiService)
 	if agentToolsErr != nil {
 		logger.Warnf("初始化 AI Agent 工具目录失败：%v", agentToolsErr)

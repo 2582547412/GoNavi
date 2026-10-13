@@ -1528,6 +1528,7 @@
   "ai_chat.message.activity.summary.canceled": "Run canceled",
   "ai_chat.message.tool_call.done": "Data probes completed ({{count}} items)",
   "ai_chat.message.tool_call.execute_sql": "Execute SQL query",
+  "ai_chat.message.tool_call.inspect_source": "Inspect Nacos, Redis, a vector database, or messages",
   "ai_chat.message.tool_call.get_all_columns": "Summarize columns across tables",
   "ai_chat.message.tool_call.get_columns": "Read column list",
   "ai_chat.message.tool_call.get_connections": "Load available connection info",

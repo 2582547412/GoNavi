@@ -1528,6 +1528,7 @@
   "ai_chat.message.activity.summary.canceled": "Ausführung abgebrochen",
   "ai_chat.message.tool_call.done": "Datenprüfungen abgeschlossen ({{count}} Elemente)",
   "ai_chat.message.tool_call.execute_sql": "Schreibgeschützte SQL-Prüfung ausführen",
+  "ai_chat.message.tool_call.inspect_source": "Nacos, Redis, Vektordatenbank oder Nachrichten ansehen",
   "ai_chat.message.tool_call.get_all_columns": "Spalten über Tabellen hinweg zusammenfassen",
   "ai_chat.message.tool_call.get_columns": "Echte Spaltendefinitionen prüfen",
   "ai_chat.message.tool_call.get_connections": "Verfügbare Verbindungsinformationen laden",

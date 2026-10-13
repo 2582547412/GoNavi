@@ -1521,6 +1521,7 @@
   "ai_chat.message.activity.summary.canceled": "运行已取消",
   "ai_chat.message.tool_call.done": "数据探针执行完毕 ({{count}} 项)",
   "ai_chat.message.tool_call.execute_sql": "执行只读 SQL 验证",
+  "ai_chat.message.tool_call.inspect_source": "查看 Nacos、Redis、向量库或消息",
   "ai_chat.message.tool_call.get_all_columns": "汇总跨表字段摘要",
   "ai_chat.message.tool_call.get_columns": "核对真实字段定义",
   "ai_chat.message.tool_call.get_connections": "获取可用连接信息",
