@@ -34,6 +34,10 @@ func (executor appDataSyncJobExecutor) Execute(ctx context.Context, request sync
 			return syncjob.ExecutionOutcome{}, err
 		}
 	}
+	// 建库必须先于回滚快照：快照要连到目标库，库不存在时会直接失败。
+	if err := executor.app.ensureDataSyncTargetDatabase(ctx, definition, target); err != nil {
+		return syncjob.ExecutionOutcome{}, err
+	}
 	enabledMappings := make([]syncjob.TableMapping, 0, len(definition.Mappings))
 	for _, mapping := range definition.Mappings {
 		if mapping.Enabled {
@@ -42,6 +46,9 @@ func (executor appDataSyncJobExecutor) Execute(ctx context.Context, request sync
 	}
 	if err := executor.app.captureDataSyncRollback(ctx, request, target, enabledMappings); err != nil {
 		return syncjob.ExecutionOutcome{}, err
+	}
+	if err := executor.prepareDataSyncTargetTables(ctx, request, definition, enabledMappings, source, target, reporter); err != nil {
+		return syncjob.ExecutionOutcome{Resumable: true}, err
 	}
 	if definition.IncrementalMode == syncjob.IncrementalCDC {
 		return executor.executeCDCJob(ctx, request, definition, enabledMappings, source, target, reporter)

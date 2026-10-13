@@ -159,8 +159,12 @@ func (a *App) preflightDataSyncJobContext(ctx context.Context, input syncjob.Job
 	if stopIfCancelled("endpoints") {
 		return finishDataSyncJobPreflight(result)
 	}
+	result.Issues = append(result.Issues, a.preflightDataSyncTargetDatabaseIssues(ctx, definition, &target)...)
+	if stopIfCancelled("endpoints") {
+		return finishDataSyncJobPreflight(result)
+	}
 	// 同 sourceDB：目标端卡住同样会让预检永返回不了。
-	targetDB, dbErr := a.getDatabaseWithContext(ctx, normalizeMetadataRunConfig(target.Config, target.Database), false)
+	targetDB, dbErr := a.getDatabaseWithContext(ctx, dataSyncPreflightTargetRunConfig(target), false)
 	if stopIfCancelled("endpoints") {
 		return finishDataSyncJobPreflight(result)
 	}
@@ -332,20 +336,6 @@ func (a *App) preflightDataSyncJobContext(ctx context.Context, input syncjob.Job
 	}
 	result.NextRunAt = previewDataSyncJobSchedule(definition, now, 5)
 	return finishDataSyncJobPreflight(result)
-}
-
-func pingDatabaseWithContext(ctx context.Context, database interface{ Ping() error }) error {
-	if pinger, ok := database.(interface{ PingContext(context.Context) error }); ok {
-		return pinger.PingContext(ctx)
-	}
-	if err := ctx.Err(); err != nil {
-		return err
-	}
-	err := database.Ping()
-	if err == nil {
-		return ctx.Err()
-	}
-	return err
 }
 
 func appendOnlyTargetPreflightIssues(definition syncjob.JobDefinition, capability sync.MigrationCapability) []DataSyncJobPreflightIssue {
