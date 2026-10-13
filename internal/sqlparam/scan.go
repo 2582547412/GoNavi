@@ -26,6 +26,9 @@ type ScanOptions struct {
 	EscapedBracketIdentifiers bool
 	// DollarQuotes 表示支持 $$...$$ 与 $tag$...$tag$ 块（PostgreSQL 系）。
 	DollarQuotes bool
+	// QuotedPlaceholders 为 true 时，引号里的 {name}、'{name} 后缀'、'${name}'
+	// 是绑定参数。为 false 时这些文本保持字面量，只认引号外的 :name 和 ${name}。
+	QuotedPlaceholders bool
 }
 
 // OptionsForDBType 按数据源类型返回与语句拆分器一致的词法选项。
@@ -36,10 +39,14 @@ func OptionsForDBType(dbType string) ScanOptions {
 	// BackslashEscapes 仅 MySQL 系启用（issue #1326 用户反馈）：Oracle/达梦等
 	// 方言里 `'\'` 是内容为反斜杠的完整字符串，若按转义处理会让扫描器认为
 	// 字符串未闭合，后续所有 ${param} 全部丢失。
-	opts := ScanOptions{BackslashEscapes: normalized == "mysql" ||
-		normalized == "mariadb" || normalized == "oceanbase" ||
-		normalized == "diros" || normalized == "starrocks" ||
-		normalized == "goldendb" || normalized == "sphinx" || normalized == "tidb"}
+	opts := ScanOptions{
+		BackslashEscapes: normalized == "mysql" ||
+			normalized == "mariadb" || normalized == "oceanbase" ||
+			normalized == "diros" || normalized == "starrocks" ||
+			normalized == "goldendb" || normalized == "sphinx" || normalized == "tidb",
+		// 历史默认开启。查询编辑器按用户开关关掉后，'{code1}-{code2}' 按原文执行。
+		QuotedPlaceholders: true,
+	}
 	if normalized == "" {
 		opts.HashComments = true
 		opts.DollarQuotes = true
@@ -85,11 +92,26 @@ func normalizeDBType(dbType string) string {
 // Span 描述一个命名参数在原文中的字节跨度（含起始冒号，不含结束）。
 // Template 非空时表示引号包裹的字符串模板参数：'前缀{name}后缀' 整体
 // 是一个参数跨度，Template 保存字符串字面量原文（含 {name} 占位）。
+// templateNames 保存该模板里的全部参数名；Name 仍是其中第一个，按出现
+// 位置遍历时用来标识这段跨度。名单与缺值检查必须走 parameterNames。
 type Span struct {
-	Name     string
-	Start    int
-	End      int
-	Template string
+	Name          string
+	Start         int
+	End           int
+	Template      string
+	templateNames []string
+}
+
+// parameterNames 返回这段跨度贡献的参数名。普通 :name、${name}、'{name}'
+// 只有 Name。同一字面量里的多个 {name} 不会生成跨度。
+func (s Span) parameterNames() []string {
+	if len(s.templateNames) > 0 {
+		return s.templateNames
+	}
+	if s.Name == "" {
+		return nil
+	}
+	return []string{s.Name}
 }
 
 // Scan 返回 sql 中所有命名参数 :name 的出现位置，按出现顺序排列，不去重。
@@ -151,12 +173,11 @@ func Scan(sql string, opts ScanOptions) []Span {
 				i++
 				continue
 			}
-			if inSingle {
-				// 引号包裹参数两种形态：
-				// 1. 整个字符串恰为一个 {标识符} → 纯参数（连同引号替换为占位符）
-				// 2. 内容含 {标识符} 且混有其他文本 → 字符串模板（Template 保存
-				//    原文，渲染时把 {name} 替换为参数值字符串形式后整体绑定）
-				// 名字均为标识符规则，排除 '{"a":1}' 之类 JSON 数据字面量误伤。
+			if inSingle && opts.QuotedPlaceholders {
+				// 开关打开时才认引号里的占位符：
+				// 1. 整个字符串恰为一个 {标识符} → 纯参数
+				// 2. 含一个或多个 {标识符} → 字符串模板，每个名字都要登记
+				// 开关关闭时整段保持字面量。名字用标识符规则，排除 JSON。
 				content := sql[singleStart+1 : i]
 				if len(content) > 1 && content[0] == '{' && content[len(content)-1] == '}' {
 					if name := content[1 : len(content)-1]; isQuotedParamName(name) {
@@ -166,9 +187,15 @@ func Scan(sql string, opts ScanOptions) []Span {
 					}
 				}
 				if names := extractTemplateNames(content); len(names) > 0 {
-					spans = append(spans, Span{Name: names[0], Start: singleStart, End: i + 1, Template: content})
+					spans = append(spans, Span{
+						Name:          names[0],
+						Start:         singleStart,
+						End:           i + 1,
+						Template:      content,
+						templateNames: names,
+					})
 				}
-			} else {
+			} else if !inSingle {
 				singleStart = i
 			}
 			inSingle = !inSingle
@@ -249,11 +276,13 @@ func Names(sql string, opts ScanOptions) []string {
 	seen := make(map[string]struct{})
 	var names []string
 	for _, span := range Scan(sql, opts) {
-		if _, ok := seen[span.Name]; ok {
-			continue
+		for _, name := range span.parameterNames() {
+			if _, ok := seen[name]; ok {
+				continue
+			}
+			seen[name] = struct{}{}
+			names = append(names, name)
 		}
-		seen[span.Name] = struct{}{}
-		names = append(names, span.Name)
 	}
 	return names
 }
