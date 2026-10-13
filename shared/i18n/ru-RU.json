@@ -1528,6 +1528,7 @@
   "ai_chat.message.activity.summary.canceled": "Выполнение отменено",
   "ai_chat.message.tool_call.done": "Проверки данных завершены ({{count}})",
   "ai_chat.message.tool_call.execute_sql": "Выполнить проверку SQL только для чтения",
+  "ai_chat.message.tool_call.inspect_source": "Посмотреть Nacos, Redis, векторную базу или сообщения",
   "ai_chat.message.tool_call.get_all_columns": "Суммировать столбцы по таблицам",
   "ai_chat.message.tool_call.get_columns": "Проверить реальные определения столбцов",
   "ai_chat.message.tool_call.get_connections": "Загрузить доступные подключения",

@@ -1528,6 +1528,7 @@
   "ai_chat.message.activity.summary.canceled": "執行已取消",
   "ai_chat.message.tool_call.done": "資料探針執行完畢 ({{count}} 項)",
   "ai_chat.message.tool_call.execute_sql": "執行唯讀 SQL 驗證",
+  "ai_chat.message.tool_call.inspect_source": "查看 Nacos、Redis、向量庫或訊息",
   "ai_chat.message.tool_call.get_all_columns": "彙整跨表欄位摘要",
   "ai_chat.message.tool_call.get_columns": "核對真實欄位定義",
   "ai_chat.message.tool_call.get_connections": "取得可用連線資訊",
