@@ -123,7 +123,13 @@ func builtinAITypeSwitch(connections []builtinAIConnection, selectedID, question
 		return "", nil, "", false
 	}
 	selected, selectedOK := builtinAIConnectionByID(connections, selectedID)
-	if selectedOK && strings.EqualFold(selected.Type, matches[0].Type) {
+	// Nothing is selected: the existing naming path chooses the connection and
+	// looks through its databases. Only an already selected connection of a
+	// different type needs to be moved aside.
+	if !selectedOK {
+		return "", nil, "", false
+	}
+	if strings.EqualFold(selected.Type, matches[0].Type) {
 		return "", nil, "", false
 	}
 	if len(matches) == 1 {

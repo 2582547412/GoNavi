@@ -94,7 +94,7 @@ func TestMentioningNacosDoesNotProbeSQL(t *testing.T) {
 	if target.connectionID != "nac-1" || target.family != "nacos" {
 		t.Fatalf("target = %+v", target)
 	}
-	if len(lines) != 1 || !strings.Contains(lines[0], "inspect_source") || !strings.Contains(lines[0], "list_entries") {
+	if len(lines) != 2 || !strings.Contains(lines[1], "inspect_source") || !strings.Contains(lines[1], "list_entries") {
 		t.Fatalf("lines = %#v", lines)
 	}
 	if strings.Join(catalog.calls, ",") != "get_connections" {
