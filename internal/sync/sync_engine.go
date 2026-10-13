@@ -599,12 +599,16 @@ func (s *SyncEngine) runSync(config SyncConfig) SyncResult {
 			}
 			if len(targetColsResolved) > 0 {
 				targetColSet := make(map[string]struct{}, len(targetColsResolved))
+				writableColSet := make(map[string]struct{}, len(targetColsResolved))
 				for _, c := range targetColsResolved {
 					name := strings.ToLower(strings.TrimSpace(c.Name))
 					if name == "" {
 						continue
 					}
 					targetColSet[name] = struct{}{}
+					if !connection.IsGeneratedColumnExtra(c.Extra) {
+						writableColSet[name] = struct{}{}
+					}
 				}
 				requiredCols := collectRequiredColumns(changeSet.Inserts, changeSet.Updates)
 				missing := make([]string, 0)
@@ -614,6 +618,11 @@ func (s *SyncEngine) runSync(config SyncConfig) SyncResult {
 					}
 				}
 				sort.Strings(missing)
+				// 生成列（MySQL VIRTUAL/STORED GENERATED 等）由数据库算值，
+				// 写进 INSERT/UPDATE 会直接报 MySQL 3105 之类的错，写入前过滤掉。
+				// 缺列检测要在过滤前跑：生成列在目标端「存在」，先过滤会误判缺失。
+				changeSet.Inserts = filterInsertRows(changeSet.Inserts, writableColSet)
+				changeSet.Updates = filterUpdateRows(changeSet.Updates, writableColSet)
 				if len(missing) > 0 {
 					if hasExplicitSyncMappings(config) {
 						message := fmt.Sprintf("映射目标表缺少字段：%s", strings.Join(missing, ", "))
@@ -665,8 +674,6 @@ func (s *SyncEngine) runSync(config SyncConfig) SyncResult {
 					} else {
 						s.appendLog(config.JobID, &result, "warn", fmt.Sprintf("  -> 目标表缺少字段 %d 个（未开启自动补齐），将自动忽略：%s", len(missing), strings.Join(missing, ", ")))
 					}
-					changeSet.Inserts = filterInsertRows(changeSet.Inserts, targetColSet)
-					changeSet.Updates = filterUpdateRows(changeSet.Updates, targetColSet)
 				}
 			}
 			if tableFailure != "" {
