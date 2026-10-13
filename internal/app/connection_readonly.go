@@ -18,6 +18,7 @@ const (
 )
 
 var connectionReadOnlySupportedTypes = map[string]struct{}{
+	"redis":         {},
 	"clickhouse":    {},
 	"dameng":        {},
 	"diros":         {},

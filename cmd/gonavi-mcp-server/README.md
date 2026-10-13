@@ -27,6 +27,10 @@
   - 调用本工具即视为确认，不必再传 `allowMutating`
   - `maxRowsPerResult` 限制单个结果集返回给 Agent 的行数，默认 `50`，上限 `200`
 
+Redis 连接使用同一个 `execute_sql` 工具，`sql` 填写单条 Redis 命令，`dbName` 填写 DB 编号，例如 `GET gonavi:test:counter`。`GET`、`TTL`、`SCAN` 等只读命令可在只读模式执行；`SET`、`DEL` 等普通数据写入需要读写模式；`FLUSHDB`、`FLUSHALL`、脚本及未知命令仍要求完全模式。保存连接的只读保护和执行前再次授权同样生效。分号按 Redis 参数处理，不会拆成多条 SQL。
+
+Redis 结果放在结果集的 `value` 列，缺失 key 返回 `null`，数组按元素返回多行并受返回行数限制。每次执行使用隔离连接，记录既有审计并进入结果脱敏流程。Redis 客户端不自动重试响应丢失的命令；写入结果未知时返回 `outcomeUnknown`，调用方不得自动重试。
+
 远程 Agent 只需要结构元数据时，启动 HTTP 模式请加 `--schema-only`。该模式不注册 `execute_sql`，只保留连接摘要、对象清单、表/视图、字段、索引、外键、触发器和 DDL 工具。
 
 ## 运行方式

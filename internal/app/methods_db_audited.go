@@ -196,6 +196,9 @@ func (executor *MCPQueryExecutor) dbQueryMultiAuthorizedContext(
 			Data:    map[string]any{"errorKind": headlessResultErrorKindPolicy},
 		}, effectiveDialect
 	}
+	if strings.EqualFold(strings.TrimSpace(resolvedConfig.Type), "redis") {
+		return executor.app.executeRedisCommandFromMCP(ctx, resolvedConfig, dbName, query), effectiveDialect
+	}
 	return executor.app.dbQueryMulti(resolvedConfig, dbName, query, "", dbQueryMultiAuditOptions{
 		auditAll:         true,
 		auditWrites:      true,
