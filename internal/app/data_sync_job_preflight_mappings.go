@@ -193,7 +193,8 @@ func (a *App) preflightDataSyncMappingContext(ctx context.Context, session *meta
 		issues = append(issues, preflightIssue("target_columns_failed", DataSyncJobPreflightBlocker, "mappings", targetMessage, mappingID))
 		return issues
 	}
-	issues = append(issues, preflightSourceComparisonKeyIssues(definition, mapping, sourceColumns, targetColumns, targetExists, mappingID)...)
+	capability := syncengine.ResolveMigrationCapability(source.Config, target.Config)
+	issues = append(issues, preflightSourceComparisonKeyIssues(definition, mapping, sourceColumns, targetColumns, targetExists, dataSyncJobMappingCanCreateTarget(definition, mapping, capability), mappingID)...)
 	issues = append(issues, preflightUnsupportedTargetSchemaIssues(
 		definition,
 		mapping,

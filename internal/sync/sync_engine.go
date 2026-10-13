@@ -57,7 +57,12 @@ type SyncConfig struct {
 	identityMappingTarget SyncObjectRef
 	BatchSize             int                     `json:"batchSize,omitempty"`
 	RowErrorPolicy        string                  `json:"rowErrorPolicy,omitempty"`
-	OnRowError            ChangeEventRowErrorFunc `json:"-"`
+	// ExistingTargetInsertWithoutKey 允许「目标表已存在 + 源表无物理主键」的
+	// insert_update 任务降级为追加写入：不再要求稳定 key 做行级比对，
+	// 直接把源行整体插入目标表。仅由任务编排层在确认该映射本可自动建表
+	// （即用户预期是新建导入而非差异同步）时设置；手动复制的引擎调用不设。
+	ExistingTargetInsertWithoutKey bool                    `json:"existingTargetInsertWithoutKey,omitempty"`
+	OnRowError                     ChangeEventRowErrorFunc `json:"-"`
 }
 
 // SyncResult holds the result of the sync operation
@@ -299,7 +304,7 @@ func (s *SyncEngine) runSync(config SyncConfig) SyncResult {
 						markTableFailure(message)
 						return
 					}
-					if len(keyColumns) == 0 {
+					if len(keyColumns) == 0 && !config.ExistingTargetInsertWithoutKey {
 						message := fmt.Sprintf("表 %s 未找到主键或映射稳定 key，无法执行差异同步", tableName)
 						s.appendLog(config.JobID, &result, "warn", message)
 						markTableFailure(message)
@@ -460,7 +465,9 @@ func (s *SyncEngine) runSync(config SyncConfig) SyncResult {
 				markTableFailure(message)
 				return
 			}
-			requirePK := tableMode == "insert_update" && plan.TargetTableExists && hasEffectiveSyncDataOperation(tableMode, opts)
+			// 无物理主键时差异比对无从谈起：requirePK 只在真的拿到 key 时成立。
+			// 此时若任务允许（ExistingTargetInsertWithoutKey），会走下面的追加分支。
+			requirePK := tableMode == "insert_update" && plan.TargetTableExists && hasEffectiveSyncDataOperation(tableMode, opts) && len(pkCols) > 0
 			hasRowSelection := len(opts.SelectedInsertPKs) > 0 || len(opts.SelectedUpdatePKs) > 0 || len(opts.SelectedDeletePKs) > 0
 			selectionKeyCols := append([]string(nil), pkCols...)
 			if len(selectionKeyCols) > 0 && hasExplicitSyncMappings(config) && (requirePK || hasRowSelection) {
@@ -509,7 +516,7 @@ func (s *SyncEngine) runSync(config SyncConfig) SyncResult {
 				return
 			}
 
-			if len(targetPKCols) <= 1 {
+			if len(targetPKCols) == 1 {
 				if handled, counts, err := s.tryApplyDiffInPages(config, &result, i, totalTables, tableName, sourceDB, targetDB, plan, cols, targetCols, opts, sourceType, targetType, applyTableName, pkCol); handled {
 					result.RowsInserted += counts.Inserts
 					result.RowsUpdated += counts.Updates
@@ -565,7 +572,7 @@ func (s *SyncEngine) runSync(config SyncConfig) SyncResult {
 			var updates []connection.UpdateRow
 			var deletes []map[string]interface{}
 
-			if tableMode == "insert_update" && plan.TargetTableExists {
+			if requirePK {
 				s.progress(config.JobID, i, totalTables, tableName, "读取目标表数据")
 				targetRows, _, err := querySyncDatabaseContext(s.context(), targetDB, fmt.Sprintf("SELECT * FROM %s", quoteQualifiedIdentByType(targetType, targetQueryTable)))
 				if err != nil {
@@ -582,6 +589,9 @@ func (s *SyncEngine) runSync(config SyncConfig) SyncResult {
 				updates = filterUpdatesByKeySelection(targetPKCols, updates, opts.Update, opts.SelectedUpdatePKs)
 				deletes = filterRowsByKeySelection(targetPKCols, deletes, opts.Delete, opts.SelectedDeletePKs)
 			} else {
+				if config.ExistingTargetInsertWithoutKey && tableMode == "insert_update" && plan.TargetTableExists && len(pkCols) == 0 {
+					s.appendLog(config.JobID, &result, "warn", fmt.Sprintf("  -> 表 %s 源表无物理主键，无法差异比对，已按任务策略降级为追加写入（仅插入）", tableName))
+				}
 				inserts = filterRowsByKeySelection(selectionKeyCols, sourceRows, opts.Insert, opts.SelectedInsertPKs)
 			}
 
