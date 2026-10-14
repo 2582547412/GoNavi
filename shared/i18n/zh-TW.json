@@ -1,4 +1,10 @@
 {
+  "sql_audit.mcp.entry": "MCP SQL 執行記錄",
+  "sql_audit.mcp.request_id": "MCP 請求 ID",
+  "sql_audit.mcp.client": "MCP 用戶端識別",
+  "sql_audit.mcp.history_all": "編輯器與 MCP",
+  "sql_audit.mcp.location": "外部 MCP 執行的 SQL 請在側欄「SQL 稽核」中點擊「MCP SQL 執行記錄」查看；此處顯示內建 AI 的模型請求。",
+  "sql_audit.mcp.timeline": "MCP 請求執行明細",
   "ai_chat.composer_notice.builtin_login_failed.description": "請重試；若瀏覽器未自動開啟，請檢查網路後再次點擊登入。",
   "ai_chat.composer_notice.builtin_login_failed.title": "GoNavi AI 登入未完成",
   "ai_chat.input.status.action.builtin_login": "登入 GoNavi AI",

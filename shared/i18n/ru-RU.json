@@ -1,4 +1,10 @@
 {
+  "sql_audit.mcp.entry": "Выполнения SQL через MCP",
+  "sql_audit.mcp.request_id": "ID запроса MCP",
+  "sql_audit.mcp.client": "Идентификатор клиента MCP",
+  "sql_audit.mcp.history_all": "Редактор и MCP",
+  "sql_audit.mcp.location": "SQL внешних клиентов MCP доступен в разделе «Аудит SQL» на боковой панели → «Выполнения SQL через MCP». Здесь показаны запросы встроенного ИИ к модели.",
+  "sql_audit.mcp.timeline": "Выполнения запроса MCP",
   "ai_chat.composer_notice.builtin_login_failed.description": "Повторите попытку. Если браузер не открылся, проверьте сеть и нажмите «Войти» ещё раз.",
   "ai_chat.composer_notice.builtin_login_failed.title": "Вход в GoNavi AI не завершён",
   "ai_chat.input.status.action.builtin_login": "Войти в GoNavi AI",
