@@ -121,26 +121,19 @@ func (s *SyncEngine) prepareDirectImportTargetColumnSet(config SyncConfig, res *
 		return nil, nil
 	}
 
-	targetColSet := buildTargetColumnSet(targetColsResolved)
-	missing := missingSourceColumns(sourceCols, targetColSet)
-	if len(missing) > 0 {
-		var err error
-		targetColSet, err = s.resolveDirectImportMissingColumns(config, res, targetDB, plan, sourceType, targetType, sourceCols, targetColSet, missing)
-		if err != nil {
-			return nil, err
-		}
-	}
+	existingSet := buildTargetColumnSet(targetColsResolved)
 	writableSet := buildWritableTargetColumnSet(targetColsResolved)
-	for lower := range targetColSet {
-		writableSet[lower] = struct{}{}
+	missing := missingSourceColumns(sourceCols, existingSet)
+	if len(missing) > 0 {
+		return s.resolveDirectImportMissingColumns(config, res, targetDB, plan, sourceType, targetType, sourceCols, writableSet, missing)
 	}
 	return writableSet, nil
 }
 
 // resolveDirectImportMissingColumns 按 AutoAddColumns 配置处理源有目标无的列：
-// 允许时逐列 ALTER 补齐并把列名并入 targetColSet，否则记 warn 交给调用方忽略。
-// 返回更新后的存在性集合；自动补齐成功的列是普通列，天然可写。
-func (s *SyncEngine) resolveDirectImportMissingColumns(config SyncConfig, res *SyncResult, targetDB db.Database, plan SchemaMigrationPlan, sourceType, targetType string, sourceCols []connection.ColumnDefinition, targetColSet map[string]struct{}, missing []string) (map[string]struct{}, error) {
+// 允许时逐列 ALTER 补齐并把成功新增的普通列并入可写集合，否则记 warn 交给调用方忽略。
+// missing 必须由存在性全集计算，不能把已有生成列误当作缺列。
+func (s *SyncEngine) resolveDirectImportMissingColumns(config SyncConfig, res *SyncResult, targetDB db.Database, plan SchemaMigrationPlan, sourceType, targetType string, sourceCols []connection.ColumnDefinition, writableSet map[string]struct{}, missing []string) (map[string]struct{}, error) {
 	if config.AutoAddColumns && supportsAutoAddColumnsForPair(sourceType, targetType) {
 		if !syncContentAllowsSchemaChanges(config.Content) {
 			return nil, fmt.Errorf("目标表缺少字段，仅同步数据模式不允许自动补齐：%s", strings.Join(missing, ", "))
@@ -175,14 +168,14 @@ func (s *SyncEngine) resolveDirectImportMissingColumns(config SyncConfig, res *S
 				return nil, fmt.Errorf("自动补字段失败：字段=%s: %w", colName, err)
 			}
 			added++
-			targetColSet[strings.ToLower(strings.TrimSpace(colName))] = struct{}{}
+			writableSet[strings.ToLower(strings.TrimSpace(colName))] = struct{}{}
 		}
 		s.appendLog(config.JobID, res, "info", fmt.Sprintf("  -> 自动补字段完成：成功=%d 失败=%d", added, len(missing)-added))
-		return targetColSet, nil
+		return writableSet, nil
 	}
 
 	s.appendLog(config.JobID, res, "warn", fmt.Sprintf("  -> 目标表缺少字段 %d 个（未开启自动补齐），将自动忽略：%s", len(missing), strings.Join(missing, ", ")))
-	return targetColSet, nil
+	return writableSet, nil
 }
 
 func missingSourceColumns(sourceCols []connection.ColumnDefinition, targetColSet map[string]struct{}) []string {
@@ -213,9 +206,7 @@ func (s *SyncEngine) applyDirectImportPage(config SyncConfig, res *SyncResult, s
 	if len(rows) == 0 {
 		return 0, nil
 	}
-	if len(targetColSet) > 0 {
-		rows = filterInsertRows(rows, targetColSet)
-	}
+	rows = filterInsertRows(rows, targetColSet)
 	if len(rows) == 0 {
 		return 0, nil
 	}

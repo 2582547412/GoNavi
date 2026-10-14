@@ -219,34 +219,6 @@ func projectionForSourceQuery(config SyncConfig) (*CompiledProjection, error) {
 	return CompileProjection(mapping)
 }
 
-func buildTargetColumnSet(cols []connection.ColumnDefinition) map[string]struct{} {
-	targetColSet := make(map[string]struct{}, len(cols))
-	for _, col := range cols {
-		lowerName := strings.ToLower(strings.TrimSpace(col.Name))
-		if lowerName == "" {
-			continue
-		}
-		targetColSet[lowerName] = struct{}{}
-	}
-	return targetColSet
-}
-
-// buildWritableTargetColumnSet 是 buildTargetColumnSet 的可写子集：
-// 生成列（MySQL VIRTUAL/STORED GENERATED、ClickHouse MATERIALIZED/ALIAS 等）
-// 由数据库侧算值，出现在 INSERT/UPDATE 列清单里会直接报错（MySQL 3105），
-// 写过滤必须用它；缺列检测/自动补列仍要用存在性全集，否则会误判生成列缺失。
-func buildWritableTargetColumnSet(cols []connection.ColumnDefinition) map[string]struct{} {
-	targetColSet := make(map[string]struct{}, len(cols))
-	for _, col := range cols {
-		lowerName := strings.ToLower(strings.TrimSpace(col.Name))
-		if lowerName == "" || connection.IsGeneratedColumnExtra(col.Extra) {
-			continue
-		}
-		targetColSet[lowerName] = struct{}{}
-	}
-	return targetColSet
-}
-
 func applyQuerySourceColumnFilter(changeSet connection.ChangeSet, targetCols []connection.ColumnDefinition) connection.ChangeSet {
 	targetColSet := buildWritableTargetColumnSet(targetCols)
 	changeSet.Inserts = filterInsertRows(changeSet.Inserts, targetColSet)
