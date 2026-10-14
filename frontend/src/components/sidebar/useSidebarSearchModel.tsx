@@ -455,6 +455,7 @@ export const useSidebarSearchModel = ({
             || dataRef.routineName
             || dataRef.packageName
             || dataRef.databaseLinkName
+            || dataRef.jobName
             || node.title
             || '',
           ).trim();
@@ -470,6 +471,8 @@ export const useSidebarSearchModel = ({
             ].filter(Boolean).join(' — '),
             icon: node.type === 'table'
               ? renderSidebarObjectIcon('table')
+              : node.type === 'db-job'
+                ? renderSidebarObjectIcon('job')
               : node.type === 'sequence'
                 ? renderSidebarObjectIcon('sequence')
                 : node.type === 'database-link'

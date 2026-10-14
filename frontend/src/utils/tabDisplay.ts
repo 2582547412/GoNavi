@@ -524,6 +524,7 @@ const buildCompactObjectTabTitle = (tab: TabData, translate: TabDisplayTranslate
   if (tab.type === 'event-def') {
     return replaceTitleObjectLabel(tab.title, tab.eventName);
   }
+  if (tab.type === 'job-def') return tab.title;
   if (tab.type === 'routine-def') {
     return replaceTitleObjectLabel(tab.title, tab.routineName);
   }
@@ -567,6 +568,7 @@ export const getTabDisplayKindLabel = (tab: TabData): string => {
   if (tab.type === 'trigger') return 'TRG';
   if (tab.type === 'view-def') return tab.viewKind === 'materialized' ? 'MV' : 'VIEW';
   if (tab.type === 'event-def') return 'EVT';
+  if (tab.type === 'job-def') return 'JOB';
   if (tab.type === 'routine-def') return 'FUNC';
   if (tab.type === 'sequence-def') return 'SEQ';
   if (tab.type === 'package-def') return 'PKG';
@@ -579,6 +581,7 @@ const getTabRawObjectLabel = (tab: TabData, translate: TabDisplayTranslate = def
   if (tab.tableName) return tab.tableName;
   if (tab.viewName) return tab.viewName;
   if (tab.eventName) return tab.eventName;
+  if (tab.jobName) return tab.jobName;
   if (tab.routineName) return tab.routineName;
   if (tab.sequenceName) return tab.sequenceName;
   if (tab.packageName) return tab.packageName;

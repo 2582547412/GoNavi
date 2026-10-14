@@ -67,7 +67,7 @@ const DefinitionViewer: React.FC<DefinitionViewerProps> = ({ tab }) => {
                     {tab.dbName && <span style={{ marginLeft: 16, color: '#888' }}>{t('definition_viewer.field.database')}: {tab.dbName}</span>}
                     {tab.routineType && <span style={{ marginLeft: 16, color: '#888' }}>{t('definition_viewer.field.type')}: {tab.routineType}</span>}
                 </div>
-                {tab.type !== 'database-link-def' ? (
+                {tab.type !== 'database-link-def' && tab.type !== 'job-def' ? (
                 <Button size="small" icon={<EditOutlined />} onClick={openObjectEditQuery} disabled={!normalizedObjectName} loading={openingObjectEdit}>
                     {t('definition_viewer.action.edit_object')}
                 </Button>
@@ -75,7 +75,7 @@ const DefinitionViewer: React.FC<DefinitionViewerProps> = ({ tab }) => {
             </div>
             {error && hasDefinition && (
                 <div style={{ padding: '8px 16px 0' }}>
-                    <Alert type="warning" message={t('definition_viewer.warning.refresh_latest_failed')} description={error} showIcon />
+                    <Alert type="warning" message={t(tab.type === 'job-def' ? 'database_jobs.warning.partial_definition' : 'definition_viewer.warning.refresh_latest_failed')} description={error} showIcon />
                 </div>
             )}
             <div style={{ flex: 1, minHeight: 0 }}>

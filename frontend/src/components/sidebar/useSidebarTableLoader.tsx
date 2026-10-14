@@ -51,6 +51,7 @@ import {
   getSidebarTableObjectIdentity,
 } from './sidebarPartitions';
 import { loadOracleDatabaseLinks } from './sidebarOracleDatabaseLinks';
+import { loadDatabaseJobs } from './sidebarDatabaseJobs';
 import type { SidebarTreeLoadStateApi } from './useSidebarTreeLoadState';
 import type { UseSidebarTreeLoadersOptions } from './useSidebarTreeLoaders';
 import { createSidebarDatabaseChildrenBuilder } from './sidebarDatabaseChildren';
@@ -84,6 +85,7 @@ export type SidebarDatabaseObjectLoadResults = {
     packagesResult: Awaited<ReturnType<typeof loadPackages>>;
     eventsResult: Awaited<ReturnType<typeof loadDatabaseEvents>>;
     databaseLinksResult: Awaited<ReturnType<typeof loadOracleDatabaseLinks>>;
+    jobsResult: Awaited<ReturnType<typeof loadDatabaseJobs>>;
 };
 
 export const useSidebarTableLoader = ({
@@ -361,6 +363,7 @@ export const useSidebarTableLoader = ({
   	                loadPackages(conn, conn.dbName),
   	                loadDatabaseEvents(conn, conn.dbName),
   	                loadOracleDatabaseLinks(conn as SavedConnection, conn.dbName),
+                  loadDatabaseJobs(conn as SavedConnection, conn.dbName),
   	            ]).then(
   	                (results) => {
   	                    objectLoadsSettled = true;
@@ -482,6 +485,7 @@ export const useSidebarTableLoader = ({
   	                packagesResult: { packages: [], supported: true },
   	                eventsResult: { events: [], supported: true },
   	                databaseLinksResult: { databaseLinks: [], supported: true },
+                  jobsResult: { jobs: [], supported: true },
   	            };
   	            let renderedDatabaseChildren: TreeNode[] = [];
   	            let latestDatabaseConnection: SavedConnection = conn as SavedConnection;
@@ -510,7 +514,7 @@ export const useSidebarTableLoader = ({
   	            const objectLoads = await objectLoadsPromise;
               if (!isCurrentLoad()) return;
   	            if (!objectLoads.ok) throw objectLoads.error;
-  	            const [viewsResult, materializedViewsResult, triggersResult, routinesResult, sequencesResult, packagesResult, eventsResult, databaseLinksResult] = objectLoads.results;
+              const [viewsResult, materializedViewsResult, triggersResult, routinesResult, sequencesResult, packagesResult, eventsResult, databaseLinksResult, jobsResult] = objectLoads.results;
   	            const secondPass = buildRenderedDatabaseChildren({
   	                viewsResult,
   	                materializedViewsResult,
@@ -520,6 +524,7 @@ export const useSidebarTableLoader = ({
   	                packagesResult,
   	                eventsResult,
   	                databaseLinksResult,
+                  jobsResult,
   	            }, true);
   	            renderedDatabaseChildren = secondPass.renderedDatabaseChildren;
   	            latestDatabaseConnection = secondPass.latestDatabaseConnection;
