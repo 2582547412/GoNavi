@@ -28,6 +28,8 @@ const storeState = vi.hoisted(() => ({
 
 const backendApp = vi.hoisted(() => ({
   DBQuery: vi.fn(),
+  DBQueryWithCancel: vi.fn(),
+  CancelQuery: vi.fn(),
   DBGetColumns: vi.fn(),
   DBGetIndexes: vi.fn(),
 }));
@@ -173,6 +175,8 @@ describe('DataViewer safe editing locator', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    backendApp.DBQueryWithCancel.mockImplementation((config, dbName, sql) => backendApp.DBQuery(config, dbName, sql));
+    backendApp.CancelQuery.mockResolvedValue({ success: true });
     resetTableMetadataRequestCacheForTests();
     dataGridState.latestProps = null;
     dataGridState.renderedProps = [];
@@ -897,7 +901,7 @@ describe('DataViewer safe editing locator', () => {
   });
 
   it('invalidates a stale known total when table data grows after a manual refresh', async () => {
-    storeState.connections[0].config.type = 'mysql';
+    storeState.connections[0].config.type = 'postgres';
     storeState.connections[0].config.database = 'main';
     backendApp.DBGetColumns.mockResolvedValue({
       success: true,
@@ -951,7 +955,7 @@ describe('DataViewer safe editing locator', () => {
   });
 
   it('recounts the known total when table data shrinks after a manual refresh', async () => {
-    storeState.connections[0].config.type = 'mysql';
+    storeState.connections[0].config.type = 'postgres';
     storeState.connections[0].config.database = 'main';
     backendApp.DBGetColumns.mockResolvedValue({
       success: true,
@@ -1010,7 +1014,7 @@ describe('DataViewer safe editing locator', () => {
     expectedPage,
     expectedOffset,
   }) => {
-    storeState.connections[0].config.type = 'mysql';
+    storeState.connections[0].config.type = 'postgres';
     storeState.connections[0].config.database = 'main';
     backendApp.DBGetColumns.mockResolvedValue({
       success: true,
@@ -1080,7 +1084,7 @@ describe('DataViewer safe editing locator', () => {
   });
 
   it('ignores a stale last-page count after a newer page navigation starts', async () => {
-    storeState.connections[0].config.type = 'mysql';
+    storeState.connections[0].config.type = 'postgres';
     storeState.connections[0].config.database = 'main';
     backendApp.DBGetColumns.mockResolvedValue({
       success: true,
@@ -1152,7 +1156,7 @@ describe('DataViewer safe editing locator', () => {
   });
 
   it('reports a fresh last-page count failure without querying the cached tail', async () => {
-    storeState.connections[0].config.type = 'mysql';
+    storeState.connections[0].config.type = 'postgres';
     storeState.connections[0].config.database = 'main';
     backendApp.DBGetColumns.mockResolvedValue({
       success: true,
