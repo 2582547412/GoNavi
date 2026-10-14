@@ -1,6 +1,7 @@
 import { inferObjectGroup, resolveObjectEditLocateIdentity, resolveDefinitionTabObjectGroup } from './sidebarLocateTabIdentity';
 import { splitQualifiedNameLast } from './qualifiedName';
 import type { DatabaseJobKind } from '../typeDefs/databaseJobTypes';
+import { isDatabaseJobKind, isSchemaScopedJobKind } from '../typeDefs/databaseJobTypes';
 
 export const SIDEBAR_LOCATE_CONNECTION_EVENT = 'gonavi:locate-sidebar-connection';
 /** 定位到侧栏「收藏查询」根节点（工具条「查询」按钮等外部入口使用）。 */
@@ -198,7 +199,7 @@ export const normalizeSidebarLocateObjectRequest = (detail: unknown): SidebarLoc
     tableName,
     schemaName,
     objectGroup,
-    ...(objectGroup === 'jobs' && (raw.jobKind === 'oracle-scheduler' || raw.jobKind === 'dbms-job' || raw.jobKind === 'dm-agent') ? { jobKind: raw.jobKind } : {}),
+    ...(objectGroup === 'jobs' && isDatabaseJobKind(raw.jobKind) ? { jobKind: raw.jobKind } : {}),
   };
 };
 
@@ -332,10 +333,11 @@ export const resolveSidebarLocateTarget = (
                 ? `${databaseKey}-event-${request.tableName}`
                 : `${databaseKey}-${request.tableName}`;
   const targetKey = request.tabId || fallbackTargetKey;
-  const schemaKey = options.groupBySchema
+  const groupBySchema = options.groupBySchema && (request.objectGroup !== 'jobs' || isSchemaScopedJobKind(request.jobKind));
+  const schemaKey = groupBySchema
     ? buildSidebarSchemaNodeKey(databaseKey, request.schemaName)
     : undefined;
-  const objectGroupKey = options.groupBySchema
+  const objectGroupKey = groupBySchema
     ? `${schemaKey}-${request.objectGroup}`
     : `${databaseKey}-${request.objectGroup}`;
   const expectedAncestorKeys = [

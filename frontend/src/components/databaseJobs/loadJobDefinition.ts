@@ -7,6 +7,8 @@ import {
 import { readDatabaseJobText, runDatabaseJobQueries } from '../../utils/databaseJobs/jobMetadata';
 import { buildRpcConnectionConfig } from '../../utils/connectionRpcConfig';
 import { resolveDatabaseJobDialect } from '../../utils/databaseJobs/jobCapabilities';
+import { extendedJobChildQueries } from '../../utils/databaseJobs/jobProviderQueries';
+import { additionalJobReferences } from '../../utils/databaseJobs/jobReferenceQueries';
 import { formatDatabaseJobDefinition, type JobDefinitionTranslate } from './jobDefinition';
 
 const loadJobChildren = async (
@@ -18,6 +20,22 @@ const loadJobChildren = async (
 ) => {
   const empty = { steps: [] as DatabaseJobRow[], schedules: [] as DatabaseJobRow[], program: undefined as DatabaseJobRow | undefined, failures: [] as string[] };
   const failureMessage = translate('database_jobs.error.query_failed');
+  if (tab.jobKind) {
+    const queries = extendedJobChildQueries(tab.jobKind, tab.jobName || '');
+    for (const section of ['steps', 'schedules'] as const) {
+      if (!queries[section]) continue;
+      const result = await runDatabaseJobQueries(queries[section], execute, failureMessage);
+      empty[section] = result.rows;
+      if (!result.success) empty.failures.push(result.message || failureMessage);
+      else if (section === 'steps' && (tab.jobKind === 'gaussdb-job' || tab.jobKind === 'opengauss-job') && !result.rows.length) empty.failures.push(translate('database_jobs.warning.action_unavailable'));
+    }
+    for (const reference of additionalJobReferences(tab.jobKind, job)) {
+      const result = await runDatabaseJobQueries(reference.queries, execute, failureMessage);
+      if (!result.success || !result.rows.length) empty.failures.push(result.message || translate('database_jobs.error.reference_not_found'));
+      else if (reference.kind === 'program') empty.program = result.rows[0];
+      else empty.schedules = result.rows;
+    }
+  }
   if (dialect === 'dm' && tab.jobKind === 'dm-agent') {
     const queries = buildDamengJobChildQueries(tab.schemaName || tab.dbName || '', tab.jobName || '');
     const [steps, schedules] = await Promise.all([
@@ -57,7 +75,7 @@ export const loadDatabaseJobDefinition = async (
   const kind = tab.jobKind;
   const jobName = String(tab.jobName || '').trim();
   if (!jobName || !kind) return { success: false, error: translate('database_jobs.error.identity_missing') };
-  const queries = buildDatabaseJobDefinitionQueries(dialect || '', kind, tab.schemaName || tab.dbName || '', jobName);
+  const queries = buildDatabaseJobDefinitionQueries(dialect || '', kind, tab.schemaName || tab.dbName || '', jobName, tab.dbName || '');
   if (queries.length === 0) return { success: false, error: translate('database_jobs.error.unsupported') };
   const config = buildRpcConnectionConfig(conn.config);
   const execute: DatabaseJobQueryExecutor = (sql) => DBQuery(config, tab.dbName || '', sql);
@@ -66,6 +84,8 @@ export const loadDatabaseJobDefinition = async (
   if (result.rows.length === 0) return { success: false, error: translate('database_jobs.error.not_found') };
   const job = result.rows[0];
   const children = await loadJobChildren(dialect || '', tab, job, execute, translate);
+  if ((kind === 'oceanbase-oracle' || kind === 'oceanbase-mysql' || kind === 'kingbase-scheduler')
+      && !readDatabaseJobText(job, 'action') && !(children.program && readDatabaseJobText(children.program, 'action'))) children.failures.push(translate('database_jobs.warning.action_unavailable'));
   return {
     success: true,
     definition: formatDatabaseJobDefinition(kind, job, children.steps, children.schedules, children.program, translate),

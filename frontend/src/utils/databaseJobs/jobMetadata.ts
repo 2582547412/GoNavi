@@ -1,6 +1,8 @@
 import type {
   DatabaseJobEntry, DatabaseJobKind, DatabaseJobQueryExecutor, DatabaseJobRow,
 } from '../../typeDefs/databaseJobTypes';
+import { isSchemaScopedJobKind } from '../../typeDefs/databaseJobTypes';
+import type { DatabaseJobQueryGroup } from './jobQueryTypes';
 
 export const readDatabaseJobValue = (row: DatabaseJobRow, key: string): unknown => {
   const matched = Object.keys(row).find((name) => name.toLowerCase() === key.toLowerCase());
@@ -46,7 +48,8 @@ export const normalizeDatabaseJobs = (
   return rows.flatMap((row): DatabaseJobEntry[] => {
     const schemaName = readDatabaseJobText(row, 'schema_name').trim();
     const jobName = readDatabaseJobText(row, 'job_name').trim();
-    if (!jobName || !schemaName || (requestedSchema && requestedSchema !== schemaName)) return [];
+    if (!jobName) return [];
+    if (isSchemaScopedJobKind(kind) && (!schemaName || (requestedSchema && requestedSchema !== schemaName))) return [];
     if (kind === 'dbms-job' && !/^\d+$/.test(jobName)) return [];
     const identity = JSON.stringify([schemaName, jobName]);
     if (seen.has(identity)) return [];
@@ -54,9 +57,23 @@ export const normalizeDatabaseJobs = (
     const broken = readDatabaseJobText(row, 'broken').trim().toUpperCase();
     return [{
       schemaName, jobName, jobKind: kind,
+      ...(readDatabaseJobText(row, 'job_label') ? { jobLabel: readDatabaseJobText(row, 'job_label') } : {}),
       enabled: kind === 'dbms-job' ? (broken === 'Y' ? 'FALSE' : broken === 'N' ? 'TRUE' : '') : readDatabaseJobText(row, 'enabled'),
       state: kind === 'dbms-job' ? broken : readDatabaseJobText(row, 'state'),
       nextRunAt: readDatabaseJobText(row, 'next_run_at'),
     }];
   });
+};
+
+export const runDatabaseJobGroup = async (
+  group: DatabaseJobQueryGroup, execute: DatabaseJobQueryExecutor, failureMessage: string,
+): Promise<{ success: boolean; rows: DatabaseJobRow[]; message?: string; unavailable?: boolean }> => {
+  if (group.probeQueries) {
+    const probe = await runDatabaseJobQueries(group.probeQueries, execute, failureMessage);
+    if (!probe.success) return probe;
+    const available = probe.rows[0] && readDatabaseJobText(probe.rows[0], 'available').toLowerCase();
+    if (['false', 'f', '0'].includes(available || '')) return { success: false, rows: [], unavailable: true };
+    if (!['true', 't', '1'].includes(available || '')) return { success: false, rows: [], message: failureMessage };
+  }
+  return runDatabaseJobQueries(group.queries, execute, failureMessage);
 };

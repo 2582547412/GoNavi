@@ -12516,5 +12516,18 @@
   "sidebar.object_group.jobs": "Jobs",
   "sidebar.tab.job_definition": "{{name}} - Job definition",
   "tab_manager.hover.kind.job": "Job",
-  "tab_manager.kind_badge.job": "Job"
+  "tab_manager.kind_badge.job": "Job",
+  "database_jobs.source.sqlserver-agent": "SQL Server Agent",
+  "database_jobs.source.pg-cron": "pg_cron",
+  "database_jobs.source.pgagent": "pgAgent",
+  "database_jobs.source.kingbase-scheduler": "KingbaseES KDB_SCHEDULE",
+  "database_jobs.source.opengauss-job": "openGauss",
+  "database_jobs.source.gaussdb-job": "GaussDB",
+  "database_jobs.source.oceanbase-oracle": "OceanBase DBMS_SCHEDULER (Oracle)",
+  "database_jobs.source.oceanbase-mysql": "OceanBase DBMS_SCHEDULER (MySQL)",
+  "database_jobs.source.doris-job": "Doris Job Scheduler",
+  "database_jobs.source.starrocks-task": "StarRocks Tasks",
+  "database_jobs.field.job_label": "Job display name",
+  "database_jobs.field.owner": "Owner",
+  "database_jobs.warning.action_unavailable": "The current version or permissions do not expose the action. Only accessible job metadata is shown."
 }

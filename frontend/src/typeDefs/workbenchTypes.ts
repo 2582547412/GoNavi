@@ -108,6 +108,7 @@ export interface TabData {
   viewKind?: "view" | "materialized";
   eventName?: string; // Event name for MySQL event definition tabs
   jobName?: string;
+  jobLabel?: string;
   jobKind?: DatabaseJobKind;
   routineName?: string; // Routine name for function/procedure definition tabs
   routineType?: string; // 'FUNCTION' or 'PROCEDURE'

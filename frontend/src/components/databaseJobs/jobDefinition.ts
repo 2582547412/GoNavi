@@ -4,7 +4,7 @@ import { readDatabaseJobText } from '../../utils/databaseJobs/jobMetadata';
 export type JobDefinitionTranslate = (key: string, vars?: Record<string, string | number>) => string;
 
 const FIELD_KEYS = new Set([
-  'schema_name', 'job_name', 'job_id', 'job_type', 'program_owner', 'program_name',
+  'schema_name', 'job_name', 'job_label', 'owner', 'job_id', 'job_type', 'program_owner', 'program_name',
   'number_of_arguments', 'schedule_owner', 'schedule_name', 'repeat_interval',
   'start_date', 'end_date', 'enabled', 'state', 'next_run_at', 'last_start_date',
   'last_run_duration', 'run_count', 'failure_count', 'comments', 'broken',

@@ -16,8 +16,18 @@ type JobNode = {
     dbName?: string;
     schemaName?: string;
     jobName?: string;
+    jobLabel?: string;
     jobKind?: DatabaseJobKind;
   };
+};
+
+const databaseJobTitle = (entry: DatabaseJobEntry): string => {
+  if (entry.jobKind === 'pg-cron' || entry.jobKind === 'pgagent') {
+    const label = entry.jobLabel ? `${entry.jobLabel} · ${entry.jobName}` : entry.jobName;
+    return `${label} · ${t(`database_jobs.source.${entry.jobKind}`)}`;
+  }
+  if (entry.jobKind === 'dbms-job') return `${entry.jobName} · DBMS_JOB`;
+  return entry.jobLabel || entry.jobName;
 };
 
 export const buildDatabaseJobGroup = (
@@ -27,7 +37,7 @@ export const buildDatabaseJobGroup = (
   schemaName = '',
 ): SidebarTreeNode => {
   const children: SidebarTreeNode[] = entries.filter((entry) => !schemaName || entry.schemaName === schemaName).map((entry) => ({
-    title: entry.jobKind === 'dbms-job' ? `${entry.jobName} · DBMS_JOB` : entry.jobName,
+    title: databaseJobTitle(entry),
     key: `${parentKey}-job-${encodeURIComponent(JSON.stringify([entry.jobKind, entry.schemaName, entry.jobName]))}`,
     icon: renderSidebarObjectIcon('job'),
     type: 'db-job',
@@ -40,16 +50,19 @@ export const buildDatabaseJobGroup = (
 };
 
 export const openDatabaseJobDefinition = (node: JobNode, addTab: (tab: TabData) => void): void => {
-  const { id, dbName, schemaName, jobName, jobKind } = node.dataRef || {};
+  const { id, dbName, schemaName, jobName, jobLabel, jobKind } = node.dataRef || {};
   if (!id || !jobName || !jobKind) return;
+  const name = jobKind === 'pg-cron' || jobKind === 'pgagent'
+    ? `${jobLabel || jobName} · ${t(`database_jobs.source.${jobKind}`)}` : jobLabel || jobName;
   addTab({
     id: `job-def-${encodeURIComponent(JSON.stringify([id, dbName || '', schemaName || '', jobKind, jobName]))}`,
-    title: t('sidebar.tab.job_definition', { name: jobName }),
+    title: t('sidebar.tab.job_definition', { name }),
     type: 'job-def',
     connectionId: id,
     dbName,
     schemaName,
     jobName,
+    ...(jobLabel ? { jobLabel } : {}),
     jobKind,
     sidebarLocateKey: String(node.key || ''),
   });

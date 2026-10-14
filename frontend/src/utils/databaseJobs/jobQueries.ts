@@ -1,6 +1,8 @@
 import type { DatabaseJobKind } from '../../typeDefs/databaseJobTypes';
+import { extendedJobListQueries, extendedJobDefinitionQueries } from './jobProviderQueries';
+import type { DatabaseJobQueryGroup } from './jobQueryTypes';
 
-export type DatabaseJobQueryGroup = { kind: DatabaseJobKind; queries: string[] };
+export type { DatabaseJobQueryGroup } from './jobQueryTypes';
 
 const literal = (value: string): string => `'${value.replace(/'/g, "''")}'`;
 
@@ -21,7 +23,7 @@ export const buildDatabaseJobListQueries = (
   dialect: string,
   schemaName: string,
 ): DatabaseJobQueryGroup[] => {
-  if (dialect !== 'oracle' && dialect !== 'dm') return [];
+  if (dialect !== 'oracle' && dialect !== 'dm') return extendedJobListQueries(dialect, schemaName);
   const schema = schemaName.trim();
   const legacyView = dialect === 'dm' ? 'SYS.USER_JOBS' : 'ALL_JOBS';
   const legacy: DatabaseJobQueryGroup = {
@@ -45,8 +47,10 @@ export const buildDatabaseJobDefinitionQueries = (
   kind: DatabaseJobKind,
   schemaName: string,
   jobName: string,
+  database = '',
 ): string[] => {
-  if (!jobName.trim() || (dialect !== 'oracle' && dialect !== 'dm')) return [];
+  if (!jobName.trim()) return [];
+  if (dialect !== 'oracle' && dialect !== 'dm') return extendedJobDefinitionQueries(dialect, kind, schemaName, jobName, database);
   const schema = schemaName.trim();
   if (kind === 'oracle-scheduler' && dialect === 'oracle') {
     return [`SELECT OWNER AS schema_name, JOB_NAME AS job_name, JOB_TYPE AS job_type, JOB_ACTION AS action, PROGRAM_OWNER AS program_owner, PROGRAM_NAME AS program_name, NUMBER_OF_ARGUMENTS AS number_of_arguments, SCHEDULE_OWNER AS schedule_owner, SCHEDULE_NAME AS schedule_name, REPEAT_INTERVAL AS repeat_interval, START_DATE AS start_date, END_DATE AS end_date, ENABLED AS enabled, STATE AS state, NEXT_RUN_DATE AS next_run_at, LAST_START_DATE AS last_start_date, LAST_RUN_DURATION AS last_run_duration, RUN_COUNT AS run_count, FAILURE_COUNT AS failure_count, COMMENTS AS comments FROM ALL_SCHEDULER_JOBS WHERE ${ownerPredicate('OWNER', schema)} AND JOB_NAME = ${literal(jobName)}`];

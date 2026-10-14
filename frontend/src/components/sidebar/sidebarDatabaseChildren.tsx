@@ -1,7 +1,8 @@
 import type { SidebarViewMetadataEntry } from '../../utils/sidebarMetadata';
 import type { OracleDatabaseLinkEntry } from './sidebarOracleDatabaseLinks';
 import type { DatabaseJobEntry } from '../../typeDefs/databaseJobTypes';
-import { supportsDatabaseJobs } from './sidebarDatabaseJobs';
+import { usesSchemaScopedDatabaseJobs } from '../../utils/databaseJobs/jobCapabilities';
+import { buildRootDatabaseJobGroups } from './sidebarRootJobGroups';
 import { buildDatabaseJobGroup } from './sidebarJobObjects';
 import {
   dedupeSidebarTableEntries, groupSidebarPartitionTableEntries, getSidebarTableEntryIdentity,
@@ -553,8 +554,8 @@ export const createSidebarDatabaseChildrenBuilder = ({
       const includeMaterializedViews = dialect === 'starrocks';
       const includeOracleObjects = isOracleLike;
       databaseLinkEntries.forEach((entry) => getSchemaBucket(entry.schemaName).databaseLinks.push(entry));
-      jobEntries.forEach((entry) => getSchemaBucket(entry.schemaName).jobs.push(entry));
-      if (dialect === 'oracle' || supportsDatabaseJobs(conn as SavedConnection)) getSchemaBucket(String(dbName || '').trim());
+      if (usesSchemaScopedDatabaseJobs(objectGroupConnection.config)) jobEntries.forEach((entry) => getSchemaBucket(entry.schemaName).jobs.push(entry));
+      if (dialect === 'oracle' || usesSchemaScopedDatabaseJobs(objectGroupConnection.config)) getSchemaBucket(String(dbName || '').trim());
       const includeSequences = supportsDatabaseSequences(conn as SavedConnection);
       const includeEvents = supportsDatabaseEvents(conn as SavedConnection);
 
@@ -585,7 +586,7 @@ export const createSidebarDatabaseChildrenBuilder = ({
                   buildObjectGroup(schemaNodeKey, 'triggers', t('sidebar.object_group.triggers'), renderSidebarObjectIcon('trigger'), bucket.triggers, { schemaName: bucket.schemaName }),
                   ...(includeEvents ? [buildObjectGroup(schemaNodeKey, 'events', t('sidebar.object_group.events'), renderSidebarObjectIcon('event'), bucket.events, { schemaName: bucket.schemaName })] : []),
                   ...(dialect === 'oracle' ? [buildOracleDatabaseLinkGroup(objectGroupConnection, schemaNodeKey, t('sidebar.object_group.database_links'), bucket.databaseLinks, bucket.schemaName)] : []),
-                  ...(supportsDatabaseJobs(conn as SavedConnection) ? [buildDatabaseJobGroup(objectGroupConnection, schemaNodeKey, bucket.jobs, bucket.schemaName)] : []),
+                  ...(usesSchemaScopedDatabaseJobs(objectGroupConnection.config) && jobsResult.supported ? [buildDatabaseJobGroup(objectGroupConnection, schemaNodeKey, bucket.jobs, bucket.schemaName)] : []),
               ]);
 
               return {
@@ -599,7 +600,7 @@ export const createSidebarDatabaseChildrenBuilder = ({
               };
           });
 
-      renderedDatabaseChildren = [queriesNode, ...schemaNodes];
+      renderedDatabaseChildren = [queriesNode, ...buildRootDatabaseJobGroups(objectGroupConnection, String(key), jobsResult), ...schemaNodes];
   } else {
       const dialect = getMetadataDialect(conn as SavedConnection);
       const includeMaterializedViews = dialect === 'starrocks';
@@ -616,7 +617,7 @@ export const createSidebarDatabaseChildrenBuilder = ({
           buildObjectGroup(key as string, 'triggers', t('sidebar.object_group.triggers'), renderSidebarObjectIcon('trigger'), triggerEntries.map(buildTriggerNode)),
           ...(includeEvents ? [buildObjectGroup(key as string, 'events', t('sidebar.object_group.events'), renderSidebarObjectIcon('event'), eventEntries.map(buildEventNode))] : []),
           ...(dialect === 'oracle' ? [buildOracleDatabaseLinkGroup(objectGroupConnection, key as string, t('sidebar.object_group.database_links'), databaseLinkEntries)] : []),
-          ...(supportsDatabaseJobs(conn as SavedConnection) ? [buildDatabaseJobGroup(objectGroupConnection, String(key), jobEntries)] : []),
+          ...(jobsResult.supported ? [buildDatabaseJobGroup(objectGroupConnection, String(key), jobEntries)] : []),
       ]);
 
       renderedDatabaseChildren = [queriesNode, ...groupedNodes];
