@@ -9,10 +9,11 @@ import { shouldLoadSidebarNodeOnExpand as shouldLoadV2Node } from './sidebarV2Tr
 import { resolveSidebarSwitcherLoadKey } from './sidebarSwitcherState';
 
 const mocks = vi.hoisted(() => ({
-  query: vi.fn(), tables: vi.fn(), databases: vi.fn(),
+  count: vi.fn(), query: vi.fn(), tables: vi.fn(), databases: vi.fn(),
   state: { connections: [] as SavedConnection[], tableSortPreference: {}, tableAccessCount: {}, pinnedSidebarTables: [], pinnedSidebarDatabases: [] },
 }));
 vi.mock('../../../wailsjs/go/app/App', () => ({
+  DBQueryApplicationWithCancel: mocks.count, CancelQuery: vi.fn().mockResolvedValue({ success: true }),
   DBQuery: mocks.query, DBGetTables: mocks.tables, DBGetDatabases: mocks.databases,
   DBRefreshTableStats: vi.fn(), GetDriverStatusList: vi.fn(), JVMProbeCapabilities: vi.fn(),
 }));
@@ -280,4 +281,18 @@ describe('sidebar schema lazy loading', () => {
     expect(find(schema.key).dataRef.schemaLoaded).toBe(false);
     expect(loading.size).toBe(0);
   });
+  it('finishes object loading while an unlimited post-write count remains pending', async () => {
+    mount(); await act(async () => { await loaders.loadTables(tree[0]); });
+    const schema = tree[0].children.find((node: any) => node.title === 'sales');
+    let finishCount!: (value: unknown) => void;
+    mocks.count.mockImplementationOnce(() => new Promise(resolve => { finishCount = resolve; }));
+    await act(async () => { await loaders.loadTables(schema, { ensureFresh: true, schemaName: 'sales', rowCountTables: ['sales.users'] }); });
+    expect(loading.size).toBe(0);
+    expect(mocks.count).toHaveBeenCalledOnce();
+    expect(mocks.count.mock.calls[0][2]).toBe('SELECT COUNT(*) AS table_rows FROM sales.users');
+    await act(async () => { finishCount({ success: true, data: [{ table_rows: 42 }] }); });
+    const group = find(schema.key).children.find((node: any) => node.dataRef.groupKey === 'tables');
+    expect(group.children[0].dataRef.rowCount).toBe(42);
+  });
+
 });

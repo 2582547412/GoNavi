@@ -1,3 +1,4 @@
+import { findSidebarSchemaTreeNode } from './sidebarSchemaLoading';
 import { t } from '../../i18n';
 import { message, Button } from 'antd';
 import { resolveSidebarMessageQueueProfile } from './sidebarMessageProfiles';
@@ -56,9 +57,9 @@ import type { SidebarTreeLoadStateApi } from './useSidebarTreeLoadState';
 import type { UseSidebarTreeLoadersOptions } from './useSidebarTreeLoaders';
 import { createSidebarDatabaseChildrenBuilder } from './sidebarDatabaseChildren';
 import { invalidateQueryEditorSessionMetadata } from '../queryEditor/metadata/queryEditorSessionMetadataStore';
-import { applySidebarTableRowCounts, refreshSidebarTableRowCounts } from './sidebarTableRowCounts';
 
 export interface UseSidebarTableLoaderInput {
+  getTree?: UseSidebarTreeLoadersOptions['getTree'];
   loadingNodesRef: UseSidebarTreeLoadersOptions['loadingNodesRef'];
   setConnectionStates: UseSidebarTreeLoadersOptions['setConnectionStates'];
   setLoadedKeys: UseSidebarTreeLoadersOptions['setLoadedKeys'];
@@ -92,7 +93,7 @@ export const useSidebarTableLoader = ({
   loadingNodesRef, setConnectionStates, setLoadedKeys, savedQueries, resolveSavedQueryDisplayName,
   replaceTreeNodeChildren, onDatabaseTreeLoaded, tableSortPreference, tableAccessCount,
   pinnedSidebarTables, getConnectionLoadEpoch, isCurrentConnectionLoadEpoch, beginLoadGeneration,
-  isCurrentLoadGeneration, tableLoadsRef,
+  isCurrentLoadGeneration, tableLoadsRef, getTree,
 }: UseSidebarTableLoaderInput) => {
   	  const runLoadTables = async (
         node: any,
@@ -532,32 +533,26 @@ export const useSidebarTableLoader = ({
                   onDatabaseTreeLoaded?.(String(key));
                   shouldMarkDatabaseSuccess = true;
   
-                if (options.rowCountTables?.length && getMetadataDialect(conn as SavedConnection) !== 'sqlite') {
-                    const counts = await refreshSidebarTableRowCounts(conn, tableEntries, options.rowCountTables, options.schemaName);
-                    if (!isCurrentLoad()) return;
-                    if (counts.size) {
-                        renderedDatabaseChildren = applySidebarTableRowCounts(renderedDatabaseChildren, counts);
-                        replaceTreeNodeChildren(key, renderedDatabaseChildren, latestDatabaseConnection);
-                    }
-                }
-
   	            if (getMetadataDialect(conn as SavedConnection) === 'sqlite') {
   	                const tableNames = tableRows
   	                    .map((row) => getSidebarTableName(row as Record<string, any>))
   	                    .filter((tableName) => String(tableName || '').trim() !== '');
-                  const refreshed = await DBRefreshTableStats(
+                  void DBRefreshTableStats(
                       buildRpcConnectionConfig(config) as any,
                       conn.dbName,
                       tableNames,
-                  ).catch(() => null);
+                  ).then((refreshed) => {
                   if (!isCurrentLoad()) return;
+                  const currentNode = getTree ? findSidebarSchemaTreeNode(getTree(), String(key)) : undefined;
+                  if (getTree && !currentNode) return;
                   if (refreshed?.success && Array.isArray(refreshed.data)) {
   	                    renderedDatabaseChildren = applyRefreshedSQLiteStatsToTree(
-  	                        renderedDatabaseChildren,
+                            currentNode?.children || renderedDatabaseChildren,
   	                        refreshed.data as Record<string, any>[],
   	                    );
   	                    replaceTreeNodeChildren(key, renderedDatabaseChildren, latestDatabaseConnection);
   	                }
+                  }).catch(() => undefined);
   	            }
   	          } else {
   	            showTableLoadFailure(res.message);

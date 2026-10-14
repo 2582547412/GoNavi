@@ -502,7 +502,7 @@ export const runQueryEditorSqlStatements = async ({
             connectionId: conn.id,
             dbName: executionDbName,
             schemaName: executionSchemaName,
-        }, committedStatements, normalizedDbType);
+        }, committedStatements, normalizedDbType, !res.transactionPending && !hasSqlExecutionOutcomeUnknown(res));
     }
 
     if (!res.success) {
