@@ -1,9 +1,12 @@
 // 工具条「对象类」按钮的手绘线条图标（表 / 视图 / 函数 / 事件 / 查询 / 备份 /
 // 打开表 / 设计表 / 导入 / 导出 / 模型）。
 //
-// 线稿与配色对齐 Navicat 高保真原型（navicat-prototype.html 的 SVG 库）：
-// 16 视口、约 1.25 描边、每个按钮一个固定主色，深浅主题下均可读。
-// 颜色不走 CSS 变量：原型语义就是「每按钮一色」。
+// 线稿对齐 Navicat 高保真原型（navicat-prototype.html 的 SVG 库）：
+// 16 视口、约 1.25 描边。配色沿用标题栏图标的 CSS 变量契约
+// （token 定义见 titlebarIconTokens.css）：保留「每按钮一色」的原型语义，
+// 但每个色相都锚定在 --gn-titlebar-icon-* token 上——亮暗主题各有一套
+// 默认值，GoNavi 内置主题覆盖核心色 / 强调色时自动跟随，
+// 用户自定义 CSS 主题也可逐个覆盖。
 
 import { resolveSize, type GonaviTitlebarIconProps } from './gonaviTitlebarIcons';
 
@@ -27,7 +30,7 @@ const lineSvgProps = (size: number | string | undefined, className: string | und
 });
 
 // 表（对象列表）：网格。
-export function TitlebarTableIcon({ size, className, color = '#4f8ef7' }: LineIconProps) {
+export function TitlebarTableIcon({ size, className, color = 'var(--gn-titlebar-icon-table, #4f8ef7)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <rect x="1.7" y="2.7" width="12.6" height="10.8" rx="1.1" />
@@ -37,7 +40,7 @@ export function TitlebarTableIcon({ size, className, color = '#4f8ef7' }: LineIc
 }
 
 // 视图：眼睛。
-export function TitlebarViewIcon({ size, className, color = '#e8862f' }: LineIconProps) {
+export function TitlebarViewIcon({ size, className, color = 'var(--gn-titlebar-icon-view, #e8862f)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <path d="M1.6 8s2.6-4.4 6.4-4.4S14.4 8 14.4 8 11.8 12.4 8 12.4 1.6 8 1.6 8z" />
@@ -47,7 +50,7 @@ export function TitlebarViewIcon({ size, className, color = '#e8862f' }: LineIco
 }
 
 // 函数：斜体 fx。
-export function TitlebarFunctionIcon({ size, className, color = '#9b59c8' }: LineIconProps) {
+export function TitlebarFunctionIcon({ size, className, color = 'var(--gn-titlebar-icon-function, #9b59c8)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <text x="2.2" y="12" fontSize="10.5" fontStyle="italic" fontFamily="Georgia,serif" fill="currentColor" stroke="none">fx</text>
@@ -56,7 +59,7 @@ export function TitlebarFunctionIcon({ size, className, color = '#9b59c8' }: Lin
 }
 
 // 事件：时钟。
-export function TitlebarEventIcon({ size, className, color = '#5aa0e0' }: LineIconProps) {
+export function TitlebarEventIcon({ size, className, color = 'var(--gn-titlebar-icon-event, #5aa0e0)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <circle cx="8" cy="8" r="6" />
@@ -66,7 +69,7 @@ export function TitlebarEventIcon({ size, className, color = '#5aa0e0' }: LineIc
 }
 
 // 查询（收藏查询）：报表页。
-export function TitlebarSavedQueryIcon({ size, className, color = '#e05a5a' }: LineIconProps) {
+export function TitlebarSavedQueryIcon({ size, className, color = 'var(--gn-titlebar-icon-saved-query, #e05a5a)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <path d="M3 1.7h6.4L13 5.3v9H3z" />
@@ -77,7 +80,7 @@ export function TitlebarSavedQueryIcon({ size, className, color = '#e05a5a' }: L
 }
 
 // 备份：循环箭头。
-export function TitlebarBackupIcon({ size, className, color = '#7a86a3' }: LineIconProps) {
+export function TitlebarBackupIcon({ size, className, color = 'var(--gn-titlebar-icon-backup, #7a86a3)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <path d="M13.1 8a5.1 5.1 0 1 1-1.6-3.7" />
@@ -87,7 +90,7 @@ export function TitlebarBackupIcon({ size, className, color = '#7a86a3' }: LineI
 }
 
 // 打开表：网格 + 播放角标，强调色。
-export function TitlebarOpenTableIcon({ size, className, color = '#15803d' }: LineIconProps) {
+export function TitlebarOpenTableIcon({ size, className, color = 'var(--gn-titlebar-icon-open-table, #15803d)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <rect x="1.7" y="2.7" width="10.8" height="10.8" rx="1.1" />
@@ -98,7 +101,7 @@ export function TitlebarOpenTableIcon({ size, className, color = '#15803d' }: Li
 }
 
 // 设计表：魔棒，强调色。
-export function TitlebarDesignTableIcon({ size, className, color = '#15803d' }: LineIconProps) {
+export function TitlebarDesignTableIcon({ size, className, color = 'var(--gn-titlebar-icon-design-table, #15803d)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <path d="M2.8 13.2 10 6" />
@@ -109,7 +112,7 @@ export function TitlebarDesignTableIcon({ size, className, color = '#15803d' }: 
 }
 
 // 导入向导：下载入托盘。
-export function TitlebarImportIcon({ size, className, color = '#2fa7a0' }: LineIconProps) {
+export function TitlebarImportIcon({ size, className, color = 'var(--gn-titlebar-icon-import, #2fa7a0)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <path d="M8 1.8v7.4M5 6.3l3 3 3-3" />
@@ -119,7 +122,7 @@ export function TitlebarImportIcon({ size, className, color = '#2fa7a0' }: LineI
 }
 
 // 导出向导：上传出托盘。
-export function TitlebarExportIcon({ size, className, color = '#2fa7a0' }: LineIconProps) {
+export function TitlebarExportIcon({ size, className, color = 'var(--gn-titlebar-icon-export, #2fa7a0)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <path d="M8 9.4V2M5 5l3-3 3 3" />
@@ -129,7 +132,7 @@ export function TitlebarExportIcon({ size, className, color = '#2fa7a0' }: LineI
 }
 
 // 模型（ER）：三卡片连线。
-export function TitlebarErModelIcon({ size, className, color = '#c05bd8' }: LineIconProps) {
+export function TitlebarErModelIcon({ size, className, color = 'var(--gn-titlebar-icon-er-model, #c05bd8)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <rect x="1.5" y="1.7" width="5" height="4.4" rx=".8" />
@@ -141,7 +144,7 @@ export function TitlebarErModelIcon({ size, className, color = '#c05bd8' }: Line
 }
 
 // 外部 SQL 文件：文件夹 + 折角文件。
-export function TitlebarExternalSqlIcon({ size, className, color = '#d9972f' }: LineIconProps) {
+export function TitlebarExternalSqlIcon({ size, className, color = 'var(--gn-titlebar-icon-external-sql, #d9972f)' }: LineIconProps) {
   return (
     <svg {...lineSvgProps(size, className, color)}>
       <path d="M1.7 3.2h4.3l1.4 1.9h6.9v8.6a.9.9 0 0 1-.9.9H2.6a.9.9 0 0 1-.9-.9z" />
