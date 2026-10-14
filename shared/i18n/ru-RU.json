@@ -5356,6 +5356,7 @@
   "data_grid.toolbar.select_fill_template_targets": "Выделите целевые ячейки или отметьте целевые строки",
   "data_grid.toolbar.preview_sql": "Предпросмотр SQL",
   "data_grid.toolbar.preview_sql_generate": "Сформировать предпросмотр SQL",
+  "data_grid.toolbar.stop_refresh": "Остановить обновление",
   "data_grid.toolbar.refresh": "Обновить",
   "data_grid.toolbar.rollback": "Откат",
   "data_grid.toolbar.selected_count": "Выбрано: {{count}}",

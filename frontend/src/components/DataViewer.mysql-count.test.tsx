@@ -27,6 +27,7 @@ const storeState = vi.hoisted(() => ({
 
 const backendApp = vi.hoisted(() => ({
   DBQuery: vi.fn(),
+  DBQueryApplicationWithCancel: vi.fn(),
   DBQueryWithCancel: vi.fn(),
   CancelQuery: vi.fn(),
   DBGetColumns: vi.fn(),
@@ -110,6 +111,7 @@ describe('MySQL browsing totals', () => {
     vi.resetAllMocks();
     resetTableMetadataRequestCacheForTests();
     storeState.connections[0].config.type = 'mysql';
+    backendApp.DBQueryApplicationWithCancel.mockImplementation((config, dbName, sql) => backendApp.DBQuery(config, dbName, sql));
     backendApp.CancelQuery.mockResolvedValue({ success: true });
     backendApp.DBGetColumns.mockResolvedValue({ success: true, data: [{ name: 'ID', key: 'PRI' }] });
     backendApp.DBGetIndexes.mockResolvedValue({ success: true, data: [] });

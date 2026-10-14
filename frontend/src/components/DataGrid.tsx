@@ -79,7 +79,7 @@ const DataGrid: React.FC<DataGridProps> = ({
     data, columnNames, loading, tableName, columnPinScope, objectType = 'table', exportScope = 'table', dbName, schemaName, ddlDbName, ddlTableName, connectionId, connectionParamsOverride, pkColumns = [], editLocator, readOnly = false,
     resultSql,
     resultExportAllSql,
-    onReload, onSort, onPageChange, onLastPage, queryMaxRows, pagination, onRequestTotalCount, onCancelTotalCount, sortInfoExternal, showFilter, onToggleFilter, exportSqlWithFilter, onApplyFilter, appliedFilterConditions, quickWhereCondition,
+    onReload, onCancelReload, onSort, onPageChange, onLastPage, queryMaxRows, pagination, onRequestTotalCount, onCancelTotalCount, sortInfoExternal, showFilter, onToggleFilter, exportSqlWithFilter, onApplyFilter, appliedFilterConditions, quickWhereCondition,
     onApplyQuickWhereCondition,
     scrollSnapshot, onScrollSnapshotChange, toolbarExtraActions, showRowNumberColumn, isActive = true, enableSqlLogEvent = false,
     initialViewMode,
@@ -561,7 +561,7 @@ const DataGrid: React.FC<DataGridProps> = ({
         isQueryResultExport, isTableSurfaceActive, isWritableResultColumn, jsonEditorOpen,
         jsonEditorValue, jsonViewText, loading, localizedDataEditAutoCommitDelayOptions,
         looksLikeJsonText, mergedDisplayData, metadataCacheKey, noAutoCapInputProps,
-        normalizedPageFindText, onCancelTotalCount,
+        normalizedPageFindText, onCancelTotalCount, onCancelReload,
         onOpenErTable: openTableByName,
         onPageChange, onLastPage,
         onReload: exportScope === 'queryResult'

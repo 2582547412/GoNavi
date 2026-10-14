@@ -442,3 +442,26 @@ describe('DataGridToolbarFrame filter entry highlight (issue #1302)', () => {
     expect(labels).toContain('清空全部');
   });
 });
+
+
+describe('refresh cancellation button', () => {
+  it('switches the existing refresh button to an enabled stop action while loading', () => {
+    const onRefresh = vi.fn();
+    const onCancelReload = vi.fn();
+    const props = makeProps({ onReload: vi.fn(), onRefresh, onCancelReload, loading: true });
+    let renderer!: ReactTestRenderer;
+    act(() => { renderer = create(<DataGridToolbarFrame {...props} />); });
+    const stop = renderer.root.findAllByType('button').find(button =>
+      button.props['aria-label'] === t('data_grid.toolbar.stop_refresh'))!;
+    expect(stop.props.disabled).toBe(false);
+    act(() => stop.props.onClick());
+    expect(onCancelReload).toHaveBeenCalledOnce();
+    expect(onRefresh).not.toHaveBeenCalled();
+    act(() => renderer.update(<DataGridToolbarFrame {...props} loading={false} />));
+    const refresh = renderer.root.findAllByType('button').find(button =>
+      button.props['aria-label'] === t('data_grid.toolbar.refresh'))!;
+    act(() => refresh.props.onClick());
+    expect(onRefresh).toHaveBeenCalledOnce();
+    act(() => renderer.unmount());
+  });
+});

@@ -28,6 +28,7 @@ const storeState = vi.hoisted(() => ({
 
 const backendApp = vi.hoisted(() => ({
   DBQuery: vi.fn(),
+  DBQueryApplicationWithCancel: vi.fn(),
   DBQueryWithCancel: vi.fn(),
   CancelQuery: vi.fn(),
   DBGetColumns: vi.fn(),
@@ -176,6 +177,7 @@ describe('DataViewer safe editing locator', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     backendApp.DBQueryWithCancel.mockImplementation((config, dbName, sql) => backendApp.DBQuery(config, dbName, sql));
+    backendApp.DBQueryApplicationWithCancel.mockImplementation((config, dbName, sql) => backendApp.DBQuery(config, dbName, sql));
     backendApp.CancelQuery.mockResolvedValue({ success: true });
     resetTableMetadataRequestCacheForTests();
     dataGridState.latestProps = null;

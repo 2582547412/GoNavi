@@ -5356,6 +5356,7 @@
   "data_grid.toolbar.select_fill_template_targets": "請框選目標儲存格，或勾選目標列",
   "data_grid.toolbar.preview_sql": "預覽 SQL",
   "data_grid.toolbar.preview_sql_generate": "產生預覽 SQL",
+  "data_grid.toolbar.stop_refresh": "終止重新整理",
   "data_grid.toolbar.refresh": "重新整理",
   "data_grid.toolbar.rollback": "回滾",
   "data_grid.toolbar.selected_count": "已選 {{count}}",

@@ -5356,6 +5356,7 @@
   "data_grid.toolbar.select_fill_template_targets": "Zielzellen markieren oder Zielzeilen auswählen",
   "data_grid.toolbar.preview_sql": "SQL-Vorschau",
   "data_grid.toolbar.preview_sql_generate": "SQL-Vorschau generieren",
+  "data_grid.toolbar.stop_refresh": "Aktualisierung stoppen",
   "data_grid.toolbar.refresh": "Aktualisieren",
   "data_grid.toolbar.rollback": "Zurückrollen",
   "data_grid.toolbar.selected_count": "{{count}} ausgewählt",
