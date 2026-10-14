@@ -1,6 +1,6 @@
 import { defineSettingsCenterPageEntries as page, type SettingsCenterSearchEntry } from '../settingsCenterSearchEntries';
 
-/** Settings inside the 偏好设置 pages (language, theme & appearance, sidebar). */
+// Settings inside the 偏好设置 pages (language, theme & appearance, sidebar).
 export const PREFERENCES_SEARCH_ENTRIES: ReadonlyArray<SettingsCenterSearchEntry> = [
   ...page('preferences', 'language', [
     'settings.language.follow_system',
@@ -34,6 +34,7 @@ export const PREFERENCES_SEARCH_ENTRIES: ReadonlyArray<SettingsCenterSearchEntry
     ['app.theme.appearance.ui_scale_title', 'app.theme.appearance.ui_scale_hint'],
     'app.theme.appearance.font_size_title',
     ['app.theme.appearance.sidebar_rail_scale_title', 'app.theme.appearance.sidebar_rail_scale_hint'],
+    ['app.theme.appearance.workbench_sidebar_auto_collapse_title', 'app.theme.appearance.workbench_sidebar_auto_collapse_hint'],
     ['app.theme.appearance.single_database_expansion_title', 'app.theme.appearance.single_database_expansion_hint'],
     'app.theme.font_family.title',
     'app.theme.font_family.ui_title',
