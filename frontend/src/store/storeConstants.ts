@@ -23,21 +23,17 @@ export const DEFAULT_TAB_ENVIRONMENT_ACCENT_THICKNESS = 2;
 export const MIN_TAB_ENVIRONMENT_ACCENT_THICKNESS = 1;
 export const MAX_TAB_ENVIRONMENT_ACCENT_THICKNESS = 6;
 
-/**
- * 低配适配模式默认值：null = 跟随运行时能力自动检测。
- * 不能给 false —— 声明成纯 boolean 再默认 false，会让「自动检测」分支永远不可达，
- * 低配机器只能等用户手动打开开关，档位形同虚设。
- */
+// 低配适配模式默认值：null = 跟随运行时能力自动检测。
+// 不能给 false —— 声明成纯 boolean 再默认 false，会让「自动检测」分支永远不可达，
+// 低配机器只能等用户手动打开开关，档位形同虚设。
 export const DEFAULT_LOW_SPEC_MODE: boolean | null = null;
 
-/**
- * 减少动画默认关闭（选择加入）。
- * 若默认开启，等于对所有既有用户无条件中和全局动画，属于超出「低配降级」范围的观感变更；
- * 低配机器不依赖此开关 —— gn-low-spec 档位自身已包含动画中和，故默认关闭不影响降级收益。
- */
+// 减少动画默认关闭（选择加入）。
+// 若默认开启，等于对所有既有用户无条件中和全局动画，属于超出「低配降级」范围的观感变更；
+// 低配机器不依赖此开关 —— gn-low-spec 档位自身已包含动画中和，故默认关闭不影响降级收益。
 export const DEFAULT_REDUCE_MOTION = false;
 
-/** 界面布局主题默认值：classic（现有样式）。Navicat 风格需在设置里显式开启。 */
+// 界面布局主题默认值：classic（现有样式）。Navicat 风格需在设置里显式开启。
 export const DEFAULT_UI_LAYOUT_MODE = "classic";
 
 export const DEFAULT_APPEARANCE: AppearanceSettings = {
@@ -55,6 +51,7 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   tabEnvironmentAccentThickness: DEFAULT_TAB_ENVIRONMENT_ACCENT_THICKNESS,
   toolbarButtonColorOverrides: { ...DEFAULT_TOOLBAR_BUTTON_COLOR_OVERRIDES },
   sidebarSingleDatabaseExpansion: false,
+  workbenchSidebarAutoCollapse: false,
   sidebarHiddenObjectGroups: [],
   customUIFontFamily: null,
   customMonoFontFamily: null,
@@ -76,8 +73,8 @@ export const MIN_FONT_SIZE = 12;
 export const MAX_FONT_SIZE = 20;
 export const DEFAULT_STARTUP_FULLSCREEN = false;
 export const DEFAULT_AUTO_CHECK_FOR_UPDATES = true;
-/** 界面布局主题默认值：classic（现有样式）。Navicat 风格需在设置里显式开启。 */
-/** 自动检查更新间隔（分钟）；与关于页 Select 选项保持一致 */
+// 界面布局主题默认值：classic（现有样式）。Navicat 风格需在设置里显式开启。
+// 自动检查更新间隔（分钟）；与关于页 Select 选项保持一致
 export const AUTO_CHECK_FOR_UPDATES_INTERVAL_OPTIONS = [
   15, 30, 60, 120, 360, 720, 1440,
 ] as const;
@@ -146,10 +143,8 @@ export const sanitizeTabEnvironmentAccentThickness = (value: unknown): number =>
   );
 };
 
-/**
- * 低配适配模式：只有显式布尔值才算用户固定，其余（含旧数据缺失、null、脏值）一律回落
- * 到「跟随自动检测」，避免旧 localStorage 把自动档位锁死。
- */
+// 低配适配模式：只有显式布尔值才算用户固定，其余（含旧数据缺失、null、脏值）一律回落
+// 到「跟随自动检测」，避免旧 localStorage 把自动档位锁死。
 export const sanitizeLowSpecMode = (value: unknown): boolean | null => {
   return typeof value === "boolean" ? value : DEFAULT_LOW_SPEC_MODE;
 };
@@ -171,7 +166,7 @@ export const MAX_DIAGNOSTIC_TIMEOUT_SECONDS = 300;
 export const PERSIST_VERSION = 22;
 export const SQL_EDITOR_FONT_SIZE_SPLIT_VERSION = 19;
 export const TAB_DISPLAY_DEFAULT_MIGRATION_VERSION = 20;
-/** Navicat 格局：功能入口默认从标题栏内联迁到独立工具条，只迁移仍是旧默认值的配置。 */
+// Navicat 格局：功能入口默认从标题栏内联迁到独立工具条，只迁移仍是旧默认值的配置。
 export const TITLEBAR_TOOLBAR_DEFAULT_MIGRATION_VERSION = 22;
 export const SIDEBAR_SEARCH_SHORTCUT_MIGRATION_VERSION = 18;
 export const PERSIST_STORAGE_KEY = "lite-db-storage";

@@ -3640,6 +3640,8 @@
   "app.theme.appearance.sidebar_rail_scale_hint": "調整 V2 左側欄展開或收合時的工具按鈕，以及展開時的物件類型按鈕。",
   "app.theme.appearance.sidebar_rail_scale_title": "左側導覽按鈕大小",
   "app.theme.appearance.single_database_expansion_hint": "啟用後，同一連線展開新資料庫時會自動收合其他資料庫；其他連線不受影響，Redis 資料庫同樣適用。",
+  "app.theme.appearance.workbench_sidebar_auto_collapse_title": "工具分頁自動收合左側樹",
+  "app.theme.appearance.workbench_sidebar_auto_collapse_hint": "開啟設定中心、驅動管理、同步、匯入或匯出分頁時自動收合左側樹，離開時恢復。預設關閉；關閉後保持目前狀態，由你手動收合或展開。",
   "app.theme.appearance.single_database_expansion_title": "同一連線僅展開一個資料庫",
   "app.theme.appearance.transparency_blur_title": "透明与模糊效果",
   "app.theme.appearance.ui_scale_hint": "* 建议小屏设备設定为 85%-95%",

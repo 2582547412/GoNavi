@@ -78,6 +78,7 @@ describe('store appearance persistence', () => {
     expect(appearance.tabEnvironmentAccentThickness).toBe(2);
     expect(appearance.toolbarButtonColorOverrides).toEqual({});
     expect(appearance.sidebarSingleDatabaseExpansion).toBe(false);
+    expect(appearance.workbenchSidebarAutoCollapse).toBe(false);
     expect(appearance.sidebarHiddenObjectGroups).toEqual([]);
     expect(appearance.showDataTableVerticalBorders).toBe(false);
     expect(appearance.showDataTableRowNumber).toBe(true);
@@ -255,6 +256,18 @@ describe('store appearance persistence', () => {
     expect(appearance.v2SidebarRailScale).toBe(1.55);
     expect(appearance.tabEnvironmentAccentThickness).toBe(5);
     expect(appearance.sidebarSingleDatabaseExpansion).toBe(true);
+  });
+
+  it('persists the optional workbench sidebar behavior in both directions', async () => {
+    let store = (await importStore()).useStore;
+    expect(store.getState().appearance.workbenchSidebarAutoCollapse).toBe(false);
+    for (const enabled of [true, false]) {
+      store.getState().setAppearance({ workbenchSidebarAutoCollapse: enabled });
+      expect(JSON.parse(storage.getItem('lite-db-storage') || '{}').state.appearance.workbenchSidebarAutoCollapse).toBe(enabled);
+      vi.resetModules();
+      store = (await importStore()).useStore;
+      expect(store.getState().appearance.workbenchSidebarAutoCollapse).toBe(enabled);
+    }
   });
 
   it('sanitizes invalid tab environment accent thickness values', async () => {

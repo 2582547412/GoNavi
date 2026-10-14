@@ -3633,6 +3633,8 @@
   "app.theme.appearance.sidebar_rail_scale_hint": "调整 V2 左侧栏展开或折叠时的工具按钮，以及展开时的对象类型按钮。",
   "app.theme.appearance.sidebar_rail_scale_title": "左侧导航按钮大小",
   "app.theme.appearance.single_database_expansion_hint": "开启后，同一连接展开新数据库时会自动收起其他数据库；其他连接不受影响，Redis 数据库同样适用。",
+  "app.theme.appearance.workbench_sidebar_auto_collapse_title": "工具标签页自动折叠左侧树",
+  "app.theme.appearance.workbench_sidebar_auto_collapse_hint": "打开设置中心、驱动管理、同步、导入或导出标签页时自动折叠左侧树，离开时恢复。默认关闭；关闭后保持当前状态，由你手动折叠或展开。",
   "app.theme.appearance.single_database_expansion_title": "同一连接仅展开一个数据库",
   "app.theme.appearance.transparency_blur_title": "透明与模糊效果",
   "app.theme.appearance.ui_scale_hint": "* 建议小屏设备设置为 85%-95%",

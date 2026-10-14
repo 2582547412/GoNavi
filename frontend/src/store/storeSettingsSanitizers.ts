@@ -494,10 +494,8 @@ const isLegacyDefaultTabDisplaySettings = (value: unknown): boolean => {
     && raw.double === undefined;
 };
 
-/**
- * Navicat 布局不迁移 placement：classic 模式保持用户自己的摆放设置，
- * navicat 模式在渲染层强制独立工具条。
- */
+// Navicat 布局不迁移 placement：classic 模式保持用户自己的摆放设置，
+// navicat 模式在渲染层强制独立工具条。
 const resolveTitlebarActionsPlacementForVersion = (
   appearance: Partial<AppearanceSettings>,
 ) => sanitizeTitlebarActionsPlacementSettings(appearance);
@@ -553,6 +551,7 @@ export const sanitizeAppearance = (
     toolbarButtonColorOverrides: sanitizeToolbarButtonColorOverrides(
       appearance.toolbarButtonColorOverrides,
     ),
+    workbenchSidebarAutoCollapse: appearance.workbenchSidebarAutoCollapse === true,
     sidebarSingleDatabaseExpansion:
       appearance.sidebarSingleDatabaseExpansion === true,
     sidebarHiddenObjectGroups: sanitizeSidebarHiddenObjectGroups(
@@ -686,7 +685,7 @@ export const sanitizeAIChatDetachedBoundsMemory = (
   };
 };
 
-/** 打开/弹出 AI 独立窗时，在记忆尺寸上叠加本次 preferred */
+// 打开/弹出 AI 独立窗时，在记忆尺寸上叠加本次 preferred
 export const resolveAIChatDetachPreferred = (
   memory: AIChatDetachedBoundsMemory | null,
   preferred?: Partial<Pick<DetachedWindowBounds, "x" | "y" | "width" | "height">>,

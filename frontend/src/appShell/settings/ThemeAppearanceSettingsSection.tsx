@@ -1,3 +1,4 @@
+import { WorkbenchSidebarAutoCollapseSetting } from './WorkbenchSidebarAutoCollapseSetting';
 import { Switch, Select } from 'antd';
 import { ThemeSettingsSlider } from '../ThemeSettingsSlider';
 import {
@@ -148,6 +149,7 @@ export const ThemeAppearanceSettingsSection = ({
                       />
                   ),
               })}
+              <WorkbenchSidebarAutoCollapseSetting appearance={appearance} setAppearance={setAppearance} t={t} renderThemeSettingsRow={renderThemeSettingsRow} />
               {renderThemeSettingsRow({
                   label: t('app.theme.appearance.single_database_expansion_title'),
                   hint: t('app.theme.appearance.single_database_expansion_hint'),
