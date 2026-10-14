@@ -42,13 +42,14 @@ beforeEach(() => {
 });
 
 describe('job definition viewer', () => {
-  it('renders the fetched action read-only without an object-edit button', async () => {
+  it('keeps the catalog read-only and exposes separate job management', async () => {
     backend.DBQuery.mockResolvedValue({ success: true, data: [{ JOB_NAME: 'NIGHTLY', ACTION: 'BEGIN CLEANUP; END;' }] });
     let renderer: ReactTestRenderer;
     await act(async () => { renderer = create(render(tab)); await flush(); });
     expect(renderer!.root.findByType('pre').props['data-readonly']).toBe('true');
     expect(renderer!.root.findByType('pre').children.join('')).toContain('BEGIN CLEANUP; END;');
-    expect(renderer!.root.findAllByType('button')).toHaveLength(0);
+    expect(renderer!.root.findAllByType('button')).toHaveLength(1);
+    expect(renderer!.root.findByType('button').children.join('')).toContain('Manage job');
     await act(async () => renderer!.unmount());
   });
 

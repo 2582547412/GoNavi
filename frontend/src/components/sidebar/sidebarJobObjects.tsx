@@ -8,6 +8,7 @@ import type { SidebarNodeMenuContext } from './sidebarNodeMenuHelpers';
 import { renderSidebarObjectIcon } from './sidebarObjectIcons';
 import { createSidebarObjectGroupBuilder } from './sidebarObjectGroup';
 import { buildSidebarCopyObjectNameMenuItem } from './sidebarCopyObjectNameMenu';
+import { buildJobManagementMenuItems } from './sidebarJobManagementMenu';
 
 type JobNode = {
   key?: unknown;
@@ -76,9 +77,9 @@ export const buildDatabaseJobMenuItems = (
     return [{
       key: 'view-job-def', label: t('sidebar.menu.view_job_definition'), icon: <CodeOutlined />,
       onClick: () => openDatabaseJobDefinition(node, context.addTab),
-    }, buildSidebarCopyObjectNameMenuItem(node, context.handleCopyTableName, 'copy-job-name')];
+    }, ...buildJobManagementMenuItems(node), buildSidebarCopyObjectNameMenuItem(node, context.handleCopyTableName, 'copy-job-name')];
   }
-  return [{
+  return [...buildJobManagementMenuItems(node), {
     key: 'refresh-jobs', label: t('common.refresh'), icon: <ReloadOutlined />,
     onClick: () => { void context.loadTables(context.getDatabaseNodeRef(node.dataRef, String(node.dataRef?.dbName || '')), { ensureFresh: true }); },
   }];

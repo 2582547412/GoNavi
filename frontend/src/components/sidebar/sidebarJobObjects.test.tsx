@@ -51,7 +51,7 @@ describe('job explorer and definition navigation', () => {
     expect(addTab).toHaveBeenCalledWith(expect.objectContaining({ type: 'job-def', jobKind: 'dbms-job' }));
   });
 
-  it('offers view/copy only and refreshes the owning database with fresh metadata', () => {
+  it('offers management alongside view/copy and refreshes the owning database', () => {
     const group = makeGroup();
     const context = {
       addTab: vi.fn(), handleCopyTableName: vi.fn(),
@@ -61,8 +61,10 @@ describe('job explorer and definition navigation', () => {
       })),
     };
     const items = buildDatabaseJobMenuItems(makeGroup().children![0], context);
-    expect(items?.map((item) => item?.key)).toEqual(['view-job-def', 'copy-job-name']);
-    const refresh = buildDatabaseJobMenuItems(group, context)?.[0];
+    expect(items?.map((item) => item?.key)).toEqual(['view-job-def', 'manage-job', 'copy-job-name']);
+    const groupItems = buildDatabaseJobMenuItems(group, context);
+    expect(groupItems?.map(item => item?.key)).toContain('create-job-oracle-scheduler');
+    const refresh = groupItems?.find(item => item?.key === 'refresh-jobs');
     if (refresh && 'onClick' in refresh) refresh.onClick?.({} as never);
     expect(context.getDatabaseNodeRef).toHaveBeenCalledWith(group.dataRef, 'MiXeD');
     expect(context.loadTables).toHaveBeenCalledWith(expect.objectContaining({
