@@ -340,7 +340,7 @@ export const resolveSidebarTableNameForCopy = (
     || node?.dataRef?.packageName
     || node?.dataRef?.databaseLinkName
     || node?.dataRef?.eventName
-    || node?.dataRef?.jobName
+    || node?.dataRef?.jobLabel || node?.dataRef?.jobName
     || node?.title
     || '',
   ).trim();

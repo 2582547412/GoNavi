@@ -12516,5 +12516,18 @@
   "sidebar.object_group.jobs": "ジョブ",
   "sidebar.tab.job_definition": "{{name}} - ジョブ定義",
   "tab_manager.hover.kind.job": "ジョブ",
-  "tab_manager.kind_badge.job": "ジョブ"
+  "tab_manager.kind_badge.job": "ジョブ",
+  "database_jobs.source.sqlserver-agent": "SQL Server Agent",
+  "database_jobs.source.pg-cron": "pg_cron",
+  "database_jobs.source.pgagent": "pgAgent",
+  "database_jobs.source.kingbase-scheduler": "KingbaseES KDB_SCHEDULE",
+  "database_jobs.source.opengauss-job": "openGauss",
+  "database_jobs.source.gaussdb-job": "GaussDB",
+  "database_jobs.source.oceanbase-oracle": "OceanBase DBMS_SCHEDULER (Oracle)",
+  "database_jobs.source.oceanbase-mysql": "OceanBase DBMS_SCHEDULER (MySQL)",
+  "database_jobs.source.doris-job": "Doris Job Scheduler",
+  "database_jobs.source.starrocks-task": "StarRocks Tasks",
+  "database_jobs.field.job_label": "ジョブの表示名",
+  "database_jobs.field.owner": "所有者",
+  "database_jobs.warning.action_unavailable": "現在のバージョンまたは権限では実行内容を取得できません。参照可能なジョブのメタデータのみ表示します。"
 }

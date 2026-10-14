@@ -581,7 +581,7 @@ const getTabRawObjectLabel = (tab: TabData, translate: TabDisplayTranslate = def
   if (tab.tableName) return tab.tableName;
   if (tab.viewName) return tab.viewName;
   if (tab.eventName) return tab.eventName;
-  if (tab.jobName) return tab.jobName;
+  if (tab.jobName) return tab.jobLabel || tab.jobName;
   if (tab.routineName) return tab.routineName;
   if (tab.sequenceName) return tab.sequenceName;
   if (tab.packageName) return tab.packageName;

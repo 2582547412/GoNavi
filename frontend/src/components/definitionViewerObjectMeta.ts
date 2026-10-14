@@ -6,7 +6,7 @@ export const resolveDefinitionViewerObjectMeta = (tab: TabData, translate: Trans
   if (tab.type === 'job-def') {
     return {
       label: translate('definition_viewer.object.job'),
-      name: tab.jobName,
+      name: tab.jobLabel || tab.jobName,
       loadingTip: translate('definition_viewer.loading.job_definition'),
     };
   }

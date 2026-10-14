@@ -12516,5 +12516,18 @@
   "sidebar.object_group.jobs": "作业",
   "sidebar.tab.job_definition": "{{name}} - 作业定义",
   "tab_manager.hover.kind.job": "作业",
-  "tab_manager.kind_badge.job": "作业"
+  "tab_manager.kind_badge.job": "作业",
+  "database_jobs.source.sqlserver-agent": "SQL Server Agent",
+  "database_jobs.source.pg-cron": "pg_cron",
+  "database_jobs.source.pgagent": "pgAgent",
+  "database_jobs.source.kingbase-scheduler": "KingbaseES KDB_SCHEDULE",
+  "database_jobs.source.opengauss-job": "openGauss",
+  "database_jobs.source.gaussdb-job": "GaussDB",
+  "database_jobs.source.oceanbase-oracle": "OceanBase DBMS_SCHEDULER (Oracle)",
+  "database_jobs.source.oceanbase-mysql": "OceanBase DBMS_SCHEDULER (MySQL)",
+  "database_jobs.source.doris-job": "Doris Job Scheduler",
+  "database_jobs.source.starrocks-task": "StarRocks Tasks",
+  "database_jobs.field.job_label": "作业显示名称",
+  "database_jobs.field.owner": "所有者",
+  "database_jobs.warning.action_unavailable": "当前版本或权限未提供执行内容，仅显示可读取的作业元数据。"
 }

@@ -27,7 +27,7 @@ describe('database job catalog scope', () => {
     expect(groups[0].queries[1]).toContain('FROM SYSJOB.USER_JOBS_VIEW');
     expect(groups[0].queries.every((sql) => sql.includes("USERNAME = 'APP'"))).toBe(true);
     expect(groups[1].queries[0]).toContain('FROM SYS.USER_JOBS');
-    expect(buildDatabaseJobListQueries('postgres', 'APP')).toEqual([]);
+    expect(buildDatabaseJobListQueries('sqlite', 'APP')).toEqual([]);
   });
 
   it('uses documented Dameng creation-time and step columns instead of Oracle-style aliases', () => {
@@ -94,7 +94,7 @@ describe('job row identities and source capabilities', () => {
     expect(resolveDatabaseJobDialect({ type: 'dameng' })).toBe('dm');
     expect(resolveDatabaseJobDialect({ type: 'custom', driver: 'dm' })).toBe('dm');
     expect(resolveDatabaseJobDialect({ type: 'custom', driver: 'oracle' })).toBe('oracle');
-    expect(resolveDatabaseJobDialect({ type: 'oceanbase', oceanBaseProtocol: 'oracle' })).toBeNull();
+    expect(resolveDatabaseJobDialect({ type: 'oceanbase', oceanBaseProtocol: 'oracle' })).toBe('oceanbase-oracle');
     expect(resolveDatabaseJobDialect({ type: 'mysql' })).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 import type { WorkbenchTabType } from '../tabTypes';
 import type { TabData } from '../types';
+import { DATABASE_JOB_KINDS } from '../typeDefs/databaseJobTypes';
 import { pinSettingsCenterTabFirst } from './settingsCenterTab';
 
 /**
@@ -82,6 +83,7 @@ const TEXT_FIELDS = [
   'viewName',
   'eventName',
   'jobName',
+  'jobLabel',
   'routineName',
   'routineType',
   'sequenceName',
@@ -93,7 +95,7 @@ const TEXT_FIELDS = [
 
 const CHOICE_FIELDS = {
   providerMode: ['jmx', 'endpoint', 'agent'],
-  jobKind: ['oracle-scheduler', 'dbms-job', 'dm-agent'],
+  jobKind: DATABASE_JOB_KINDS,
   objectType: ['table', 'view', 'materialized-view'],
   viewKind: ['view', 'materialized'],
   overviewKind: ['views', 'routines', 'events'],

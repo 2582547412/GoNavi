@@ -12516,5 +12516,18 @@
   "sidebar.object_group.jobs": "Aufträge",
   "sidebar.tab.job_definition": "{{name}} - Auftragsdefinition",
   "tab_manager.hover.kind.job": "Auftrag",
-  "tab_manager.kind_badge.job": "Auftrag"
+  "tab_manager.kind_badge.job": "Auftrag",
+  "database_jobs.source.sqlserver-agent": "SQL Server Agent",
+  "database_jobs.source.pg-cron": "pg_cron",
+  "database_jobs.source.pgagent": "pgAgent",
+  "database_jobs.source.kingbase-scheduler": "KingbaseES KDB_SCHEDULE",
+  "database_jobs.source.opengauss-job": "openGauss",
+  "database_jobs.source.gaussdb-job": "GaussDB",
+  "database_jobs.source.oceanbase-oracle": "OceanBase DBMS_SCHEDULER (Oracle)",
+  "database_jobs.source.oceanbase-mysql": "OceanBase DBMS_SCHEDULER (MySQL)",
+  "database_jobs.source.doris-job": "Doris Job Scheduler",
+  "database_jobs.source.starrocks-task": "StarRocks Tasks",
+  "database_jobs.field.job_label": "Anzeigename des Auftrags",
+  "database_jobs.field.owner": "Eigentümer",
+  "database_jobs.warning.action_unavailable": "Die aktuelle Version oder Berechtigung stellt den Ausführungsinhalt nicht bereit. Nur zugängliche Auftragsmetadaten werden angezeigt."
 }
