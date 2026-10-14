@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"io"
-	"net"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,16 +23,6 @@ const timeLayloutShort = "2006-01-02 15:04:05"
 // 自身 50000 行预算的值，让预算先触发并如实上报截断，既不静默丢数据，也不依赖
 // 服务端对 0 的解释。
 const maxResultRows = 100000
-
-// emptyResultProbeTimeout 是「列定义帧之后等待数据帧」的探测窗口。
-//
-// Caché 旧协议对 0 行结果不发数据帧，而 IRIS 对任何结果都会发。用一个小窗口
-// 区分两者：窗口内拿到数据帧就是正常结果，拿不到按空结果集处理。
-//
-// 取值依据实测：同机 100 行与 808 行的数据帧都在 1.6s 内到达（与查询总耗时同批），
-// 所以 2s 窗口对「有数据的查询」不会误判。远程慢链路下单次往返更长，这里宁可
-// 判空偏保守也不引入等待——真正的慢查询由 queryTimeout 与上层预算兜底。
-const emptyResultProbeTimeout = 2 * time.Second
 
 type StatementFeature struct {
 	featureOption   int
@@ -507,25 +496,12 @@ func (c *Connection) DirectQuery(sqlText string, args ...interface{}) (*ResultSe
 		stmtId:  statementId,
 	}
 
-	// 数据帧只在这条 statement 真的产生行时才来。Caché 2018.1 对 0 行结果
-	// （如 SELECT * 命中空表）只发列定义帧，之后不再发送任何消息；原实现无条件
-	// 读第二帧，于是永久阻塞在 90s 读超时上，这正是「查询空表/TOP N 直接报错、
-	// 侧栏点开库转圈」的根因（issue #1427/#1430）。
-	//
-	// 用一个短探测窗口读第二帧：拿不到就按「空结果集」返回，让 Next() 立即 EOF；
-	// 拿到就正常解析。窗口取驱动查询超时与 emptyResultProbeTimeout 的较小值，
-	// 既不为空结果白等 90s，也不会把慢链路上真的数据帧误判成空。
-	probeTimeout := c.queryTimeout
-	if probeTimeout <= 0 || probeTimeout > emptyResultProbeTimeout {
-		probeTimeout = emptyResultProbeTimeout
-	}
-	msg, err = ReadMessageWithTimeout(c.conn, probeTimeout)
+	// 实测 Caché 2018.1.5 与 IRIS 2026.1 的空结果都有 status=100 终止帧。
+	// 不能以短窗口内未收到字节判空：两种协议的数据帧延迟 3s 都会静默丢行。
+	// 按查询超时完整等待；缺失帧或半帧必须报错，并关闭连接避免迟到帧污染下次查询。
+	msg, err = ReadMessageWithTimeout(c.conn, c.queryTimeout)
 	if err != nil {
-		if ne, ok := err.(net.Error); ok && ne.Timeout() {
-			// 列定义已经拿到但没有数据帧 → 空结果集。
-			rs.sqlCode = 100
-			return rs, nil
-		}
+		_ = c.conn.Close()
 		return nil, err
 	}
 	rs.sqlCode = int16(msg.GetStatus())
