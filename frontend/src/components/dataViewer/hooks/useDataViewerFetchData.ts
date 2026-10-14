@@ -64,7 +64,7 @@ import { GONAVI_ROW_KEY } from '../../DataGrid';
 import {
   resolveApproximateTableCountStrategy,
   parseApproximateTableCountRow,
-  buildOracleApproximateTotalSql,
+  buildOracleApproximateTotalSql, buildMySQLApproximateTotalSql,
 } from '../../../utils/approximateTableCount';
 import { formatDataViewerQueryError } from '../../../utils/dataViewerQueryError';
 import { allowDataGridQueryChange } from '../../../utils/dataGridQueryGuard';
@@ -72,6 +72,8 @@ import type { DataViewerStateApi } from './useDataViewerState';
 import type { DataViewerProps } from '../../DataViewer';
 
 export interface UseDataViewerFetchDataInput {
+  handleManualTotalCount: DataViewerStateApi['handleManualTotalCount'];
+  invalidateManualCount: DataViewerStateApi['invalidateManualCount'];
   tab: DataViewerProps['tab'];
   pagination: DataViewerStateApi['pagination'];
   setPagination: DataViewerStateApi['setPagination'];
@@ -124,12 +126,13 @@ export const useDataViewerFetchData = ({
   oracleApproxSeqRef, countKeyRef, autoCountKeyRef, manualCountKeyRef, duckdbApproxKeyRef,
   oracleApproxKeyRef, latestConfigRef, latestDbTypeRef, latestDbNameRef, latestCountSqlRef,
   latestCountKeyRef, addSqlLog, sortInfo, supportsApproximateTotalPages, duckdbSafeSelectCacheRef,
-  setColumnNames, setData, preferManualTotalCount, supportsApproximateTableCount,
+  setColumnNames, setData, preferManualTotalCount, supportsApproximateTableCount, handleManualTotalCount, invalidateManualCount,
 }: UseDataViewerFetchDataInput) => {
   const fetchData = useCallback(async (page = pagination.current, size = pagination.pageSize, options?: DataViewerFetchOptions) => {
     if (!allowDataGridQueryChange(tab.id, tr)) return;
     const navigateToLastPage = options?.navigateToLastPage === true;
     const refreshTotal = options?.refreshTotal === true || navigateToLastPage;
+    invalidateManualCount();
     const seq = ++fetchSeqRef.current;
     loadingContextKeyRef.current = viewerLoadContextKey;
     setLoading(true);
@@ -186,6 +189,16 @@ export const useDataViewerFetchData = ({
     const whereSQL = isMongoDB
       ? JSON.stringify(mongoFilter || {})
       : buildWhereSQL(dbType, effectiveFilterConditions);
+
+    const countSql = isMongoDB
+      ? buildMongoCountCommand(tableName, mongoFilter || {})
+      : `SELECT COUNT(*) as total FROM ${quoteQualifiedIdent(dbType, tableName)} ${whereSQL}`;
+    const countKey = `${tab.connectionId}|${dbName}|${tableName}|${whereSQL}`;
+    if (latestCountKeyRef.current !== countKey) {
+        invalidateManualCount();
+        latestCountKeyRef.current = countKey;
+        latestCountSqlRef.current = '';
+    }
 
     let pkColumnsForQuery = pkColumns;
     let editLocatorForQuery = editLocator;
@@ -286,10 +299,6 @@ export const useDataViewerFetchData = ({
         }
     }
 
-    const countSql = isMongoDB
-      ? buildMongoCountCommand(tableName, mongoFilter || {})
-      : `SELECT COUNT(*) as total FROM ${quoteQualifiedIdent(dbType, tableName)} ${whereSQL}`;
-    const countKey = `${tab.connectionId}|${dbName}|${tableName}|${whereSQL}`;
     let refreshedTotal: number | null = null;
 
     if (navigateToLastPage) {
@@ -304,7 +313,7 @@ export const useDataViewerFetchData = ({
         oracleApproxKeyRef.current = '';
         setPagination(prev => ({
             ...prev,
-            totalCountLoading: false,
+            totalCountLoading: true,
             totalCountCancelled: false,
         }));
 
@@ -314,45 +323,9 @@ export const useDataViewerFetchData = ({
         latestCountSqlRef.current = countSql;
         latestCountKeyRef.current = countKey;
 
-        const countStart = Date.now();
-        const countConfig = buildRpcConnectionConfig(config, { timeout: 120, queryTimeout: 120 });
-        try {
-            const resCount = await DBQuery(countConfig as any, dbName, countSql);
-            addSqlLog({
-                id: `log-${Date.now()}-last-page-count`,
-                timestamp: Date.now(),
-                sql: countSql,
-                status: resCount?.success ? 'success' : 'error',
-                duration: Date.now() - countStart,
-                message: resCount?.success ? '' : String(resCount?.message || tr('data_viewer.message.total_count_failed')),
-                dbName,
-            });
-
-            if (fetchSeqRef.current !== seq) return;
-            if (!resCount?.success) {
-                setPagination(prev => ({ ...prev, totalCountLoading: false }));
-                message.error(String(resCount?.message || tr('data_viewer.message.total_count_failed')));
-                setLoading(false);
-                return;
-            }
-            if (!Array.isArray(resCount.data) || resCount.data.length === 0) {
-                setPagination(prev => ({ ...prev, totalCountLoading: false }));
-                message.error(tr('data_viewer.message.total_count_failed'));
-                setLoading(false);
-                return;
-            }
-
-            refreshedTotal = parseTotalFromCountRow(resCount.data[0]);
-            if (refreshedTotal === null) {
-                setPagination(prev => ({ ...prev, totalCountLoading: false }));
-                message.error(tr('data_viewer.message.total_count_parse_failed'));
-                setLoading(false);
-                return;
-            }
-        } catch (e: any) {
-            if (fetchSeqRef.current !== seq) return;
-            setPagination(prev => ({ ...prev, totalCountLoading: false }));
-            message.error(tr('data_viewer.message.total_count_failed_detail', { detail: String(e?.message || e) }));
+        refreshedTotal = await handleManualTotalCount(() => fetchSeqRef.current === seq);
+        if (fetchSeqRef.current !== seq) return;
+        if (refreshedTotal === null) {
             setLoading(false);
             return;
         }
@@ -372,7 +345,7 @@ export const useDataViewerFetchData = ({
       pagination.totalApprox &&
       Number.isFinite(approximateTotalRows) &&
       approximateTotalRows > 0;
-    const effectiveTotalRows = refreshedTotal ?? (hasApproximateTotalPages ? approximateTotalRows : (refreshTotal ? 0 : totalRows));
+    const effectiveTotalRows = refreshedTotal ?? (hasApproximateTotalPages ? approximateTotalRows : (totalKnown ? totalRows : 0));
     const totalPages = Number.isFinite(effectiveTotalRows) && effectiveTotalRows > 0 ? Math.max(1, Math.ceil(effectiveTotalRows / size)) : 0;
     const requestedPage = navigateToLastPage ? Math.max(1, totalPages) : page;
     const currentPage = totalPages > 0 ? Math.min(Math.max(1, requestedPage), totalPages) : Math.max(1, requestedPage);
@@ -550,7 +523,7 @@ export const useDataViewerFetchData = ({
                 if (row && typeof row === 'object') row[GONAVI_ROW_KEY] = `row-${offset + i}`;
             });
             setData(resultData);
-            const derivedTotalKnown = !hasMore;
+            const derivedTotalKnown = !hasMore && (offset === 0 || resultData.length > 0);
             const derivedTotal = derivedTotalKnown ? offset + resultData.length : currentPage * size + 1;
             const minExpectedTotal = hasMore ? offset + resultData.length + 1 : offset + resultData.length;
             if (derivedTotalKnown) countKeyRef.current = countKey;
@@ -737,11 +710,13 @@ export const useDataViewerFetchData = ({
                     })();
                 }
 
-                if (approximateCountStrategy === 'oracle-num-rows' && oracleApproxKeyRef.current !== countKey) {
+                if ((approximateCountStrategy === 'oracle-num-rows' || approximateCountStrategy === 'mysql-table-rows') && oracleApproxKeyRef.current !== countKey) {
                     oracleApproxKeyRef.current = countKey;
                     const approxSeq = ++oracleApproxSeqRef.current;
                     const approxConfig = buildRpcConnectionConfig(config, { timeout: 3, queryTimeout: 3 });
-                    const approxSql = buildOracleApproximateTotalSql({ dbName, tableName });
+                    const approxSql = approximateCountStrategy === 'mysql-table-rows'
+                      ? buildMySQLApproximateTotalSql({ dbName, tableName })
+                      : buildOracleApproximateTotalSql({ dbName, tableName });
 
                     DBQuery(approxConfig as any, dbName, approxSql)
                         .then((approxRes: any) => {
@@ -788,7 +763,7 @@ export const useDataViewerFetchData = ({
         });
     }
     if (fetchSeqRef.current === seq) setLoading(false);
-  }, [connections, ensureRabbitMQPreviewConfirmed, tab, sortInfo, filterConditions, quickWhereCondition, pkColumns, editLocator, forceReadOnly, pagination.total, pagination.totalKnown, pagination.totalApprox, pagination.approximateTotal, preferManualTotalCount, supportsApproximateTableCount, supportsApproximateTotalPages, tr]);
+  }, [connections, ensureRabbitMQPreviewConfirmed, tab, sortInfo, filterConditions, quickWhereCondition, pkColumns, editLocator, forceReadOnly, pagination.total, pagination.totalKnown, pagination.totalApprox, pagination.approximateTotal, preferManualTotalCount, supportsApproximateTableCount, supportsApproximateTotalPages, handleManualTotalCount, invalidateManualCount, tr]);
   return { fetchData };
 };
 

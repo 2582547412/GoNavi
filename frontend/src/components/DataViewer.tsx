@@ -22,7 +22,7 @@ const DataViewer: React.FC<DataViewerProps> = React.memo(({ tab, isActive = true
     forceReadOnly, preferManualTotalCount, supportsApproximateTableCount,
     supportsApproximateTotalPages, rocketMQTagTotalCountUnavailable, totalCountUnavailableLabel,
     totalCountUnavailableReason, handleTableScrollSnapshotChange, handleManualTotalCount,
-    handleCancelManualTotalCount, ensureRabbitMQPreviewConfirmed,
+    handleCancelManualTotalCount, invalidateManualCount, ensureRabbitMQPreviewConfirmed,
   } = useDataViewerState({ tab });
 
   const { fetchData } = useDataViewerFetchData({
@@ -33,7 +33,7 @@ const DataViewer: React.FC<DataViewerProps> = React.memo(({ tab, isActive = true
     oracleApproxSeqRef, countKeyRef, autoCountKeyRef, manualCountKeyRef, duckdbApproxKeyRef,
     oracleApproxKeyRef, latestConfigRef, latestDbTypeRef, latestDbNameRef, latestCountSqlRef,
     latestCountKeyRef, addSqlLog, sortInfo, supportsApproximateTotalPages, duckdbSafeSelectCacheRef,
-    setColumnNames, setData, preferManualTotalCount, supportsApproximateTableCount,
+    setColumnNames, setData, preferManualTotalCount, supportsApproximateTableCount, handleManualTotalCount, invalidateManualCount,
   });
   const {
     handleDataViewActivate, handleReload, handleSort, handlePageChange, handleLastPage,
