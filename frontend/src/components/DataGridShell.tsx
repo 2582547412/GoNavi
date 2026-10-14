@@ -217,7 +217,7 @@ const DataGridShell: React.FC<DataGridShellProps> = (props) => {
     onOpenErTable,
     onPageChange,
     onLastPage,
-    onReload,
+    onReload, onCancelReload,
     onRequestTotalCount,
     onSort,
     onToggleFilter,
@@ -387,7 +387,7 @@ const {
           panelPaddingX={panelPaddingX} toolbarBottomPadding={toolbarBottomPadding}
           filterTopPadding={filterTopPadding} showFilter={showFilter}
           appliedFilterConditions={appliedFilterConditions} filterPanelRef={filterPanelRef}
-          onReload={onReload} onToggleFilter={onToggleFilter} canModifyData={canModifyData} currentConnConfig={currentConnConfig}
+          onReload={onReload} onCancelReload={onCancelReload} onToggleFilter={onToggleFilter} canModifyData={canModifyData} currentConnConfig={currentConnConfig}
           selectedRowKeys={selectedRowKeys} deleteTargetRowCount={deleteTargetRowCount}
           allSelectedAreDeleted={allSelectedAreDeleted} cellEditMode={cellEditMode}
           selectedCells={selectedCells} selectedCellRowCount={selectedCellRowCount}

@@ -1,3 +1,4 @@
+import { useDataViewerQueryCancellation } from './useDataViewerQueryCancellation';
 import { useCallback } from 'react';
 import { message } from 'antd';
 import {
@@ -128,11 +129,15 @@ export const useDataViewerFetchData = ({
   latestCountKeyRef, addSqlLog, sortInfo, supportsApproximateTotalPages, duckdbSafeSelectCacheRef,
   setColumnNames, setData, preferManualTotalCount, supportsApproximateTableCount, handleManualTotalCount, invalidateManualCount,
 }: UseDataViewerFetchDataInput) => {
+  const { cancelFetch, cancelQueries, executeQuery } = useDataViewerQueryCancellation({
+    fetchSeqRef, setLoading, invalidateManualCount, addSqlLog, viewerLoadContextKey,
+  });
   const fetchData = useCallback(async (page = pagination.current, size = pagination.pageSize, options?: DataViewerFetchOptions) => {
     if (!allowDataGridQueryChange(tab.id, tr)) return;
     const navigateToLastPage = options?.navigateToLastPage === true;
     const refreshTotal = options?.refreshTotal === true || navigateToLastPage;
     invalidateManualCount();
+    cancelQueries();
     const seq = ++fetchSeqRef.current;
     loadingContextKeyRef.current = viewerLoadContextKey;
     setLoading(true);
@@ -392,35 +397,8 @@ export const useDataViewerFetchData = ({
     const requestStartTime = Date.now();
     let executedSql = sql;
     try {
-        const executeDataQuery = async (querySql: string, attemptLabel: string) => {
-            const startTime = Date.now();
-            try {
-                const result = await DBQuery(buildRpcConnectionConfig(config) as any, dbName, querySql);
-                addSqlLog({
-                    id: `log-${Date.now()}-data`,
-                    timestamp: Date.now(),
-                    sql: querySql,
-                    status: result.success ? 'success' : 'error',
-                    duration: Date.now() - startTime,
-                    message: result.success ? '' : `${attemptLabel}: ${result.message}`,
-                    affectedRows: Array.isArray(result.data) ? result.data.length : undefined,
-                    dbName
-                });
-                return result;
-            } catch (e: any) {
-                const errMessage = String(e?.message || e || 'query failed');
-                addSqlLog({
-                    id: `log-${Date.now()}-data`,
-                    timestamp: Date.now(),
-                    sql: querySql,
-                    status: 'error',
-                    duration: Date.now() - startTime,
-                    message: `${attemptLabel}: ${errMessage}`,
-                    dbName
-                });
-                return { success: false, message: errMessage, data: [], fields: [] };
-            }
-        };
+        const executeDataQuery = (querySql: string, attemptLabel: string) =>
+            executeQuery(seq, buildRpcConnectionConfig(config), dbName, querySql, attemptLabel);
 
         const hasSort = hasExplicitSort(sortInfo);
         const isSortMemoryErr = (msg: string) => /error\s*1038|out of sort memory/i.test(String(msg || ''));
@@ -763,8 +741,8 @@ export const useDataViewerFetchData = ({
         });
     }
     if (fetchSeqRef.current === seq) setLoading(false);
-  }, [connections, ensureRabbitMQPreviewConfirmed, tab, sortInfo, filterConditions, quickWhereCondition, pkColumns, editLocator, forceReadOnly, pagination.total, pagination.totalKnown, pagination.totalApprox, pagination.approximateTotal, preferManualTotalCount, supportsApproximateTableCount, supportsApproximateTotalPages, handleManualTotalCount, invalidateManualCount, tr]);
-  return { fetchData };
+  }, [connections, ensureRabbitMQPreviewConfirmed, tab, sortInfo, filterConditions, quickWhereCondition, pkColumns, editLocator, forceReadOnly, pagination.total, pagination.totalKnown, pagination.totalApprox, pagination.approximateTotal, preferManualTotalCount, supportsApproximateTableCount, supportsApproximateTotalPages, handleManualTotalCount, invalidateManualCount, cancelQueries, executeQuery, tr]);
+  return { fetchData, cancelFetch };
 };
 
 export type DataViewerFetchDataApi = ReturnType<typeof useDataViewerFetchData>;

@@ -25,7 +25,7 @@ const DataViewer: React.FC<DataViewerProps> = React.memo(({ tab, isActive = true
     handleCancelManualTotalCount, invalidateManualCount, ensureRabbitMQPreviewConfirmed,
   } = useDataViewerState({ tab });
 
-  const { fetchData } = useDataViewerFetchData({
+  const { fetchData, cancelFetch } = useDataViewerFetchData({
     tab, pagination, setPagination, fetchSeqRef, loadingContextKeyRef, viewerLoadContextKey,
     setLoading, connections, tr, quickWhereCondition, filterConditions, rabbitMQPreviewConfirmedRef,
     ensureRabbitMQPreviewConfirmed, pkColumns, setPkColumns, editLocator, setEditLocator,
@@ -63,6 +63,7 @@ const DataViewer: React.FC<DataViewerProps> = React.memo(({ tab, isActive = true
           pkColumns={pkColumns}
           editLocator={editLocator}
           onReload={handleReload}
+          onCancelReload={cancelFetch}
           onSort={handleSort}
           onPageChange={handlePageChange}
           onLastPage={handleLastPage}
