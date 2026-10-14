@@ -3,6 +3,7 @@ import { Button, Spin, Alert } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
 import Editor from './MonacoEditor';
 import { TabData } from '../types';
+import { JobManagementButton } from './databaseJobs/JobManagementButton';
 import { useDefinitionViewerState } from './definitionViewer/hooks/useDefinitionViewerState';
 import { useDefinitionViewerLoader } from './definitionViewer/hooks/useDefinitionViewerLoader';
 import {
@@ -67,7 +68,8 @@ const DefinitionViewer: React.FC<DefinitionViewerProps> = ({ tab }) => {
                     {tab.dbName && <span style={{ marginLeft: 16, color: '#888' }}>{t('definition_viewer.field.database')}: {tab.dbName}</span>}
                     {tab.routineType && <span style={{ marginLeft: 16, color: '#888' }}>{t('definition_viewer.field.type')}: {tab.routineType}</span>}
                 </div>
-                {tab.type !== 'database-link-def' && tab.type !== 'job-def' ? (
+                {tab.type === 'event-def' && <JobManagementButton tab={tab} onChanged={loadDefinition} />}
+                {tab.type === 'job-def' ? <JobManagementButton tab={tab} onChanged={loadDefinition} /> : tab.type !== 'database-link-def' ? (
                 <Button size="small" icon={<EditOutlined />} onClick={openObjectEditQuery} disabled={!normalizedObjectName} loading={openingObjectEdit}>
                     {t('definition_viewer.action.edit_object')}
                 </Button>

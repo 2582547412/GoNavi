@@ -210,7 +210,7 @@ func (executor *MCPQueryExecutor) dbQueryMultiAuthorizedContext(
 
 func normalizeSQLAuditUserActionSource(source string) string {
 	switch normalized := strings.ToLower(strings.TrimSpace(source)); normalized {
-	case "data_editor", "table_designer", "object_editor", "message_publish":
+	case "data_editor", "table_designer", "object_editor", "message_publish", "database_jobs":
 		return normalized
 	default:
 		return "application_api"
