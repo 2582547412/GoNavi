@@ -4205,6 +4205,11 @@
   "connection_modal.field.connection_timeout_seconds": "連線逾時（秒）",
   "connection_modal.field.connection_timeout_seconds_ascii": "連線逾時（秒）",
   "connection_modal.field.defaultDatabase.placeholder": "例如：appdb",
+  "connection_modal.field.intersystemsNamespace.label": "命名空間（選填）",
+  "connection_modal.field.intersystemsNamespace.placeholder": "留空自動探索命名空間",
+  "connection_modal.field.intersystemsNamespace.storedUri.placeholder": "由已儲存的連線 URI 決定",
+  "connection_modal.field.intersystemsNamespace.storedUri.help": "此連線使用已加密儲存的 URI，無法在此顯示實際命名空間。請在連線字串區域輸入替代 URI；或清除已儲存的 URI、儲存並重新開啟連線設定後，再填寫命名空間。資料庫顯示範圍無法變更連線目標。",
+  "connection_modal.field.intersystemsNamespace.help": "填寫已獲授權的命名空間可直接連線並僅載入該命名空間；留空則自動探索。連線 URI 中的命名空間優先，如需變更請修改或清空 URI。資料庫顯示範圍僅篩選結果，不選擇連線目標，也不授予存取權限。",
   "connection_modal.field.default_database_optional": "預設連線資料庫（選填）",
   "connection_modal.field.display_databases_optional": "顯示資料庫（選填）",
   "connection_modal.field.driver.placeholder": "例如: mysql, postgres",
@@ -12662,5 +12667,8 @@
   "settings.preview.saved_query": "範例查詢已儲存至目前預覽。",
   "settings.preview.restore_saved_query": "還原已儲存的範例查詢",
   "settings.group.more_preferences.title": "更多偏好",
-  "settings.group.more_preferences.description": "設定語言、品牌圖示與快速鍵。"
+  "settings.group.more_preferences.description": "設定語言、品牌圖示與快速鍵。",
+  "app.titlebar.web_logout": "登出目前的 Web 工作階段",
+  "data_sync.workbench.saved_preflight_failed": "任務已儲存，但儲存後的預檢失敗：{{detail}}",
+  "result_diff.export.side_by_side_title": "並排比較 · Result Diff"
 }

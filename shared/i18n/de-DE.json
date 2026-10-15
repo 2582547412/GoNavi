@@ -4205,6 +4205,11 @@
   "connection_modal.field.connection_timeout_seconds": "Verbindungs-Timeout (Sekunden)",
   "connection_modal.field.connection_timeout_seconds_ascii": "Verbindungs-Timeout (Sekunden)",
   "connection_modal.field.defaultDatabase.placeholder": "Zum Beispiel: appdb",
+  "connection_modal.field.intersystemsNamespace.label": "Namensraum (optional)",
+  "connection_modal.field.intersystemsNamespace.placeholder": "Für automatische Erkennung leer lassen",
+  "connection_modal.field.intersystemsNamespace.storedUri.placeholder": "Durch die gespeicherte Verbindungs-URI bestimmt",
+  "connection_modal.field.intersystemsNamespace.storedUri.help": "Diese Verbindung verwendet eine verschlüsselt gespeicherte URI. Der tatsächliche Namensraum kann hier nicht angezeigt werden. Geben Sie im Abschnitt für Verbindungszeichenfolgen eine neue URI ein oder löschen Sie die gespeicherte URI, speichern Sie und öffnen Sie die Verbindungseinstellungen erneut, bevor Sie einen Namensraum eingeben. Der Datenbank-Anzeigebereich ändert nicht das Verbindungsziel.",
+  "connection_modal.field.intersystemsNamespace.help": "Geben Sie einen autorisierten Namensraum ein, um sich direkt damit zu verbinden und nur diesen zu laden; leer lassen für automatische Erkennung. Der Namensraum in der Verbindungs-URI hat Vorrang; bearbeiten oder leeren Sie die URI, um ihn zu ändern. Der Datenbank-Anzeigebereich filtert nur Ergebnisse und wählt weder ein Verbindungsziel aus noch erteilt er Zugriffsrechte.",
   "connection_modal.field.default_database_optional": "Standarddatenbank (optional)",
   "connection_modal.field.display_databases_optional": "Anzuzeigende Datenbanken (optional)",
   "connection_modal.field.driver.placeholder": "Zum Beispiel: mysql, postgres",
@@ -12662,5 +12667,8 @@
   "settings.preview.saved_query": "Beispielabfrage in dieser Vorschau gespeichert.",
   "settings.preview.restore_saved_query": "Gespeicherte Beispielabfrage wiederherstellen",
   "settings.group.more_preferences.title": "Weitere Einstellungen",
-  "settings.group.more_preferences.description": "Sprache, Markensymbol und Tastenkürzel einstellen."
+  "settings.group.more_preferences.description": "Sprache, Markensymbol und Tastenkürzel einstellen.",
+  "app.titlebar.web_logout": "Aus der aktuellen Websitzung abmelden",
+  "data_sync.workbench.saved_preflight_failed": "Die Aufgabe wurde gespeichert, aber die anschließende Vorprüfung ist fehlgeschlagen: {{detail}}",
+  "result_diff.export.side_by_side_title": "Vergleich nebeneinander · Result Diff"
 }
