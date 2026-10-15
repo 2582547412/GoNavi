@@ -1,0 +1,59 @@
+.gonavi-builtin-backgrounds {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.gonavi-background-enable {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gonavi-builtin-background-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+body[data-ui-version='v2'] .gonavi-builtin-background-option.ant-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: auto !important;
+  min-height: 154px;
+  overflow: visible;
+  max-width: 100%;
+  padding: 10px;
+  white-space: normal;
+}
+
+.gonavi-builtin-background-option[aria-pressed='true'] {
+  border-color: var(--gn-primary, #1677ff);
+}
+
+.gonavi-builtin-background-thumbnail {
+  display: block;
+  width: 144px;
+  height: 108px;
+  flex: 0 0 108px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.gonavi-background-artwork-notice details {
+  margin-top: 8px;
+}
+
+.gonavi-background-artwork-notice summary {
+  cursor: pointer;
+}
+
+.gonavi-background-artwork-notice pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 240px;
+  overflow: auto;
+  font-size: 12px;
+}

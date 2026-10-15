@@ -4,8 +4,7 @@ import { Layout, ConfigProvider } from 'antd';
 import ConnectionGroupManagementModal from './components/sidebar/ConnectionGroupManagementModal';
 import ConnectionModal from './components/ConnectionModal';
 import LinuxCJKFontBanner from './components/LinuxCJKFontBanner';
-import CustomThemeStyleHost from './components/theme/CustomThemeStyleHost';
-import ToolbarAppearanceStyleHost from './components/theme/ToolbarAppearanceStyleHost';
+import AppAppearanceStyleHosts from './components/theme/AppAppearanceStyleHosts';
 import { type TabDisplayElementKey } from './utils/tabDisplay';
 import { APP_NESTED_MODAL_Z_INDEX } from './utils/overlayZIndex';
 import { getAntdLocale } from './i18n/frameworkLocale';
@@ -418,11 +417,10 @@ function App() {
         theme={antdTheme}
     >
         {notificationContextHolder}
-        <CustomThemeStyleHost
+        <AppAppearanceStyleHosts
             contextKey={customThemeStyleContextKey}
             onAntTokensChange={setComputedCustomThemeAntTokens}
         />
-        <ToolbarAppearanceStyleHost />
         <Layout
           className="gn-v2-app-root"
           onContextMenu={handleAppContextMenu}

@@ -19,6 +19,8 @@ export const PREFERENCES_SEARCH_ENTRIES: ReadonlyArray<SettingsCenterSearchEntry
     'app.theme.mode.dark.label',
     'app.theme.mode.system.label',
     'app.theme.custom.title',
+    ['app.theme.background.title', 'app.theme.background.description'],
+    'app.theme.background.intensity',
     ['app.theme.toolbar_buttons.title', 'app.theme.toolbar_buttons.description'],
     ['app.theme.titlebar_actions_placement.title', 'app.theme.titlebar_actions_placement.hint'],
     ['app.theme.sidebar_actions_placement.title', 'app.theme.sidebar_actions_placement.hint'],
