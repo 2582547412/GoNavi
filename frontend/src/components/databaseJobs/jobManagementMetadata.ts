@@ -17,11 +17,14 @@ export const loadJobManagementSnapshot = async (target: JobTarget, execute: Data
   const job = await runDatabaseJobQueries(jobQueries, execute, 'database_jobs.error.query_failed');
   if (!job.success) throw new Error(job.message);
   if (job.rows.length !== 1) throw new Error('database_jobs.error.not_found');
-  if (!editable) return { job: job.rows[0], steps: [], schedules: [] };
+  const snapshot: JobSnapshot = {
+    job: job.rows[0], steps: [], schedules: [],
+    ...(job.queryIndex !== undefined ? { definitionQueryIndex: job.queryIndex } : {}),
+  };
+  if (!editable) return snapshot;
   const children = target.kind === 'dm-agent'
     ? { steps: dmMetadataQueries(target, 'steps'), schedules: dmMetadataQueries(target, 'schedules') }
     : extendedJobChildQueries(target.kind, target.name);
-  const snapshot: JobSnapshot = { job: job.rows[0], steps: [], schedules: [] };
   // Editing is stricter than viewing: never build an edit from an incomplete child snapshot.
   for (const part of ['steps', 'schedules'] as const) {
     if (!children[part]) continue;

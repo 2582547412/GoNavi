@@ -11,5 +11,6 @@ export const jobStatusSQL = (target: JobTarget, snapshot: JobSnapshot): string =
   if (kind === 'pg-cron') return `SELECT j.jobid, j.schedule, j.database, j.username, j.active, r.runid, r.status, r.return_message, r.start_time, r.end_time FROM cron.job j LEFT JOIN LATERAL (SELECT runid, status, return_message, start_time, end_time FROM cron.job_run_details WHERE jobid = j.jobid ORDER BY runid DESC LIMIT 1) r ON TRUE WHERE j.jobid = ${numericID(name)}`;
   if (kind === 'dm-agent') return `SELECT j.NAME, j.ENABLE, j.VALID, r.SID AS running_session, r.THIS_DATE AS running_since, r.INSTANCE FROM SYSJOB.SYSJOBS j LEFT JOIN V$JOBS_RUNNING r ON r.JOBID = j.ID WHERE j.ID = ${numericID(required(snapshot.job, 'job_id'))} AND j.USERNAME = ${sqlText(target.owner)}`;
   if (kind === 'starrocks-task') return `SELECT * FROM information_schema.tasks WHERE TASK_NAME = ${mysqlText(name)} AND \`DATABASE\` = ${mysqlText(target.database)}`;
-  return buildDatabaseJobDefinitionQueries(target.dialect, kind, target.owner, name, target.database)[0] || '';
+  const queries = buildDatabaseJobDefinitionQueries(target.dialect, kind, target.owner, name, target.database);
+  return queries[snapshot.definitionQueryIndex ?? 0] || '';
 };
