@@ -29,6 +29,13 @@
 这些是**代码适配范围，不是所有版本/实库已验收的声明**。数据库版本、插件位置和目录权限仍影响可用性。
 数据库未公开的字段不推断、不伪造；权限/版本查询失败与“插件未安装”分开处理。
 
+达梦先通过 `SYS.ALL_OBJECTS` 探测当前账号可见的 `SYSJOB` 作业目录。兼容 DBMS_JOB
+使用 `SYSJOB.DBA_JOBS`，读取失败时回退到 `SYSJOB.USER_JOBS`，列表、定义和管理快照
+均保留请求的所有者过滤。未初始化或没有可见目录时跳过对应来源；探测或查询明确返回的
+权限、网络和 SQL 错误继续提示，不自动执行 `SP_INIT_JOB_SYS` 或修改数据库环境。
+管理面板的状态查询沿用快照读取成功时的目录或字段变体，避免回退成功后又重新执行
+不可读的首选目录或旧版本不支持的字段查询。
+
 ## 原生管理能力
 
 所有来源均提供状态/属性查询。下表的“不提供”表示不虚构未核实的原生 API；UI 显示禁用项及原因。
@@ -101,6 +108,8 @@
 - StarRocks TASKS：https://docs.starrocks.io/docs/sql-reference/information_schema/tasks/
 - Oracle DBMS_SCHEDULER：https://docs.oracle.com/en/database/oracle/oracle-database/19/arpls/DBMS_SCHEDULER.html
 - 达梦作业管理：https://eco.dameng.com/document/dm/zh-cn/pm/job.html
+- 达梦作业巡检目录：https://eco.dameng.com/document/dm/zh-cn/ops/check-instance
+- 达梦 DBMS_JOB 视图与初始化边界：https://eco.dameng.com/document/dm/zh-cn/pm/dbms_job-package.html
 - openGauss PKG_SERVICE：https://docs.opengauss.org/en/docs/7.0.0-RC2/docs/SQLReference/pkg_service.html
 - OceanBase 包与实现：官方仓库 `src/share/inner_table/sys_package/dbms_scheduler_mysql.sql`、`src/pl/sys_package/ob_dbms_scheduler.cpp`、`src/observer/dbms_scheduler/ob_dbms_sched_job_utils.cpp`。
 - StarRocks ALTER TASK：官方仓库 `docs/en/sql-reference/sql-statements/loading_unloading/ETL/ALTER_TASK.md`、`fe/fe-grammar/src/main/antlr/com/starrocks/grammar/StarRocks.g4`。

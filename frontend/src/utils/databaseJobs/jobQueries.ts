@@ -17,6 +17,13 @@ const DAMENG_JOB_CATALOGS = [
   { jobs: 'SYSJOB.USER_JOBS_VIEW', steps: 'SYSJOB.USER_JOBSTEPS_VIEW', schedules: 'SYSJOB.USER_JOBSCHEDULES_VIEW' },
 ] as const;
 
+// SYSJOB owns both native job tables and the optional DBMS_JOB compatibility views.
+const DAMENG_LEGACY_JOB_CATALOGS = ['SYSJOB.DBA_JOBS', 'SYSJOB.USER_JOBS'] as const;
+
+const damengJobCatalogProbe = (names: readonly string[]): string => (
+  `SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS available FROM SYS.ALL_OBJECTS WHERE OWNER = 'SYSJOB' AND OBJECT_NAME IN (${names.map(literal).join(', ')}) AND OBJECT_TYPE IN ('TABLE', 'VIEW')`
+);
+
 // ALL_* views honour database grants; never retry an unscoped USER_* query for
 // another owner. Preserve catalog case for quoted schema and job names.
 export const buildDatabaseJobListQueries = (
@@ -25,10 +32,11 @@ export const buildDatabaseJobListQueries = (
 ): DatabaseJobQueryGroup[] => {
   if (dialect !== 'oracle' && dialect !== 'dm') return extendedJobListQueries(dialect, schemaName);
   const schema = schemaName.trim();
-  const legacyView = dialect === 'dm' ? 'SYS.USER_JOBS' : 'ALL_JOBS';
+  const legacyViews = dialect === 'dm' ? DAMENG_LEGACY_JOB_CATALOGS : ['ALL_JOBS'];
   const legacy: DatabaseJobQueryGroup = {
     kind: 'dbms-job',
-    queries: [`SELECT SCHEMA_USER AS schema_name, JOB AS job_name, BROKEN AS broken, NEXT_DATE AS next_run_at FROM ${legacyView} WHERE ${ownerPredicate('SCHEMA_USER', schema)} ORDER BY JOB`],
+    queries: legacyViews.map((view) => `SELECT SCHEMA_USER AS schema_name, JOB AS job_name, BROKEN AS broken, NEXT_DATE AS next_run_at FROM ${view} WHERE ${ownerPredicate('SCHEMA_USER', schema)} ORDER BY JOB`),
+    ...(dialect === 'dm' ? { probeQueries: [damengJobCatalogProbe(['DBA_JOBS', 'USER_JOBS'])] } : {}),
   };
   if (dialect === 'oracle') {
     return [{
@@ -38,6 +46,7 @@ export const buildDatabaseJobListQueries = (
   }
   return [{
     kind: 'dm-agent',
+    probeQueries: [damengJobCatalogProbe(['SYSJOBS', 'USER_JOBS_VIEW'])],
     queries: DAMENG_JOB_CATALOGS.map(({ jobs }) => `SELECT USERNAME AS schema_name, NAME AS job_name, ENABLE AS enabled, VALID AS state FROM ${jobs} WHERE ${ownerPredicate('USERNAME', schema)} ORDER BY NAME`),
   }, legacy];
 };
@@ -56,8 +65,8 @@ export const buildDatabaseJobDefinitionQueries = (
     return [`SELECT OWNER AS schema_name, JOB_NAME AS job_name, JOB_TYPE AS job_type, JOB_ACTION AS action, PROGRAM_OWNER AS program_owner, PROGRAM_NAME AS program_name, NUMBER_OF_ARGUMENTS AS number_of_arguments, SCHEDULE_OWNER AS schedule_owner, SCHEDULE_NAME AS schedule_name, REPEAT_INTERVAL AS repeat_interval, START_DATE AS start_date, END_DATE AS end_date, ENABLED AS enabled, STATE AS state, NEXT_RUN_DATE AS next_run_at, LAST_START_DATE AS last_start_date, LAST_RUN_DURATION AS last_run_duration, RUN_COUNT AS run_count, FAILURE_COUNT AS failure_count, COMMENTS AS comments FROM ALL_SCHEDULER_JOBS WHERE ${ownerPredicate('OWNER', schema)} AND JOB_NAME = ${literal(jobName)}`];
   }
   if (kind === 'dbms-job' && /^\d+$/.test(jobName)) {
-    const view = dialect === 'dm' ? 'SYS.USER_JOBS' : 'ALL_JOBS';
-    return [`SELECT SCHEMA_USER AS schema_name, JOB AS job_name, WHAT AS action, INTERVAL AS repeat_interval, BROKEN AS broken, NEXT_DATE AS next_run_at, LAST_DATE AS last_start_date, FAILURES AS failure_count FROM ${view} WHERE ${ownerPredicate('SCHEMA_USER', schema)} AND JOB = ${jobName}`];
+    const views = dialect === 'dm' ? DAMENG_LEGACY_JOB_CATALOGS : ['ALL_JOBS'];
+    return views.map((view) => `SELECT SCHEMA_USER AS schema_name, JOB AS job_name, WHAT AS action, INTERVAL AS repeat_interval, BROKEN AS broken, NEXT_DATE AS next_run_at, LAST_DATE AS last_start_date, FAILURES AS failure_count FROM ${view} WHERE ${ownerPredicate('SCHEMA_USER', schema)} AND JOB = ${jobName}`);
   }
   if (kind === 'dm-agent' && dialect === 'dm') {
     return DAMENG_JOB_CATALOGS.map(({ jobs }) => `SELECT USERNAME AS schema_name, NAME AS job_name, ID AS job_id, ENABLE AS enabled, VALID AS state, CREATETIME AS create_time, DESCRIBE AS comments FROM ${jobs} WHERE ${ownerPredicate('USERNAME', schema)} AND NAME = ${literal(jobName)}`);
