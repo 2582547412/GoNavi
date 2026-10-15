@@ -1,3 +1,4 @@
+import { eventErrorTexts } from './textEventErrors';
 import { backupTexts } from './textBackup';
 import { dataSyncScheduleTextsEnUS, dataSyncRunEventTextsEnUS } from './textSchedules';
 import { dataSyncValidationTextsEnUS } from './textValidation';
@@ -5,6 +6,7 @@ import type { DataSyncWorkbenchTextKey } from './textZhCN';
 
 export const enUS: Record<DataSyncWorkbenchTextKey, string> = {
   ...backupTexts('en-US'),
+  ...eventErrorTexts('en-US'),
   'workbench.title': 'Data migration and sync',
   'workbench.title_short': 'Data sync',
   'workbench.title_compare': 'Data compare',

@@ -12674,5 +12674,12 @@
   "settings.group.more_preferences.description": "Настройте язык, значок приложения и сочетания клавиш.",
   "app.titlebar.web_logout": "Выйти из текущего веб-сеанса",
   "data_sync.workbench.saved_preflight_failed": "Задача сохранена, но предварительная проверка после сохранения завершилась ошибкой: {{detail}}",
-  "result_diff.export.side_by_side_title": "Сравнение бок о бок · Result Diff"
+  "result_diff.export.side_by_side_title": "Сравнение бок о бок · Result Diff",
+  "data_sync.event_errors.view": "Показать ошибку",
+  "data_sync.event_errors.hide": "Скрыть ошибку",
+  "data_sync.event_errors.details": "Ошибка события",
+  "data_sync.event_errors.code": "Код ошибки",
+  "data_sync.event_errors.run_scope": "Ошибочные строки запуска: не обязательно вызваны этим завершающим событием.",
+  "data_sync.event_errors.exact_scope": "Показана только строка, на которую явно ссылается событие.",
+  "data_sync.event_errors.no_rows": "Связанная строка отсутствует. Выше могут быть сведения об ошибках подключения, прав доступа или других ошибках, не связанных со строками."
 }

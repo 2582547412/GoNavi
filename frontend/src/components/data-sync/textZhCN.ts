@@ -1,9 +1,11 @@
+import { eventErrorTexts } from './textEventErrors';
 import { backupTexts } from './textBackup';
 import { dataSyncScheduleTextsZhCN, dataSyncRunEventTextsZhCN } from './textSchedules';
 import { dataSyncValidationTextsZhCN } from './textValidation';
 
 export const zhCN = {
   ...backupTexts('zh-CN'),
+  ...eventErrorTexts('zh-CN'),
   'workbench.title': '数据迁移与同步',
   'workbench.title_short': '数据同步',
   'workbench.title_compare': '数据对比',
