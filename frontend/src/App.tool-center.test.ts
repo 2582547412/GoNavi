@@ -211,13 +211,13 @@ describe('settings center tool entries', () => {
     expect(appSource).toContain('buildSettingsCenterWorkbenchTab');
     expect(appSource).toContain('SettingsCenterWorkbenchRegistrar');
     expect(appSource).not.toMatch(/rootClassName=\{`gonavi-settings-center-modal/);
-    expect(appSource).toContain("return { key: 'language', group }");
+    expect(appSource).toContain("useState<SettingsCenterGroupKey>('common-settings')");
     expect(appSource).toContain("return { key: 'proxy', group }");
     expect(appSource).toContain("return { key: 'data-root-application', group }");
     expect(appSource).not.toContain('handleBackFromSettingsCenterPane');
     expect(appSource).not.toContain('gonavi-settings-center-group-tab');
     expect(appSource).not.toContain("t('common.back_to_settings')");
-    expect(appSource).toContain("key: `theme-${section.value}`");
+    expect(appSource).toContain('PREFERENCE_PAGES.map');
     expect(appSource).toContain('renderThemeSettingsContent({ hideSectionTabs: true })');
     expect(appSource).toContain('AI_SETTINGS_NAV_ITEMS.map');
     expect(appSource).toContain("key: `ai-${item.key}`");

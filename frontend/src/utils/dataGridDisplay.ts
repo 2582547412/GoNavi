@@ -33,6 +33,7 @@ export const MIN_DATA_TABLE_COLUMN_WIDTH = 120;
 type DensityOptionTranslator = (key: string) => string;
 
 interface DensityParams {
+  rowHeight: number;
   defaultColumnWidth: number;
   cellPadding: string;
   inputCellPadding: string;
@@ -43,6 +44,7 @@ interface DensityParams {
 
 const DENSITY_PARAMS: Record<DataTableDensity, DensityParams> = {
   comfortable: {
+    rowHeight: 36,
     defaultColumnWidth: 180,
     cellPadding: '8px',
     inputCellPadding: '0px 4px',
@@ -51,6 +53,7 @@ const DENSITY_PARAMS: Record<DataTableDensity, DensityParams> = {
     metaFontSize: 11,
   },
   standard: {
+    rowHeight: 30,
     defaultColumnWidth: 140,
     cellPadding: '5px 8px',
     inputCellPadding: '0px 3px',
@@ -59,6 +62,7 @@ const DENSITY_PARAMS: Record<DataTableDensity, DensityParams> = {
     metaFontSize: 10,
   },
   compact: {
+    rowHeight: 24,
     defaultColumnWidth: 100,
     cellPadding: '2px 6px',
     inputCellPadding: '0px 2px',

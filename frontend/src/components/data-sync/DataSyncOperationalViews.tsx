@@ -95,6 +95,7 @@ export const DataSyncRunHistory: React.FC<{
   onNextRunPage: () => void;
   onRunPageSizeChange: (pageSize: DataSyncRunPageSize) => void;
   onDeleteRun: (runId: string) => void;
+  onRollback?: (runId: string) => void;
   onClearTerminalRuns: () => void;
   onCancel: (runId: string) => void;
   onResume: (runId: string) => void;
@@ -130,6 +131,7 @@ export const DataSyncRunHistory: React.FC<{
   onNextRunPage,
   onRunPageSizeChange,
   onDeleteRun,
+  onRollback,
   onClearTerminalRuns,
   onCancel,
   onResume,
@@ -276,6 +278,11 @@ export const DataSyncRunHistory: React.FC<{
                       onClick={() => onRetry(run.id)}
                     >
                       {t('runs.retry')}
+                    </button>
+                  ) : null}
+                  {run.rollbackReady && canDeleteRunHistory(run.status) && onRollback ? (
+                    <button type="button" className="gn-data-sync-link-button" data-data-sync-rollback-run={run.id} disabled={busyAction === `rollback-run:${run.id}`} onClick={() => onRollback(run.id)}>
+                      {t('runs.rollback')}
                     </button>
                   ) : null}
                   {canDeleteRunHistory(run.status) ? (

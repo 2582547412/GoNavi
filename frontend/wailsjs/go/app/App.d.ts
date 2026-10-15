@@ -14,7 +14,7 @@ import {redis} from '../models';
 import {resultdiff} from '../models';
 import {dbuser} from '../models';
 
-export function AnalyzeQueryParameters(arg1:connection.ConnectionConfig,arg2:string,arg3:string):Promise<app.QueryParameterAnalysis>;
+export function AnalyzeQueryParameters(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:boolean):Promise<app.QueryParameterAnalysis>;
 
 export function ApplyChanges(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:connection.ChangeSet):Promise<connection.QueryResult>;
 
@@ -134,6 +134,8 @@ export function DBGetServerVersionContext(arg1:context.Context,arg2:connection.C
 
 export function DBGetSessionMonitorCapabilities(arg1:connection.ConnectionConfig):Promise<connection.QueryResult>;
 
+export function DBGetTableInfo(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string):Promise<connection.QueryResult>;
+
 export function DBGetTables(arg1:connection.ConnectionConfig,arg2:string):Promise<connection.QueryResult>;
 
 export function DBGetTablesContext(arg1:context.Context,arg2:connection.ConnectionConfig,arg3:string):Promise<connection.QueryResult>;
@@ -178,15 +180,15 @@ export function DBQueryMultiTransactional(arg1:connection.ConnectionConfig,arg2:
 
 export function DBQueryMultiTransactionalWithOptions(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:app.QueryResultBudgetOptions):Promise<connection.QueryResult>;
 
-export function DBQueryMultiTransactionalWithParams(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:Array<connection.QueryParamBinding>):Promise<connection.QueryResult>;
+export function DBQueryMultiTransactionalWithParams(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:Array<connection.QueryParamBinding>,arg6:boolean):Promise<connection.QueryResult>;
 
 export function DBQueryMultiWithOptions(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:app.QueryResultBudgetOptions):Promise<connection.QueryResult>;
 
 export function DBQueryMultiWithOptionsCompact(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:app.QueryResultBudgetOptions):Promise<app.CompactQueryResult>;
 
-export function DBQueryMultiWithParams(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:Array<connection.QueryParamBinding>):Promise<connection.QueryResult>;
+export function DBQueryMultiWithParams(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string,arg5:Array<connection.QueryParamBinding>,arg6:boolean):Promise<connection.QueryResult>;
 
-export function DBQueryMultiWithParamsInTransaction(arg1:string,arg2:string,arg3:string,arg4:Array<connection.QueryParamBinding>):Promise<connection.QueryResult>;
+export function DBQueryMultiWithParamsInTransaction(arg1:string,arg2:string,arg3:string,arg4:Array<connection.QueryParamBinding>,arg5:boolean):Promise<connection.QueryResult>;
 
 export function DBQueryWithCancel(arg1:connection.ConnectionConfig,arg2:string,arg3:string,arg4:string):Promise<connection.QueryResult>;
 
@@ -457,6 +459,8 @@ export function InspectElasticsearchConsole(arg1:connection.ConnectionConfig,arg
 export function InspectSavedConnectionHealth(arg1:string):Promise<connection.ConnectionHealthReport>;
 
 export function InspectSavedConnectionsHealth(arg1:Array<string>):Promise<Array<connection.ConnectionHealthReport>>;
+
+export function InspectSource(arg1:context.Context,arg2:connection.ConnectionConfig,arg3:app.SourceInspectQuery):Promise<connection.QueryResult>;
 
 export function InstallLocalDriverPackage(arg1:string,arg2:string,arg3:string,arg4:string):Promise<connection.QueryResult>;
 
@@ -751,6 +755,10 @@ export function RetrySecurityUpdateCurrentRound(arg1:app.RetrySecurityUpdateRequ
 export function RevealSavedConnectionPrimaryPassword(arg1:string):Promise<string>;
 
 export function RevealSavedQueryInFolder(arg1:string):Promise<connection.QueryResult>;
+
+export function RollbackDataSyncRun(arg1:string):Promise<connection.QueryResult>;
+
+export function RollbackImportJob(arg1:string):Promise<connection.QueryResult>;
 
 export function SaveCloudBackupConfig(arg1:app.CloudBackupConfigInput):Promise<app.CloudBackupConfig>;
 

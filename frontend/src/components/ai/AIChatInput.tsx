@@ -115,12 +115,16 @@ export const AIChatInput: React.FC<AIChatInputProps> = ({
     });
     const composerReadiness = React.useMemo(() => buildAIChatReadinessSnapshot({
         activeProvider,
+        // The provider list decides which wording is true while the active one is
+        // still unresolved: without it, a configured setup is reported as "no
+        // provider configured" instead of "none selected yet".
+        providers,
         dynamicModels,
         loadingModels,
         activeContext,
         activeContextItems,
         translate: t,
-    }), [activeProvider, dynamicModels, loadingModels, activeContext, activeContextItems, t]);
+    }), [activeProvider, providers, dynamicModels, loadingModels, activeContext, activeContextItems, t]);
     const {
         appendingContext,
         contextExpanded,

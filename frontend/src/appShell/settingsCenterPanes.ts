@@ -1,3 +1,4 @@
+import { isPreferencePage, type PreferencePage } from '../components/settings/preferences/preferencePages';
 export type ToolCenterGroupKey = 'config' | 'workflow' | 'workspace';
 export type ToolCenterPaneKey =
   | 'data-root'
@@ -8,8 +9,8 @@ export type ToolCenterPaneKey =
   | 'drivers'
   | 'snippet-settings';
 
-export type SettingsCenterGroupKey = 'preferences' | 'services' | ToolCenterGroupKey | 'about' | 'brand-icon';
-export type SettingsCenterPaneKey =
+export type SettingsCenterGroupKey = PreferencePage | 'preferences' | 'services' | ToolCenterGroupKey | 'about' | 'brand-icon';
+export type SettingsCenterPaneKey = PreferencePage
   | 'language'
   | 'theme'
   | 'sidebar-metadata'
@@ -31,6 +32,7 @@ export const isToolCenterGroupKey = (group: SettingsCenterGroupKey): group is To
 );
 
 export const resolveSettingsCenterGroupInitialPane = (group: SettingsCenterGroupKey): SettingsCenterPaneState | null => {
+  if (isPreferencePage(group)) return { key: group, group };
   switch (group) {
     case 'preferences':
       return { key: 'language', group };

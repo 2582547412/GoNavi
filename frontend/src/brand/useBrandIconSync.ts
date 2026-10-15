@@ -18,7 +18,7 @@ import { ensureBrandAssets, getBrandAssetsRevision, subscribeBrandAssets } from 
 import {
   composeMacOSDockIconBase64,
   composeWindowsNativeIconBase64,
-  LEGACY_MASCOT_DOCK_ICON_INSET,
+  APPLE_DOCK_ICON_GRID_INSET,
   shouldSyncApplicationBrandIcon,
 } from './macDockIcon';
 
@@ -33,9 +33,6 @@ export function useBrandIconSync(runtimePlatform: string) {
   // applying the same icon through the native bridge, so the shortcut update
   // and window identity rotation run exactly once.
   const windowsBrandIconApplyingRef = useRef<BrandIconId | null>(null);
-  // 最近一次成功应用到原生表面的品牌 ID：选择流程完成后 brandAssetRevision
-  // 的自增会重跑同步 effect，没有这个记录就会对同一图标再应用一次。
-  const lastNativeAppliedBrandIdRef = useRef<BrandIconId | null>(null);
 
   // Apply the selected brand mascot to the favicon and supported native OS surfaces.
   useEffect(() => {
@@ -54,21 +51,10 @@ export function useBrandIconSync(runtimePlatform: string) {
     link.type = /\.webp(?:[?#]|$)/i.test(href) ? 'image/webp' : 'image/svg+xml';
     link.href = href;
 
-    // The selection flow below updates the live window icon itself;
-    // skip this sync while that apply is in flight so the shortcut update
-    // and window icon refresh run exactly once.
-    if (runtimePlatform === 'windows' && windowsBrandIconApplyingRef.current === brandIconId) {
-      return;
-    }
     // Windows restores the persisted native icon before the Wails window is
     // shown. A second bridge call here can race an explicit picker selection
     // and apply the old icon after the new selection succeeds.
     if (runtimePlatform === 'windows') {
-      return;
-    }
-    // 同一品牌已经成功应用过（选择流程或上一轮同步），brandAssetRevision
-    // 的自增不需要再对同一图标重复应用。
-    if (runtimePlatform === 'windows' && lastNativeAppliedBrandIdRef.current === brandIconId) {
       return;
     }
 
@@ -86,16 +72,19 @@ export function useBrandIconSync(runtimePlatform: string) {
         const b64 = runtimePlatform === 'windows'
           ? await composeWindowsNativeIconBase64(dockHref)
           : await composeMacOSDockIconBase64(dockHref, {
-            inset: resolveBrandIcon(brandIconId).mascot ? LEGACY_MASCOT_DOCK_ICON_INSET : undefined,
+            // 严格 Apple 网格：全家族统一 1024 画布 / 824 内容区 / Apple 圆角，
+            // 与烘焙进 icns 的图标和相邻应用对齐。缎带 SVG 的 20% 呼吸边距按
+            // zoom 裁掉填满网格；吉祥物 webp 先铺白色圆角底再叠图，自身圆角
+            // 小于 Apple 弧线的角缺口不会透出壁纸。
+            inset: APPLE_DOCK_ICON_GRID_INSET,
+            zoom: resolveBrandNativeIconZoom(brandIconId),
+            fillTileBackground: resolveBrandIcon(brandIconId).mascot === true,
           });
         if (cancelled) return;
         const result = await SetApplicationBrandIcon(b64);
         if (!result.success && !cancelled) {
           console.warn('Failed to update the native application icon:', result.message);
           message.warning(t('app.settings.entry.brand_icon.native_sync_failed'));
-        }
-        if (result.success) {
-          lastNativeAppliedBrandIdRef.current = brandIconId as BrandIconId;
         }
       } catch (error) {
         if (!cancelled) {
@@ -163,7 +152,6 @@ export function useBrandIconSync(runtimePlatform: string) {
       if (!result || result.success === false) {
         throw new Error(result?.message || 'Windows brand icon update failed');
       }
-      lastNativeAppliedBrandIdRef.current = id;
       message.success(t('app.settings.entry.brand_icon.applied'));
     } catch (error) {
       // 只有当没有更新的选择接管时才回退：A 失败时用户可能已经改选 B，

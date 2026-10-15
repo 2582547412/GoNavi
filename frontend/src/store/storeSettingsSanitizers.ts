@@ -1,3 +1,4 @@
+import { sanitizeFavoriteSettings } from '../utils/favoriteSettings';
 import { SavedConnection, GlobalProxyConfig } from "../types";
 import {
   ShortcutOptions,
@@ -55,6 +56,7 @@ import {
   sanitizeReduceMotion,
   sanitizeNewQuerySqlTemplate,
   TAB_DISPLAY_DEFAULT_MIGRATION_VERSION,
+  DEFAULT_UI_LAYOUT_MODE,
   DEFAULT_AUTO_CHECK_FOR_UPDATES,
   AUTO_CHECK_FOR_UPDATES_INTERVAL_OPTIONS_SET,
   DEFAULT_AUTO_CHECK_FOR_UPDATES_INTERVAL_MINUTES,
@@ -74,6 +76,7 @@ import type {
   SqlLog,
   ThemeMode,
   ThemePreference,
+  UiLayoutMode,
   QueryOptions,
   DataEditTransactionOptions,
   SqlEditorTransactionOptions,
@@ -492,6 +495,16 @@ const isLegacyDefaultTabDisplaySettings = (value: unknown): boolean => {
     && raw.double === undefined;
 };
 
+// Navicat 布局不迁移 placement：classic 模式保持用户自己的摆放设置，
+// navicat 模式在渲染层强制独立工具条。
+const resolveTitlebarActionsPlacementForVersion = (
+  appearance: Partial<AppearanceSettings>,
+) => sanitizeTitlebarActionsPlacementSettings(appearance);
+
+export const sanitizeUiLayoutMode = (value: unknown): UiLayoutMode => (
+  value === "navicat" ? "navicat" : DEFAULT_UI_LAYOUT_MODE
+);
+
 export const sanitizeAppearance = (
   appearance: Partial<AppearanceSettings> | undefined,
   version: number,
@@ -502,8 +515,7 @@ export const sanitizeAppearance = (
   const dataGridDisplaySettings = sanitizeDataGridDisplaySettings(appearance);
   const sqlEditorTypographySettings = version < SQL_EDITOR_FONT_SIZE_SPLIT_VERSION
     ? migrateLegacySqlEditorTypographySettings(dataGridDisplaySettings)
-    : sanitizeSqlEditorTypographySettings(appearance);
-  const nextAppearance = {
+    : sanitizeSqlEditorTypographySettings(appearance);  const nextAppearance = {
     enabled:
       typeof appearance.enabled === "boolean"
         ? appearance.enabled
@@ -518,6 +530,7 @@ export const sanitizeAppearance = (
         : DEFAULT_APPEARANCE.blur,
     lowSpecMode: sanitizeLowSpecMode(appearance.lowSpecMode),
     reduceMotion: sanitizeReduceMotion(appearance.reduceMotion),
+    uiLayoutMode: sanitizeUiLayoutMode(appearance.uiLayoutMode),
     tableDoubleClickAction: sanitizeTableDoubleClickAction(
       appearance.tableDoubleClickAction,
     ),
@@ -539,6 +552,8 @@ export const sanitizeAppearance = (
     toolbarButtonColorOverrides: sanitizeToolbarButtonColorOverrides(
       appearance.toolbarButtonColorOverrides,
     ),
+    workbenchSidebarAutoCollapse: appearance.workbenchSidebarAutoCollapse === true,
+    favoriteSettings: sanitizeFavoriteSettings(appearance.favoriteSettings),
     sidebarSingleDatabaseExpansion:
       appearance.sidebarSingleDatabaseExpansion === true,
     sidebarHiddenObjectGroups: sanitizeSidebarHiddenObjectGroups(
@@ -564,7 +579,7 @@ export const sanitizeAppearance = (
     // 各设置分片的归一化函数只返回自身字段，直接展开。
     ...dataGridDisplaySettings,
     ...sqlEditorTypographySettings,
-    ...sanitizeTitlebarActionsPlacementSettings(appearance),
+    ...resolveTitlebarActionsPlacementForVersion(appearance),
   };
   if (version < 2 && isLegacyDefaultAppearance(appearance)) {
     return { ...DEFAULT_APPEARANCE };
@@ -672,7 +687,7 @@ export const sanitizeAIChatDetachedBoundsMemory = (
   };
 };
 
-/** 打开/弹出 AI 独立窗时，在记忆尺寸上叠加本次 preferred */
+// 打开/弹出 AI 独立窗时，在记忆尺寸上叠加本次 preferred
 export const resolveAIChatDetachPreferred = (
   memory: AIChatDetachedBoundsMemory | null,
   preferred?: Partial<Pick<DetachedWindowBounds, "x" | "y" | "width" | "height">>,
