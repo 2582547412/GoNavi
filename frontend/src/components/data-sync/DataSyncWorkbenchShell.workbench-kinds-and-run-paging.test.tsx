@@ -14,7 +14,7 @@ import { createSchemaSyncTaskFromCompare, DataSyncWorkbenchShell } from './DataS
 const modalConfirm = vi.hoisted(() => vi.fn());
 
 vi.mock('../common/ResizableDraggableModal', () => ({
-  default: { confirm: modalConfirm },
+  default: Object.assign(({ children }: { children?: React.ReactNode }) => children, { confirm: modalConfirm }),
 }));
 
 const buildTask = () => {
@@ -330,6 +330,7 @@ describe('DataSyncWorkbenchShell', () => {
       tasks: [task],
       runs: [run],
       errorRowsByRun: { [run.id]: [errorRow] },
+      runEventsByRun: { [run.id]: [{ runId: run.id, sequence: 1, type: 'error_row', message: '', payload: { id: errorRow.id }, createdAt: '' }] },
     });
     const renderer = TestRenderer.create(
       <DataSyncWorkbenchShell
@@ -359,6 +360,8 @@ describe('DataSyncWorkbenchShell', () => {
     });
 
     expect(renderer.root.findByProps({ 'data-data-sync-run-history': 'true' })).toBeTruthy();
+    expect(renderer.root.findAllByProps({ children: 'invalid timestamp' })).toHaveLength(0);
+    act(() => renderer.root.findByProps({ 'data-view-event-error': 1 }).props.onClick());
     expect(renderer.root.findAllByProps({ children: 'invalid timestamp' })).toHaveLength(1);
     expect(renderer.root.findAllByProps({ children: '{"id":10}' })).toHaveLength(1);
     await act(async () => {

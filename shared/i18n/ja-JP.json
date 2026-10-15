@@ -12705,5 +12705,12 @@
   "settings.group.more_preferences.description": "言語、ブランドアイコン、ショートカットを設定します。",
   "app.titlebar.web_logout": "現在の Web セッションからログアウト",
   "data_sync.workbench.saved_preflight_failed": "タスクは保存されましたが、保存後の事前チェックに失敗しました：{{detail}}",
-  "result_diff.export.side_by_side_title": "左右比較 · Result Diff"
+  "result_diff.export.side_by_side_title": "左右比較 · Result Diff",
+  "data_sync.event_errors.view": "エラーを表示",
+  "data_sync.event_errors.hide": "エラーを閉じる",
+  "data_sync.event_errors.details": "イベントのエラー詳細",
+  "data_sync.event_errors.code": "エラーコード",
+  "data_sync.event_errors.run_scope": "実行単位のエラー行：この実行に属しますが、この終了イベントが原因とは限りません。",
+  "data_sync.event_errors.exact_scope": "このイベントが明示的に参照するエラー行のみ表示します。",
+  "data_sync.event_errors.no_rows": "関連するエラー行はありません。上記の詳細には接続や権限など、行に関係しないエラーが含まれる場合があります。"
 }

@@ -12705,5 +12705,12 @@
   "settings.group.more_preferences.description": "Sprache, Markensymbol und Tastenkürzel einstellen.",
   "app.titlebar.web_logout": "Aus der aktuellen Websitzung abmelden",
   "data_sync.workbench.saved_preflight_failed": "Die Aufgabe wurde gespeichert, aber die anschließende Vorprüfung ist fehlgeschlagen: {{detail}}",
-  "result_diff.export.side_by_side_title": "Vergleich nebeneinander · Result Diff"
+  "result_diff.export.side_by_side_title": "Vergleich nebeneinander · Result Diff",
+  "data_sync.event_errors.view": "Fehler anzeigen",
+  "data_sync.event_errors.hide": "Fehler ausblenden",
+  "data_sync.event_errors.details": "Fehlerdetails des Ereignisses",
+  "data_sync.event_errors.code": "Fehlercode",
+  "data_sync.event_errors.run_scope": "Fehlerzeilen dieses Laufs: Sie wurden nicht unbedingt durch dieses Abschlussereignis verursacht.",
+  "data_sync.event_errors.exact_scope": "Nur die vom Ereignis ausdrücklich referenzierte Fehlerzeile wird angezeigt.",
+  "data_sync.event_errors.no_rows": "Keine zugeordnete Fehlerzeile verfügbar. Die Ereignisdetails können Verbindungs-, Berechtigungs- oder andere nicht zeilenbezogene Fehler beschreiben."
 }
