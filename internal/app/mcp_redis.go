@@ -12,6 +12,7 @@ import (
 	"GoNavi-Wails/internal/db"
 	"GoNavi-Wails/internal/logger"
 	redisbackend "GoNavi-Wails/internal/redis"
+	"GoNavi-Wails/internal/sqlaudit"
 
 	goredis "github.com/redis/go-redis/v9"
 )
@@ -43,7 +44,7 @@ func (a *App) executeRedisCommandFromMCP(ctx context.Context, config connection.
 		a.recordSQLAuditQuery(sqlAuditQueryInput{
 			Config: config, Database: strconv.Itoa(config.RedisDB), DBType: "redis",
 			QueryID: result.QueryID, SQL: command, Source: "mcp", Duration: time.Since(started),
-			StatementCount: 1, Result: result,
+			StatementCount: 1, Result: result, MCPContext: sqlaudit.MCPContextFrom(ctx),
 		})
 	}()
 	// An isolated client keeps dbName and connection-local commands from changing

@@ -1,4 +1,10 @@
 {
+  "sql_audit.mcp.entry": "MCP-SQL-Ausführungen",
+  "sql_audit.mcp.request_id": "MCP-Anfrage-ID",
+  "sql_audit.mcp.client": "MCP-Client-Kennung",
+  "sql_audit.mcp.history_all": "Editor und MCP",
+  "sql_audit.mcp.location": "SQL externer MCP-Clients finden Sie unter SQL-Audit in der Seitenleiste → MCP-SQL-Ausführungen. Dieses Panel zeigt Modellanfragen der integrierten KI.",
+  "sql_audit.mcp.timeline": "Ausführungen der MCP-Anfrage",
   "ai_chat.composer_notice.builtin_login_failed.description": "Bitte erneut versuchen. Öffnet sich der Browser nicht, prüfen Sie das Netzwerk und klicken Sie erneut auf Anmelden.",
   "ai_chat.composer_notice.builtin_login_failed.title": "Anmeldung bei GoNavi AI nicht abgeschlossen",
   "ai_chat.input.status.action.builtin_login": "Bei GoNavi AI anmelden",
