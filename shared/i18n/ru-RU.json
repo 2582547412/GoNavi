@@ -4084,7 +4084,7 @@
   "connection.sidebar.menu.current": "Текущий",
   "connection.sidebar.menu.delete": "Удалить подключение",
   "connection.sidebar.menu.disconnect": "Отключить",
-  "connection.sidebar.menu.groupSection": "Группы подключений",
+	"connection.sidebar.menu.groupSection": "Переместить в группу подключений",
   "connection.sidebar.menu.hostBadge": "HOST",
   "connection.sidebar.menu.hostFallback": "Адрес не указан",
   "connection.sidebar.menu.moveOutTag": "Убрать из тега",
