@@ -77,19 +77,11 @@ func launchMacUpdate(staged *stagedUpdate, targetExe string, pid int) error {
 		return err
 	}
 
-	// 用 bash 执行脚本；Setsid 脱离主进程会话，避免 Quit 后脚本被 SIGHUP
-	cmd := exec.Command("/bin/bash", scriptPath)
-	configureDetachedUpdateCommand(cmd)
+	// Setsid 只脱离会话，改不了 macOS 的 responsible process。
+	// App 退出后系统仍会杀掉这个子进程：日志停在 “host process exited”，
+	// 既不会挂载 dmg，也不会走到 notify_failure，看起来就是点了没反应。
 	logger.Infof("启动 macOS 更新脚本：target=%s script=%s log=%s package=%s", targetApp, scriptPath, logPath, staged.FilePath)
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	if cmd.Process != nil {
-		if err := cmd.Process.Release(); err != nil {
-			logger.Warnf("释放 macOS 更新脚本进程句柄失败：%v", err)
-		}
-	}
-	return nil
+	return startMacUpdateViaLaunchd(scriptPath)
 }
 
 func launchLinuxUpdate(staged *stagedUpdate, targetExe string, pid int) error {
@@ -158,6 +150,10 @@ DETACH_NEEDED=0
 log() {
   echo "[$(date '+%%Y-%%m-%%d %%H:%%M:%%S')] $*" >> "$LOG_FILE" 2>/dev/null || true
 }
+
+# 会话结束时的 SIGHUP 不能打断安装。SIGKILL（responsible process 回收）
+# 无法捕获，所以启动侧必须把脚本交给 launchd，而不是当作 App 的子进程。
+trap '' HUP
 
 # 更新是脱离主进程静默执行的：失败时必须主动告知用户，
 # 否则表现就是「点了重启更新没任何反应」，用户拿不到日志路径也无法自助排查。
@@ -372,6 +368,7 @@ while /bin/kill -0 "$PID" 2>/dev/null; do
 done
 log "host process exited after ${WAIT_PID_SECONDS}s"
 /bin/sleep 1
+log "continuing install after host exit"
 
 if [ ! -f "$PACKAGE" ]; then
   notify_failure "安装包已丢失：$PACKAGE"
