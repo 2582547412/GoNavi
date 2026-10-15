@@ -67,7 +67,7 @@ const AI_SECTIONS = [
 
 export const SETTINGS_CENTER_MENU_CATALOG: ReadonlyArray<SettingsCenterMenuNode> = [
   ...PREFERENCE_PAGES.map(key => ({ group: key, item: key, titleKey: preferenceTitleKey(key), descriptionKey: preferenceDescriptionKey(key), target: { group: key, pane: key } })),
-  group('preferences', 'app.settings.group.preferences.title', 'app.settings.group.preferences.description'),
+  group('preferences', 'settings.group.more_preferences.title', 'settings.group.more_preferences.description'),
   pane('preferences', 'language', 'settings.language'),
   pane('preferences', 'brand-icon', 'app.settings.entry.brand_icon'),
   pane('preferences', 'shortcut-settings', 'app.tools.entry.shortcuts'),

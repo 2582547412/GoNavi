@@ -3477,8 +3477,8 @@
   "app.settings.entry.web_auth.title": "ブラウザアクセス認証",
   "app.settings.group.about.description": "バージョン情報、リポジトリリンク、そのほか製品情報を確認します。",
   "app.settings.group.about.title": "情報",
-  "app.settings.group.preferences.description": "言語、ブランドアイコン、ショートカットを設定します。",
-  "app.settings.group.preferences.title": "その他の設定",
+  "app.settings.group.preferences.description": "言語、外観、サイドバー表示の設定をまとめます。",
+  "app.settings.group.preferences.title": "基本設定",
   "app.settings.group.services.description": "ネットワークアクセスと AI サービス関連の設定です。",
   "app.settings.group.services.title": "サービス",
   "app.settings.sidebar_metadata.description": "左サイドバーのテーブル名の横に表示するメタデータを選択します。",
@@ -12654,5 +12654,7 @@
   "settings.preview.sidebar_actions_hint": "プレビュー内の検索・位置表示・折りたたみボタンで配置の違いを試せます。",
   "settings.preview.titlebar_display_hint": "タイトルバー内の操作ボタンの表示をプレビューします。独立したツールバーは常にアイコンと文字を表示します。",
   "settings.preview.saved_query": "サンプルクエリをこのプレビュー内に保存しました。",
-  "settings.preview.restore_saved_query": "保存したサンプルクエリを復元"
+  "settings.preview.restore_saved_query": "保存したサンプルクエリを復元",
+  "settings.group.more_preferences.title": "その他の設定",
+  "settings.group.more_preferences.description": "言語、ブランドアイコン、ショートカットを設定します。"
 }

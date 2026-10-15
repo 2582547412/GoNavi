@@ -3477,8 +3477,8 @@
   "app.settings.entry.web_auth.title": "Аутентификация браузерного доступа",
   "app.settings.group.about.description": "Сведения о версии, ссылки на репозиторий и другая информация о продукте.",
   "app.settings.group.about.title": "О приложении",
-  "app.settings.group.preferences.description": "Настройте язык, значок приложения и сочетания клавиш.",
-  "app.settings.group.preferences.title": "Другие настройки",
+  "app.settings.group.preferences.description": "Управление языком, внешним видом и отображением боковой панели.",
+  "app.settings.group.preferences.title": "Предпочтения",
   "app.settings.group.services.description": "Настройки сетевого доступа и сервисов, связанных с AI.",
   "app.settings.group.services.title": "Сервисы",
   "app.settings.sidebar_metadata.description": "Выберите, какие метаданные таблиц показывать рядом с именами таблиц в левом дереве.",
@@ -12654,5 +12654,7 @@
   "settings.preview.sidebar_actions_hint": "Попробуйте поиск, переход к таблице и сворачивание в предпросмотре, чтобы сравнить расположение кнопок.",
   "settings.preview.titlebar_display_hint": "Предпросмотр кнопок в заголовке окна. Отдельная панель всегда показывает значки и текст.",
   "settings.preview.saved_query": "Пример запроса сохранён в этом предпросмотре.",
-  "settings.preview.restore_saved_query": "Восстановить сохранённый пример запроса"
+  "settings.preview.restore_saved_query": "Восстановить сохранённый пример запроса",
+  "settings.group.more_preferences.title": "Другие настройки",
+  "settings.group.more_preferences.description": "Настройте язык, значок приложения и сочетания клавиш."
 }

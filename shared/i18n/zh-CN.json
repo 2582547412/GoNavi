@@ -3470,8 +3470,8 @@
   "app.settings.entry.web_auth.title": "浏览器访问认证",
   "app.settings.group.about.description": "查看版本信息、仓库地址和其他产品信息。",
   "app.settings.group.about.title": "关于",
-  "app.settings.group.preferences.description": "设置语言、品牌图标和快捷键。",
-  "app.settings.group.preferences.title": "更多偏好",
+  "app.settings.group.preferences.description": "统一管理语言、外观和侧栏显示偏好。",
+  "app.settings.group.preferences.title": "偏好设置",
   "app.settings.group.services.description": "统一管理网络访问和 AI 相关服务配置。",
   "app.settings.group.services.title": "服务配置",
   "app.settings.sidebar_metadata.description": "选择左侧树中表名后需要展示哪些元数据。",
@@ -12654,5 +12654,7 @@
   "settings.preview.sidebar_actions_hint": "可点击预览里的搜索、定位和折叠按钮，体验不同摆放方式。",
   "settings.preview.titlebar_display_hint": "这里预览标题栏内联入口的显示方式；独立工具条固定显示图标和文字。",
   "settings.preview.saved_query": "示例查询已保存到当前预览。",
-  "settings.preview.restore_saved_query": "恢复已保存的示例查询"
+  "settings.preview.restore_saved_query": "恢复已保存的示例查询",
+  "settings.group.more_preferences.title": "更多偏好",
+  "settings.group.more_preferences.description": "设置语言、品牌图标和快捷键。"
 }

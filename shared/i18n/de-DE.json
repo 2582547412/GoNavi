@@ -3477,8 +3477,8 @@
   "app.settings.entry.web_auth.title": "Browserzugriffs-Authentifizierung",
   "app.settings.group.about.description": "Versionsdetails, Repository-Links und weitere Produktinformationen.",
   "app.settings.group.about.title": "Info",
-  "app.settings.group.preferences.description": "Sprache, Markensymbol und Tastenkürzel einstellen.",
-  "app.settings.group.preferences.title": "Weitere Einstellungen",
+  "app.settings.group.preferences.description": "Sprache, Erscheinungsbild und Sidebar-Anzeige zentral verwalten.",
+  "app.settings.group.preferences.title": "Einstellungen",
   "app.settings.group.services.description": "Netzwerkzugang und KI-bezogene Dienste konfigurieren.",
   "app.settings.group.services.title": "Dienste",
   "app.settings.sidebar_metadata.description": "Festlegen, welche Tabellenmetadaten neben Tabellennamen in der linken Sidebar angezeigt werden.",
@@ -12654,5 +12654,7 @@
   "settings.preview.sidebar_actions_hint": "Testen Sie Suche, Lokalisierung und Einklappen in der Vorschau, um die Positionen zu vergleichen.",
   "settings.preview.titlebar_display_hint": "Vorschau der Aktionen in der Titelleiste. Die separate Symbolleiste zeigt immer Symbole und Text.",
   "settings.preview.saved_query": "Beispielabfrage in dieser Vorschau gespeichert.",
-  "settings.preview.restore_saved_query": "Gespeicherte Beispielabfrage wiederherstellen"
+  "settings.preview.restore_saved_query": "Gespeicherte Beispielabfrage wiederherstellen",
+  "settings.group.more_preferences.title": "Weitere Einstellungen",
+  "settings.group.more_preferences.description": "Sprache, Markensymbol und Tastenkürzel einstellen."
 }

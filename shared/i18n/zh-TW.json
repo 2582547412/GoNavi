@@ -3477,8 +3477,8 @@
   "app.settings.entry.web_auth.title": "瀏覽器存取驗證",
   "app.settings.group.about.description": "檢視版本資訊、倉庫位址和其他產品資訊。",
   "app.settings.group.about.title": "關於",
-  "app.settings.group.preferences.description": "設定語言、品牌圖示與快速鍵。",
-  "app.settings.group.preferences.title": "更多偏好",
+  "app.settings.group.preferences.description": "統一管理語言、外觀和側欄顯示偏好。",
+  "app.settings.group.preferences.title": "偏好設定",
   "app.settings.group.services.description": "統一管理網路存取與 AI 相關服務設定。",
   "app.settings.group.services.title": "服務設定",
   "app.settings.sidebar_metadata.description": "選擇左側樹中表名後要顯示哪些中介資料。",
@@ -12654,5 +12654,7 @@
   "settings.preview.sidebar_actions_hint": "可點擊預覽中的搜尋、定位及摺疊按鈕，體驗不同擺放方式。",
   "settings.preview.titlebar_display_hint": "此處預覽標題列內嵌入口的顯示方式；獨立工具列固定顯示圖示與文字。",
   "settings.preview.saved_query": "範例查詢已儲存至目前預覽。",
-  "settings.preview.restore_saved_query": "還原已儲存的範例查詢"
+  "settings.preview.restore_saved_query": "還原已儲存的範例查詢",
+  "settings.group.more_preferences.title": "更多偏好",
+  "settings.group.more_preferences.description": "設定語言、品牌圖示與快速鍵。"
 }

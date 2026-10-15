@@ -3477,8 +3477,8 @@
   "app.settings.entry.web_auth.title": "Browser Access Authentication",
   "app.settings.group.about.description": "Version details, repository links, and other product information.",
   "app.settings.group.about.title": "About",
-  "app.settings.group.preferences.description": "Set language, brand icon and keyboard shortcuts.",
-  "app.settings.group.preferences.title": "Other preferences",
+  "app.settings.group.preferences.description": "Language, appearance, and sidebar display preferences.",
+  "app.settings.group.preferences.title": "Preferences",
   "app.settings.group.services.description": "Network access and AI-related service configuration.",
   "app.settings.group.services.title": "Services",
   "app.settings.sidebar_metadata.description": "Choose which table metadata appears beside table names in the left sidebar.",
@@ -12654,5 +12654,7 @@
   "settings.preview.sidebar_actions_hint": "Try search, locate and collapse in the preview to compare button placement.",
   "settings.preview.titlebar_display_hint": "Preview how actions appear inside the title bar. The separate toolbar always shows icons and text.",
   "settings.preview.saved_query": "Sample query saved in this preview.",
-  "settings.preview.restore_saved_query": "Restore saved sample query"
+  "settings.preview.restore_saved_query": "Restore saved sample query",
+  "settings.group.more_preferences.title": "Other preferences",
+  "settings.group.more_preferences.description": "Set language, brand icon and keyboard shortcuts."
 }

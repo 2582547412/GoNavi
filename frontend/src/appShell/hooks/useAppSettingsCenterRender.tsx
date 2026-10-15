@@ -143,8 +143,8 @@ export const useAppSettingsCenterRender = ({
       {
           key: 'preferences' as const,
           icon: <SettingOutlined />,
-          title: t('app.settings.group.preferences.title'),
-          description: t('app.settings.group.preferences.description'),
+          title: t('settings.group.more_preferences.title'),
+          description: t('settings.group.more_preferences.description'),
           items: [
               {
                   key: 'language',
