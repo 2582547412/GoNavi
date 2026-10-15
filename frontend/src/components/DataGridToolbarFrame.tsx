@@ -566,7 +566,7 @@ const DataGridToolbarFrame: React.FC<DataGridToolbarFrameProps> = ({
           </>
         )}
 
-        {isQueryResultExport && (
+        {(isQueryResultExport || canCopyQueryResult) && (
           <>
             {renderToolbarDivider()}
             <Tooltip
