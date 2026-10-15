@@ -4205,6 +4205,11 @@
   "connection_modal.field.connection_timeout_seconds": "Connection timeout (seconds)",
   "connection_modal.field.connection_timeout_seconds_ascii": "Connection timeout (seconds)",
   "connection_modal.field.defaultDatabase.placeholder": "For example: appdb",
+  "connection_modal.field.intersystemsNamespace.label": "Namespace (optional)",
+  "connection_modal.field.intersystemsNamespace.placeholder": "Leave blank for automatic discovery",
+  "connection_modal.field.intersystemsNamespace.storedUri.placeholder": "Controlled by the saved connection URI",
+  "connection_modal.field.intersystemsNamespace.storedUri.help": "This connection uses an encrypted saved URI, so its effective namespace cannot be displayed here. Enter a replacement URI in the connection string section, or clear the saved URI, save and reopen connection settings before entering a namespace. Database display scope cannot change the connection target.",
+  "connection_modal.field.intersystemsNamespace.help": "Enter an authorized namespace to connect directly and load only that namespace; leave blank to discover namespaces. A namespace in the connection URI takes precedence; edit or clear the URI to change it. Database display scope only filters results; it does not select a namespace or grant access.",
   "connection_modal.field.default_database_optional": "Default database (optional)",
   "connection_modal.field.display_databases_optional": "Display databases (optional)",
   "connection_modal.field.driver.placeholder": "For example: mysql, postgres",
@@ -12662,5 +12667,8 @@
   "settings.preview.saved_query": "Sample query saved in this preview.",
   "settings.preview.restore_saved_query": "Restore saved sample query",
   "settings.group.more_preferences.title": "Other preferences",
-  "settings.group.more_preferences.description": "Set language, brand icon and keyboard shortcuts."
+  "settings.group.more_preferences.description": "Set language, brand icon and keyboard shortcuts.",
+  "app.titlebar.web_logout": "Sign out of the current web session",
+  "data_sync.workbench.saved_preflight_failed": "The task was saved, but the post-save preflight failed: {{detail}}",
+  "result_diff.export.side_by_side_title": "Side-by-side · Result Diff"
 }

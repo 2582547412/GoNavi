@@ -4205,6 +4205,11 @@
   "connection_modal.field.connection_timeout_seconds": "Тайм-аут подключения (секунды)",
   "connection_modal.field.connection_timeout_seconds_ascii": "Тайм-аут подключения (секунды)",
   "connection_modal.field.defaultDatabase.placeholder": "Например: appdb",
+  "connection_modal.field.intersystemsNamespace.label": "Пространство имён (необязательно)",
+  "connection_modal.field.intersystemsNamespace.placeholder": "Оставьте пустым для автоматического обнаружения",
+  "connection_modal.field.intersystemsNamespace.storedUri.placeholder": "Определяется сохранённым URI подключения",
+  "connection_modal.field.intersystemsNamespace.storedUri.help": "Это подключение использует зашифрованный сохранённый URI, поэтому фактическое пространство имён здесь не отображается. Введите новый URI в разделе строки подключения либо удалите сохранённый URI, сохраните и снова откройте настройки подключения перед вводом пространства имён. Область отображения баз данных не меняет цель подключения.",
+  "connection_modal.field.intersystemsNamespace.help": "Укажите разрешённое пространство имён для прямого подключения и загрузки только этого пространства; оставьте пустым для автоматического обнаружения. Пространство имён в URI подключения имеет приоритет; измените или очистите URI, чтобы сменить его. Область отображения баз данных лишь фильтрует результаты, не выбирает цель подключения и не предоставляет прав доступа.",
   "connection_modal.field.default_database_optional": "База данных по умолчанию (необязательно)",
   "connection_modal.field.display_databases_optional": "Отображаемые базы данных (необязательно)",
   "connection_modal.field.driver.placeholder": "Например: mysql, postgres",
@@ -12662,5 +12667,8 @@
   "settings.preview.saved_query": "Пример запроса сохранён в этом предпросмотре.",
   "settings.preview.restore_saved_query": "Восстановить сохранённый пример запроса",
   "settings.group.more_preferences.title": "Другие настройки",
-  "settings.group.more_preferences.description": "Настройте язык, значок приложения и сочетания клавиш."
+  "settings.group.more_preferences.description": "Настройте язык, значок приложения и сочетания клавиш.",
+  "app.titlebar.web_logout": "Выйти из текущего веб-сеанса",
+  "data_sync.workbench.saved_preflight_failed": "Задача сохранена, но предварительная проверка после сохранения завершилась ошибкой: {{detail}}",
+  "result_diff.export.side_by_side_title": "Сравнение бок о бок · Result Diff"
 }

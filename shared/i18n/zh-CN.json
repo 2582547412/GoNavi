@@ -4198,6 +4198,11 @@
   "connection_modal.field.connection_timeout_seconds": "连接超时（秒）",
   "connection_modal.field.connection_timeout_seconds_ascii": "连接超时（秒）",
   "connection_modal.field.defaultDatabase.placeholder": "例如：appdb",
+  "connection_modal.field.intersystemsNamespace.label": "命名空间（可选）",
+  "connection_modal.field.intersystemsNamespace.placeholder": "留空自动发现命名空间",
+  "connection_modal.field.intersystemsNamespace.storedUri.placeholder": "由已保存的连接 URI 决定",
+  "connection_modal.field.intersystemsNamespace.storedUri.help": "此连接使用已加密保存的 URI，实际命名空间无法在此显示。请在连接串区域输入替换 URI；或清除已保存的 URI、保存并重新打开连接设置后，再填写命名空间。数据库显示范围不能更改连接目标。",
+  "connection_modal.field.intersystemsNamespace.help": "填写已获授权的命名空间可直接连接并仅加载该命名空间；留空则自动发现。连接 URI 中的命名空间优先，如需更改请修改或清空 URI。数据库显示范围仅过滤结果，不选择连接目标，也不授予访问权限。",
   "connection_modal.field.default_database_optional": "默认连接数据库（可选）",
   "connection_modal.field.display_databases_optional": "显示数据库（可选）",
   "connection_modal.field.driver.placeholder": "例如: mysql, postgres",
@@ -12662,5 +12667,8 @@
   "settings.preview.saved_query": "示例查询已保存到当前预览。",
   "settings.preview.restore_saved_query": "恢复已保存的示例查询",
   "settings.group.more_preferences.title": "更多偏好",
-  "settings.group.more_preferences.description": "设置语言、品牌图标和快捷键。"
+  "settings.group.more_preferences.description": "设置语言、品牌图标和快捷键。",
+  "app.titlebar.web_logout": "退出当前 Web 会话",
+  "data_sync.workbench.saved_preflight_failed": "任务已保存，但保存后的预检失败：{{detail}}",
+  "result_diff.export.side_by_side_title": "并排对比 · Result Diff"
 }
