@@ -1,3 +1,5 @@
+import { useFavoriteSettingsNavigation } from '../../components/settings/preferences/useFavoriteSettingsNavigation';
+import { OPEN_PREFERENCE_PAGE, isPreferencePage } from '../../components/settings/preferences/preferencePages';
 import { useCallback, useRef, useEffect } from 'react';
 import { message } from 'antd';
 import {
@@ -124,7 +126,8 @@ export const useAppSettingsNavigation = ({
       setActiveSettingsCenterPane(resolveSettingsCenterGroupInitialPane(group));
       openSettingsCenterWorkbenchTab();
   }), [clearSettingsCenterTransientPaneState, openSettingsCenterWorkbenchTab]);
-  const handleOpenSettingsModal = useCallback((group: SettingsCenterGroupKey = 'preferences') => withAISettingsLeaveGuard(aiSettingsLeaveGuardRef.current, () => {
+  const handleOpenSettingsModal = useCallback((group: SettingsCenterGroupKey = 'common-settings') => withAISettingsLeaveGuard(aiSettingsLeaveGuardRef.current, () => {
+      if (typeof group !== 'string') group = 'common-settings';
       clearSettingsCenterTransientPaneState();
       setActiveSettingsCenterGroupKey(group);
       setActiveSettingsCenterPane(resolveSettingsCenterGroupInitialPane(group));
@@ -136,6 +139,14 @@ export const useAppSettingsNavigation = ({
       setActiveSettingsCenterPane({ key, group });
       openSettingsCenterWorkbenchTab();
   }), [clearSettingsCenterTransientPaneState, openSettingsCenterWorkbenchTab]);
+  useEffect(() => {
+      const open = (event: Event) => {
+          const page = (event as CustomEvent<unknown>).detail;
+          if (typeof page === 'string' && isPreferencePage(page)) handleOpenSettingsCenterPane(page, page);
+      };
+      window.addEventListener(OPEN_PREFERENCE_PAGE, open);
+      return () => window.removeEventListener(OPEN_PREFERENCE_PAGE, open);
+  }, [handleOpenSettingsCenterPane]);
   const finalizeSecurityRepairReturnFromAISettings = useCallback(() => {
       const reopenSecurityUpdateDetails = shouldReopenSecurityUpdateDetails(securityUpdateRepairSource);
       setFocusedAIProviderId(undefined);
@@ -269,8 +280,8 @@ export const useAppSettingsNavigation = ({
           return;
       }
       if (spec.group === 'preferences' && spec.pane === 'theme') {
-          setThemeModalSection(resolveThemeSettingsSection(spec.section));
-          handleOpenSettingsCenterPane('preferences', 'theme');
+          const page = spec.section === 'workspace' ? 'editor-settings' : spec.section === 'appearance' ? 'fonts-settings' : 'colors-settings';
+          handleOpenSettingsCenterPane(page, page);
           return;
       }
       if (spec.group === 'services' && spec.pane === 'ai') {
@@ -291,6 +302,7 @@ export const useAppSettingsNavigation = ({
       handleOpenToolCenterPane,
       handleOpenToolsModal,
   ]);
+  useFavoriteSettingsNavigation(handleTitleBarSettingsNavigation);
   const handleReturnToToolCenter = useCallback((closeChild?: () => void) => withAISettingsLeaveGuard(aiSettingsLeaveGuardRef.current, () => {
       const returnGroup = toolCenterBackGroupKey ?? 'config';
       closeChild?.();
@@ -338,6 +350,7 @@ export const useAppSettingsNavigation = ({
       try {
           const res = await SelectDataRootDirectory(selectedDataRootPath || dataRootInfo?.path || '');
           if (!res?.success) {
+              // i18n-scan: allow-raw — legacy native-dialog cancellation sentinel, not UI copy.
               if (String(res?.message || '') !== '已取消') {
                   throw new Error(res?.message || t('app.data_root.message.select_failed'));
               }
@@ -393,6 +406,7 @@ export const useAppSettingsNavigation = ({
               selectedLogDirectoryPath || dataRootInfo?.logDirectory || dataRootInfo?.defaultLogDirectory || '',
           );
           if (!res?.success) {
+              // i18n-scan: allow-raw — legacy native-dialog cancellation sentinel, not UI copy.
               if (String(res?.message || '') !== '已取消') {
                   throw new Error(res?.message || t('common.unknown'));
               }

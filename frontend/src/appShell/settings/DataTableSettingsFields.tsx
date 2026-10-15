@@ -1,3 +1,4 @@
+import { TablePreferencePreview } from '../../components/settings/preferences/TablePreferencePreview';
 import { Switch, Segmented, Button } from 'antd';
 import type { QueryTableCtrlClickAction } from '../../store';
 import {
@@ -124,6 +125,7 @@ export const DataTableSettingsFields = ({
               />
           ),
       })}
+      <TablePreferencePreview />
       {renderThemeSettingsRow({
           label: (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>

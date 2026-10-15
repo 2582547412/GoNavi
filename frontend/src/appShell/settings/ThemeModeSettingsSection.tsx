@@ -9,6 +9,7 @@ import {
 import type { UseAppThemeSettingsRenderInput } from '../hooks/useAppThemeSettingsRender';
 
 export interface ThemeModeSettingsSectionProps {
+  colorsOnly?: boolean;
   renderThemeSettingsSection: UseAppThemeSettingsRenderInput['renderThemeSettingsSection'];
   t: UseAppThemeSettingsRenderInput['t'];
   effectiveThemePreference: UseAppThemeSettingsRenderInput['effectiveThemePreference'];
@@ -18,7 +19,7 @@ export interface ThemeModeSettingsSectionProps {
 
 export const ThemeModeSettingsSection = ({
   renderThemeSettingsSection, t, effectiveThemePreference, selectPresetTheme,
-  renderThemeModePreview,
+  renderThemeModePreview, colorsOnly,
 }: ThemeModeSettingsSectionProps) => (
   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {renderThemeSettingsSection(
@@ -75,6 +76,7 @@ export const ThemeModeSettingsSection = ({
           <ToolbarButtonAppearanceSettings />,
           t('app.theme.toolbar_buttons.description'),
       )}
+      {!colorsOnly && <>
       {renderThemeSettingsSection(
           t('app.theme.titlebar_actions_placement.title'),
           <TitlebarActionsPlacementSettings />,
@@ -90,5 +92,6 @@ export const ThemeModeSettingsSection = ({
           <SidebarSearchModeSettings />,
           t('app.theme.ui_version.sidebar_search.hint'),
       )}
+      </>}
   </div>
 );

@@ -273,7 +273,7 @@ describe('DataGrid layout', () => {
     expect(markup).toContain('data-grid-view-switcher="true"');
     expect(markup).toContain('data-grid-column-display-action="true"');
     expect(markup).toContain('data-grid-column-quick-find-action="true"');
-    expect(markup).toContain('显示/隐藏字段列');
+    expect(markup).toContain('表格显示设置');
     expect(markup).toContain('跳列');
     expect(markup).toContain('日志');
     expect(markup).toContain(zhObjectDesignLabel);
@@ -820,7 +820,7 @@ describe('DataGrid layout', () => {
       '文本',
       '数据预览',
       '字段信息',
-      '显示/隐藏字段列',
+      '表格显示设置',
       '跳列',
       '未提交',
       '跳页',
@@ -999,7 +999,7 @@ describe('DataGrid layout', () => {
       '查看 DDL',
       'ER 图',
       '日志',
-      '显示/隐藏字段列',
+      '表格显示设置',
     ].forEach((label) => {
       expect(getButtonBody(label)).not.toContain(label);
     });

@@ -1,3 +1,4 @@
+import { DEFAULT_FAVORITE_SETTINGS } from '../utils/favoriteSettings';
 import { GlobalProxyConfig } from "../types";
 import { DEFAULT_BRAND_ICON_ID, sanitizeBrandIconId } from "../brand/brandIcons";
 import { DEFAULT_DATA_GRID_DISPLAY_SETTINGS } from "../utils/dataGridDisplay";
@@ -52,6 +53,7 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   toolbarButtonColorOverrides: { ...DEFAULT_TOOLBAR_BUTTON_COLOR_OVERRIDES },
   sidebarSingleDatabaseExpansion: false,
   workbenchSidebarAutoCollapse: false,
+  favoriteSettings: [...DEFAULT_FAVORITE_SETTINGS],
   sidebarHiddenObjectGroups: [],
   customUIFontFamily: null,
   customMonoFontFamily: null,
