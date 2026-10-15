@@ -12670,5 +12670,12 @@
   "settings.group.more_preferences.description": "設定語言、品牌圖示與快速鍵。",
   "app.titlebar.web_logout": "登出目前的 Web 工作階段",
   "data_sync.workbench.saved_preflight_failed": "任務已儲存，但儲存後的預檢失敗：{{detail}}",
-  "result_diff.export.side_by_side_title": "並排比較 · Result Diff"
+  "result_diff.export.side_by_side_title": "並排比較 · Result Diff",
+  "data_sync.event_errors.view": "查看錯誤",
+  "data_sync.event_errors.hide": "收起錯誤",
+  "data_sync.event_errors.details": "事件錯誤詳情",
+  "data_sync.event_errors.code": "錯誤碼",
+  "data_sync.event_errors.run_scope": "執行層級錯誤列：以下記錄屬於本次執行，不代表皆由此終止事件導致。",
+  "data_sync.event_errors.exact_scope": "僅顯示此事件明確引用的錯誤列。",
+  "data_sync.event_errors.no_rows": "沒有可關聯的錯誤列。上方事件詳情可能描述連線、權限等非列級錯誤。"
 }

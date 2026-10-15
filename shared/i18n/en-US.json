@@ -12670,5 +12670,12 @@
   "settings.group.more_preferences.description": "Set language, brand icon and keyboard shortcuts.",
   "app.titlebar.web_logout": "Sign out of the current web session",
   "data_sync.workbench.saved_preflight_failed": "The task was saved, but the post-save preflight failed: {{detail}}",
-  "result_diff.export.side_by_side_title": "Side-by-side · Result Diff"
+  "result_diff.export.side_by_side_title": "Side-by-side · Result Diff",
+  "data_sync.event_errors.view": "View error",
+  "data_sync.event_errors.hide": "Hide error",
+  "data_sync.event_errors.details": "Event error details",
+  "data_sync.event_errors.code": "Error code",
+  "data_sync.event_errors.run_scope": "Run-level error rows: these belong to this run, not necessarily to the terminating event.",
+  "data_sync.event_errors.exact_scope": "Only the error row explicitly referenced by this event is shown.",
+  "data_sync.event_errors.no_rows": "No associated error row is available. The event details above may describe a connection, permission, or other non-row failure."
 }

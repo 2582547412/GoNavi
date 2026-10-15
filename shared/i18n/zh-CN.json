@@ -12670,5 +12670,12 @@
   "settings.group.more_preferences.description": "设置语言、品牌图标和快捷键。",
   "app.titlebar.web_logout": "退出当前 Web 会话",
   "data_sync.workbench.saved_preflight_failed": "任务已保存，但保存后的预检失败：{{detail}}",
-  "result_diff.export.side_by_side_title": "并排对比 · Result Diff"
+  "result_diff.export.side_by_side_title": "并排对比 · Result Diff",
+  "data_sync.event_errors.view": "查看错误",
+  "data_sync.event_errors.hide": "收起错误",
+  "data_sync.event_errors.details": "事件错误详情",
+  "data_sync.event_errors.code": "错误号",
+  "data_sync.event_errors.run_scope": "运行级错误行：以下记录属于本次运行，不代表均由该终止事件导致。",
+  "data_sync.event_errors.exact_scope": "仅显示此事件明确引用的错误行。",
+  "data_sync.event_errors.no_rows": "没有可关联的错误行。上方事件详情可能描述连接、权限等非行级错误。"
 }
