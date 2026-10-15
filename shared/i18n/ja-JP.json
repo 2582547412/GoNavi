@@ -1,4 +1,10 @@
 {
+  "sql_audit.mcp.entry": "MCP SQL 実行記録",
+  "sql_audit.mcp.request_id": "MCP リクエスト ID",
+  "sql_audit.mcp.client": "MCP クライアント識別子",
+  "sql_audit.mcp.history_all": "エディターと MCP",
+  "sql_audit.mcp.location": "外部 MCP クライアントが実行した SQL は、サイドバーの SQL 監査から「MCP SQL 実行記録」を選択して確認できます。このパネルは内蔵 AI のモデルリクエストを表示します。",
+  "sql_audit.mcp.timeline": "MCP リクエストの実行詳細",
   "ai_chat.composer_notice.builtin_login_failed.description": "もう一度お試しください。ブラウザが開かない場合は、ネットワークを確認してから再度サインインをクリックしてください。",
   "ai_chat.composer_notice.builtin_login_failed.title": "GoNavi AI のサインインが完了しませんでした",
   "ai_chat.input.status.action.builtin_login": "GoNavi AI にサインイン",
