@@ -1087,8 +1087,8 @@ describe('DataGrid layout', () => {
     const source = readDataGridSource();
     const css = readV2ThemeCss();
 
-    expect(css).toContain('height: calc(28px * var(--gn-ui-scale, 1));');
-    expect(source).toContain('const virtualListItemHeight = Math.max(1, 28 * effectiveUiScale);');
+    expect(css).toContain('height: var(--gn-data-table-row-height, calc(28px * var(--gn-ui-scale, 1)));');
+    expect(source).toContain('const virtualListItemHeight = resolveDataGridRowHeight(densityParams, effectiveUiScale);');
     expect(source).toContain('const virtualListItemHeightFixed = !virtualEditingCellForRender;');
     expect(source).not.toContain('virtualRowHeightMeasurement');
   });

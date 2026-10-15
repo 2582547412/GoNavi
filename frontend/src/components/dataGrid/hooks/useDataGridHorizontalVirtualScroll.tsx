@@ -26,6 +26,7 @@ import type { DataGridTableMetricsApi } from './useDataGridTableMetrics';
 import type { DataGridColumnsApi } from './useDataGridColumns';
 import type { DataGridColumnTitlesApi } from './useDataGridColumnTitles';
 import type { DataGridProps } from '../../DataGridCore';
+import { resolveDataGridRowHeight } from '../../../utils/dataGridDensity';
 
 export interface UseDataGridHorizontalVirtualScrollInput {
     connectionId: DataGridProps['connectionId'];
@@ -243,10 +244,10 @@ export const useDataGridHorizontalVirtualScroll = ({
     const horizontalScrollVisible = isTableSurfaceActive && !isWindowsLike && externalHorizontalScrollMetrics.visible;
     const horizontalScrollWidth = externalHorizontalScrollMetrics.innerWidth;
     const tableScrollConfig = useMemo(() => ({ x: tableScrollX, y: tableHeight }), [tableScrollX, tableHeight]);
-    // V2 data rows have a CSS-enforced 28px height. Entering fixed mode on the
+    // Use the same density height as CSS. Entering fixed mode on the
     // first render avoids a later rAF measurement that would rebuild the virtual
     // window while the user is already scrolling.
-    const virtualListItemHeight = Math.max(1, 28 * effectiveUiScale);
+    const virtualListItemHeight = resolveDataGridRowHeight(densityParams, effectiveUiScale);
     const virtualListItemHeightFixed = !virtualEditingCellForRender;
     const virtualListItemNativeScrollbarControlled = isMacLike && virtualListItemHeightFixed;
     const virtualListItemHorizontalOffsetComposited = isMacLike || isWindowsLike;
