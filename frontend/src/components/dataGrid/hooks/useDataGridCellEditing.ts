@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useStore } from '../../../store';
 import { message } from 'antd';
 import { DragEndEvent } from '@dnd-kit/core';
 import { useDataGridReloadReset } from '../../useDataGridReloadReset';
@@ -42,6 +43,7 @@ export interface UseDataGridCellEditingInput {
     cellSelectionScrollRafRef: DataGridCellEditorStateApi['cellSelectionScrollRafRef'];
     cellSelectionAutoScrollRafRef: DataGridCellEditorStateApi['cellSelectionAutoScrollRafRef'];
     updateCellSelection: DataGridColumnTitlesApi['updateCellSelection'];
+    rowSelectionKeysRef: { current: Iterable<unknown> };
     setCellEditMode: DataGridCellEditorStateApi['setCellEditMode'];
     cellEditModeRef: DataGridCellEditorStateApi['cellEditModeRef'];
     closeBatchEditModal: DataGridCellEditorStateApi['closeBatchEditModal'];
@@ -107,6 +109,7 @@ export const useDataGridCellEditing = ({
     currentSelectionRef, selectionStartRef, cellSelectionAnchorSourceRef,
     pendingCellSelectionStartRef, isDraggingRef, cellSelectionPointerRef, cellSelectionRafRef,
     cellSelectionScrollRafRef, cellSelectionAutoScrollRafRef, updateCellSelection, setCellEditMode,
+    rowSelectionKeysRef,
     cellEditModeRef, closeBatchEditModal, data, setSelectedRowKeys, deletedRowKeys,
     setDeletedRowKeys, closeCellEditModeRef, cellEditMode, cellSelectionDeleteEligible,
     cellSelectionSourceDataRef, isActive, addedRows, setAddedRows, batchEditSetNull, batchEditValue,
@@ -120,6 +123,12 @@ export const useDataGridCellEditing = ({
     dataTableDensity, densityParams, showColumnComment, showColumnType, reorderVisibleColumns,
     normalizeMongoEditedRow, baseData, cellContextMenu, modifiedColumns,
 }: UseDataGridCellEditingInput) => {
+    // Navicat 风格空白选择列：点击/拖选行首选中整行（布局由 store 读取）。
+    const selectionColumnBlank = useStore((state) => (
+        state.appearance.uiLayoutMode === 'navicat'
+        && state.appearance.showDataTableCheckboxColumn !== true
+    ));
+
     const resetCellSelection = useCallback((clearState: boolean = true) => {
       if (clearState) {
         setSelectedCells(new Set());
@@ -254,6 +263,9 @@ export const useDataGridCellEditing = ({
       updateCellSelection,
       markCellSelectionDeleteEligible,
       markCellSelectionUserSelection,
+      selectionColumnBlank,
+      rowSelectionKeysRef: selectedRowKeysRef,
+      setRowSelectionKeys: setSelectedRowKeys,
     });
 
     const displayData = useMemo(() => {
@@ -407,6 +419,7 @@ export const useDataGridCellEditing = ({
     }, [addedRows, rowKeyStr]);
 
     const modifiedRowKeySet = useMemo(() => new Set(Object.keys(modifiedRows)), [modifiedRows]);
+
     useEffect(() => {
         autoCommitChangeTokenRef.current += 1;
         autoCommitFailedTokenRef.current = -1;
