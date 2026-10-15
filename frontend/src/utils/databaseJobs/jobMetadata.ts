@@ -18,9 +18,9 @@ export const runDatabaseJobQueries = async (
   queries: string[],
   execute: DatabaseJobQueryExecutor,
   failureMessage: string,
-): Promise<{ success: boolean; rows: DatabaseJobRow[]; message?: string }> => {
+): Promise<{ success: boolean; rows: DatabaseJobRow[]; message?: string; queryIndex?: number }> => {
   let message = failureMessage;
-  for (const sql of queries) {
+  for (const [queryIndex, sql] of queries.entries()) {
     try {
       const result = await execute(sql);
       if (result.success && Array.isArray(result.data)) {
@@ -29,6 +29,7 @@ export const runDatabaseJobQueries = async (
           rows: result.data.filter((row): row is DatabaseJobRow => (
             row !== null && typeof row === 'object' && !Array.isArray(row)
           )),
+          ...(queryIndex > 0 ? { queryIndex } : {}),
         };
       }
       message = result.message || failureMessage;

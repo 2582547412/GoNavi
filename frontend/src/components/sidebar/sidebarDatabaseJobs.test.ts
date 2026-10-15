@@ -66,16 +66,20 @@ describe('loadDatabaseJobs', () => {
   });
 
   it('queries the native and compatible Dameng catalogs with read-only SQL', async () => {
-    backend.query.mockResolvedValue({ success: true, data: [] });
+    backend.query.mockImplementation(async (_config, _db, sql) => ({
+      success: true, data: sql.includes('FROM SYS.ALL_OBJECTS') ? [{ available: 1 }] : [],
+    }));
     await loadDatabaseJobs(connection('dameng'), 'APP');
     const queries = backend.query.mock.calls.map((call) => call[2]);
     expect(queries.some((sql) => sql.includes('SYSJOB.SYSJOBS'))).toBe(true);
-    expect(queries.some((sql) => sql.includes('SYS.USER_JOBS'))).toBe(true);
+    expect(queries.some((sql) => sql.includes('FROM SYSJOB.DBA_JOBS'))).toBe(true);
     expect(queries.every((sql) => sql.startsWith('SELECT '))).toBe(true);
   });
 
   it('falls back to the scoped owner view when Dameng system tables are inaccessible', async () => {
-    backend.query.mockImplementation(async (_config, _db, sql) => sql.includes('SYSJOB.SYSJOBS')
+    backend.query.mockImplementation(async (_config, _db, sql) => sql.includes('FROM SYS.ALL_OBJECTS')
+      ? { success: true, data: [{ available: 1 }] }
+      : sql.includes('SYSJOB.SYSJOBS')
       ? { success: false, message: 'permission denied' }
       : { success: true, data: sql.includes('SYSJOB.USER_JOBS_VIEW') ? [{ SCHEMA_NAME: 'APP', JOB_NAME: 'NIGHTLY' }] : [] });
     const result = await loadDatabaseJobs(connection('dameng'), 'APP');
@@ -85,11 +89,13 @@ describe('loadDatabaseJobs', () => {
   });
 
   it('does not retry a successful empty Dameng catalog using a different scope', async () => {
-    backend.query.mockResolvedValue({ success: true, data: [] });
+    backend.query.mockImplementation(async (_config, _db, sql) => ({
+      success: true, data: sql.includes('FROM SYS.ALL_OBJECTS') ? [{ available: 1 }] : [],
+    }));
     expect(await loadDatabaseJobs(connection('dameng'), 'OTHER')).toEqual({ supported: true, jobs: [] });
-    expect(backend.query).toHaveBeenCalledTimes(2);
-    expect(backend.query.mock.calls.some((call) => call[2].includes('USER_JOBS_VIEW'))).toBe(false);
-    expect(backend.query.mock.calls[0][2]).toContain("USERNAME = 'OTHER'");
+    expect(backend.query).toHaveBeenCalledTimes(4);
+    expect(backend.query.mock.calls.some((call) => call[2].includes('FROM SYSJOB.USER_JOBS_VIEW'))).toBe(false);
+    expect(backend.query.mock.calls.find((call) => call[2].includes('FROM SYSJOB.SYSJOBS'))?.[2]).toContain("USERNAME = 'OTHER'");
   });
 
   it('skips unsupported engines without any database calls', async () => {
