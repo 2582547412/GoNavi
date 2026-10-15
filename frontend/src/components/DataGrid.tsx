@@ -528,7 +528,7 @@ const DataGrid: React.FC<DataGridProps> = ({
         closeCellEditor, closeJsonEditor, closeRowEditor, closestCenter, columnInfoSettingContent,
         columnMetaCacheRef, columnMetaMap, columnMetaMapByLowerName, columnQuickFindOptions,
         columnQuickFindText, connectionId, connections, containerRef, contextHolder,
-        copiedCellPatch, copiedRowsForPaste, copyRowsForPaste, copyToClipboard, currentConnConfig,
+        copiedCellPatch, copiedRowsForPaste, copyRowsForPaste, copyToClipboard, currentConnConfig, currentSelectionRef,
         designerReadOnly, currentTextRow, darkMode, dataEditAutoCommitDelayMs, dataEditCommitMode,
         deleteTargetRowCount, dataPanelDirtyRef, dataPanelIsJson, dataPanelOpen,
         dataPanelOriginalRef, dataPanelValue, dbName, schemaName, dbType, ddlLoading, ddlModalOpen,

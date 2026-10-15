@@ -364,7 +364,7 @@ export const useDataGridV2ColumnActions = ({
             const target = event.target instanceof Node ? event.target : null;
             if (!root || !target || root.contains(target)) return;
             if (target instanceof HTMLElement
-                && target.closest('.ant-modal, .ant-dropdown, .ant-select-dropdown, .ant-picker-dropdown, .ant-popover')) {
+                && target.closest('.ant-modal, .ant-dropdown, .ant-select-dropdown, .ant-picker-dropdown, .ant-popover, .gn-v2-table-context-menu-portal')) {
                 return;
             }
             if (cellEditMode) {
