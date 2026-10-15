@@ -1,3 +1,5 @@
+import { findMysqlDelimiterStatementRanges, isSqlControlEndKeyword, textHasMysqlDelimiterDirective } from './sqlMysqlDelimiter';
+
 export interface SqlStatementRange {
   start: number;
   end: number;
@@ -380,10 +382,6 @@ const shouldEnterPlsqlCreateRoutineBlock = (
   return isCreateRoutineHeaderPrefix(text.slice(statementStart, tokenEnd - token.length));
 };
 
-const isPlsqlControlEnd = (text: string, tokenEnd: number): boolean => (
-  ['if', 'loop', 'case'].includes(nextSqlSignificantToken(text, tokenEnd))
-);
-
 const trimStatementRange = (sql: string, start: number, end: number, dbType = ''): SqlStatementRange | null => {
   let nextStart = Math.max(0, start);
   let nextEnd = Math.min(sql.length, Math.max(start, end));
@@ -412,6 +410,14 @@ const trimStatementRange = (sql: string, start: number, end: number, dbType = ''
 
 export const findSqlStatementRanges = (sql: string, dbType = ''): SqlStatementRange[] => {
   const text = String(sql || '').replace(/\r\n/g, '\n');
+  if (textHasMysqlDelimiterDirective(dbType, text)) {
+    const delimiterRanges = findMysqlDelimiterStatementRanges(text, (start, end) => trimStatementRange(text, start, end, dbType));
+    if (delimiterRanges !== null) return delimiterRanges;
+  }
+  return findRegularSqlStatementRanges(text, dbType);
+};
+
+const findRegularSqlStatementRanges = (text: string, dbType: string): SqlStatementRange[] => {
   const ranges: SqlStatementRange[] = [];
   const bracketIdentifiers = supportsSqlBracketIdentifier(dbType);
   const escapedBracketIdentifiers = supportsSqlEscapedBracketIdentifier(dbType);
@@ -640,7 +646,7 @@ export const findSqlStatementRanges = (sql: string, dbType = ''): SqlStatementRa
           skipNextPlsqlCaseEndToken = true;
         }
         justClosedPLSQLBlock = false;
-      } else if (token === 'end' && plsqlDepth > 0 && !isPlsqlControlEnd(text, tokenEnd)) {
+      } else if (token === 'end' && plsqlDepth > 0 && !isSqlControlEndKeyword(nextSqlSignificantToken(text, tokenEnd), dbType)) {
         plsqlDepth--;
         if (plsqlDeclareBeginSkips > plsqlDepth) {
           plsqlDeclareBeginSkips = plsqlDepth;
