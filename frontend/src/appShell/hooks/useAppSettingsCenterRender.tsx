@@ -1,3 +1,5 @@
+import { PreferencePage } from '../../components/settings/preferences/PreferencePage';
+import { PREFERENCE_PAGES, isPreferencePage, preferenceTitleKey, preferenceDescriptionKey } from '../../components/settings/preferences/preferencePages';
 import {
   SettingOutlined,
   GlobalOutlined,
@@ -137,11 +139,12 @@ export const useAppSettingsCenterRender = ({
   // 设置页签隐藏不销毁，切回时内容滚动复位到顶，避免顶部大段空白残留。
   useSettingsCenterScrollReset();
   const settingsCenterGroups: SettingsCenterNavigationGroup[] = [
+      ...PREFERENCE_PAGES.map(key => ({ key, icon: <SettingOutlined />, title: t(preferenceTitleKey(key)), description: t(preferenceDescriptionKey(key)), items: [] })),
       {
           key: 'preferences' as const,
           icon: <SettingOutlined />,
-          title: t('app.settings.group.preferences.title'),
-          description: t('app.settings.group.preferences.description'),
+          title: t('settings.group.more_preferences.title'),
+          description: t('settings.group.more_preferences.description'),
           items: [
               {
                   key: 'language',
@@ -149,44 +152,6 @@ export const useAppSettingsCenterRender = ({
                   title: t('settings.language.title'),
                   description: t('settings.language.description'),
                   onClick: () => handleOpenSettingsCenterPane('preferences', 'language'),
-              },
-              {
-                  key: 'theme',
-                  icon: <SkinOutlined />,
-                  title: t('app.settings.entry.theme.title'),
-                  description: t('app.settings.entry.theme.description'),
-                  onClick: () => {
-                      setThemeModalSection('theme');
-                      handleOpenSettingsCenterPane('preferences', 'theme');
-                  },
-                  children: themeSettingsSections.map((section) => ({
-                      key: `theme-${section.value}`,
-                      icon: section.icon,
-                      title: section.label,
-                      description: section.value === 'appearance'
-                          ? t('app.theme.nav.appearance.description')
-                          : section.value === 'workspace'
-                              ? t('app.theme.nav.workspace.description')
-                              : t('app.theme.nav.theme.description'),
-                      onClick: () => {
-                          setThemeModalSection(section.value);
-                          handleOpenSettingsCenterPane('preferences', 'theme');
-                      },
-                  })),
-              },
-              {
-                  key: 'sidebar-metadata',
-                  icon: <TableOutlined />,
-                  title: t('app.settings.sidebar_metadata.title'),
-                  description: t('app.settings.sidebar_metadata.description'),
-                  onClick: () => handleOpenSettingsCenterPane('preferences', 'sidebar-metadata'),
-              },
-              {
-                  key: 'sidebar-objects',
-                  icon: <FolderOpenOutlined />,
-                  title: t('app.settings.sidebar_objects.title'),
-                  description: t('app.settings.sidebar_objects.description'),
-                  onClick: () => handleOpenSettingsCenterPane('preferences', 'sidebar-objects'),
               },
               {
                   key: 'brand-icon',
@@ -273,7 +238,7 @@ export const useAppSettingsCenterRender = ({
       },
   ];
   const isSettingsCenterContainedScrollPane =
-      activeSettingsCenterPane?.key === 'theme' || activeSettingsCenterPane?.key === 'ai';
+      activeSettingsCenterPane?.key === 'theme' || activeSettingsCenterPane?.key === 'ai' || ['tabs-settings', 'editor-settings', 'fonts-settings', 'colors-settings'].includes(activeSettingsCenterPane?.key || '');
   const isV2ThemeSettingsPane = activeSettingsCenterPane?.key === 'theme';
   const activeSettingsCenterDetailPanelStyle: React.CSSProperties = {
       ...toolCenterDetailPanelStyle,
@@ -300,6 +265,10 @@ export const useAppSettingsCenterRender = ({
   const renderSettingsCenterPane = () => {
       if (!activeSettingsCenterPane) {
           return null;
+      }
+      if (isPreferencePage(activeSettingsCenterPane.key)) {
+          return <PreferencePage page={activeSettingsCenterPane.key} renderTheme={renderThemeSettingsContent}
+            metadata={renderSidebarMetadataSettingsPane} objects={renderSidebarObjectVisibilitySettingsPane} />;
       }
       if (activeSettingsCenterPane.key === 'brand-icon') {
           return (

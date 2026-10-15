@@ -141,8 +141,8 @@ export const useAppShellState = ({
       }
   }, []);
   const [isConnectionGroupManagementOpen, setIsConnectionGroupManagementOpen] = useState(false);
-  const [activeSettingsCenterGroupKey, setActiveSettingsCenterGroupKey] = useState<SettingsCenterGroupKey>('preferences');
-  const [activeSettingsCenterPane, setActiveSettingsCenterPane] = useState<SettingsCenterPaneState | null>(null);
+  const [activeSettingsCenterGroupKey, setActiveSettingsCenterGroupKey] = useState<SettingsCenterGroupKey>('common-settings');
+  const [activeSettingsCenterPane, setActiveSettingsCenterPane] = useState<SettingsCenterPaneState | null>({ key: 'common-settings', group: 'common-settings' });
   const activeSettingsCenterPaneRef = useRef<SettingsCenterPaneState | null>(null);
   const aiSettingsLeaveGuardRef = useRef<AISettingsLeaveGuard | null>(null);
   const registerAISettingsLeaveGuard = useCallback((guard: AISettingsLeaveGuard | null) => {

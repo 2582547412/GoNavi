@@ -181,12 +181,7 @@ export const useAppLayoutEffects = ({
   }, [handleOpenToolCenterPane]);
 
   useEffect(() => {
-      const handleOpenTabDisplaySettingsEvent = () => withAISettingsLeaveGuard(aiSettingsLeaveGuardRef.current, () => {
-          closeSettingsCenterWorkbenchTab();
-          setThemeModalSection('workspace');
-          setIsThemeModalOpen(true);
-          setTabDisplaySettingsFocusRequest((current) => current + 1);
-      });
+      const handleOpenTabDisplaySettingsEvent = () => handleOpenSettingsCenterPane('tabs-settings', 'tabs-settings');
       window.addEventListener('gonavi:open-tab-display-settings', handleOpenTabDisplaySettingsEvent as EventListener);
       return () => {
           window.removeEventListener('gonavi:open-tab-display-settings', handleOpenTabDisplaySettingsEvent as EventListener);

@@ -1,3 +1,4 @@
+import { SettingOutlined } from '@ant-design/icons';
 import React from 'react';
 import { GnNewConnectionIcon, GnNewQueryIcon } from './icons/gnIcons';
 import type { SidebarTableSortPreference } from '../utils/sidebarTreeOrder';
@@ -295,6 +296,7 @@ export const V2SchemaContextMenuView: React.FC<{
 };
 
 export type V2ConnectionContextMenuActionKey =
+  | 'sidebar-settings'
   | 'new-db'
   | 'visibility'
   | 'refresh'
@@ -447,6 +449,7 @@ export const V2ConnectionContextMenuView: React.FC<{
           { action: 'copy-connection', icon: <CopyOutlined />, title: t('connection.sidebar.menu.copy') },
           { action: 'batch-connections', icon: <AppstoreOutlined />, title: t('sidebar.action.batch_connections') },
           { action: 'disconnect', icon: <DisconnectOutlined />, title: t('connection.sidebar.menu.disconnect') },
+          { action: 'sidebar-settings', icon: <SettingOutlined />, title: t('settings.page.sidebar-settings.title') },
         ])}
 
         {tags.length > 0 && (
