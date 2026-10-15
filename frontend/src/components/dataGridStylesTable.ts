@@ -1,5 +1,6 @@
 import { DATA_GRID_FILL_BODY_CSS } from './dataGridLayout';
 import type { DataGridCssVars } from './dataGridStyles';
+import { buildDataGridDensityCss } from '../utils/dataGridDensity';
 
 export const buildDataGridTableCss = ({
     gridId,
@@ -31,7 +32,7 @@ export const buildDataGridTableCss = ({
         `.${gridId}.data-grid-root .ant-table-tbody-virtual-holder .ant-table-row.${bandClass}${zebraStateGuard} > .ant-table-cell:is(.data-grid-row-number-cell, .ant-table-selection-column)`,
         `.${gridId}.data-grid-root .ant-table-tbody > tr.${bandClass}${zebraStateGuard} > td:is(.data-grid-row-number-cell, .ant-table-selection-column)`,
     ].join(',\n');
-    return `${DATA_GRID_FILL_BODY_CSS}
+    return `${buildDataGridDensityCss(`.${gridId}`, densityParams)}${DATA_GRID_FILL_BODY_CSS}
                 .${gridId} .data-grid-toolbar-scroll > * {
 
                     flex-shrink: 0;

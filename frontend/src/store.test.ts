@@ -270,6 +270,18 @@ describe('store appearance persistence', () => {
     }
   });
 
+  it('persists custom favorite settings, their order and an intentionally empty selection', async () => {
+    let store = (await importStore()).useStore;
+    expect(store.getState().appearance.favoriteSettings).toContain('layout');
+    const target = 'entry:fonts-settings/fonts-settings/app.theme.font_family.ui_title';
+    for (const favoriteSettings of [[target, 'rows', 'density'], []]) {
+      store.getState().setAppearance({ favoriteSettings });
+      vi.resetModules();
+      store = (await importStore()).useStore;
+      expect(store.getState().appearance.favoriteSettings).toEqual(favoriteSettings);
+    }
+  });
+
   it('sanitizes invalid tab environment accent thickness values', async () => {
     const { useStore } = await importStore();
 

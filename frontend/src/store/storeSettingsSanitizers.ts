@@ -1,3 +1,4 @@
+import { sanitizeFavoriteSettings } from '../utils/favoriteSettings';
 import { SavedConnection, GlobalProxyConfig } from "../types";
 import {
   ShortcutOptions,
@@ -552,6 +553,7 @@ export const sanitizeAppearance = (
       appearance.toolbarButtonColorOverrides,
     ),
     workbenchSidebarAutoCollapse: appearance.workbenchSidebarAutoCollapse === true,
+    favoriteSettings: sanitizeFavoriteSettings(appearance.favoriteSettings),
     sidebarSingleDatabaseExpansion:
       appearance.sidebarSingleDatabaseExpansion === true,
     sidebarHiddenObjectGroups: sanitizeSidebarHiddenObjectGroups(

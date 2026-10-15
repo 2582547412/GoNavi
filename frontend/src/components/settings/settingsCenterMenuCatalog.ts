@@ -1,11 +1,10 @@
-/**
- * How to open a settings-center destination through `onOpenSettingsNavigation`.
- * `'workflow'` is not a settings-center group any more, but stays a valid target
- * because title-bar 数据同步/数据对比 entries navigate with it and the handler
- * dispatches on `action` alone.
- */
+import { PREFERENCE_PAGES, preferenceTitleKey, preferenceDescriptionKey, type PreferencePage } from './preferences/preferencePages';
+// How to open a settings-center destination through `onOpenSettingsNavigation`.
+// `'workflow'` is not a settings-center group any more, but stays a valid target
+// because title-bar 数据同步/数据对比 entries navigate with it and the handler
+// dispatches on `action` alone.
 export type SettingsCenterNavigationTarget = {
-  group: 'preferences' | 'services' | 'config' | 'workflow' | 'workspace' | 'about';
+  group: PreferencePage | 'preferences' | 'services' | 'config' | 'workflow' | 'workspace' | 'about';
   pane?: string;
   /** Child page inside a pane: a theme section or an AI settings section. */
   section?: string;
@@ -61,24 +60,16 @@ const pane = (
   target: { group: groupKey, ...target },
 });
 
-const THEME_SECTIONS = ['theme', 'appearance', 'workspace'] as const;
 const AI_SECTIONS = [
   'providers', 'analysis', 'request_events', 'safety', 'context',
   'run_policy', 'mcp', 'skills', 'tools', 'prompts',
 ] as const;
 
 export const SETTINGS_CENTER_MENU_CATALOG: ReadonlyArray<SettingsCenterMenuNode> = [
-  group('preferences', 'app.settings.group.preferences.title', 'app.settings.group.preferences.description'),
+  ...PREFERENCE_PAGES.map(key => ({ group: key, item: key, titleKey: preferenceTitleKey(key), descriptionKey: preferenceDescriptionKey(key), target: { group: key, pane: key } })),
+  group('preferences', 'settings.group.more_preferences.title', 'settings.group.more_preferences.description'),
   pane('preferences', 'language', 'settings.language'),
-  pane('preferences', 'theme', 'app.settings.entry.theme'),
-  ...THEME_SECTIONS.map((section) => pane(
-    'preferences',
-    `theme-${section}`,
-    `app.theme.nav.${section}`,
-    { pane: 'theme', section },
-  )),
-  pane('preferences', 'sidebar-metadata', 'app.settings.sidebar_metadata'),
-  pane('preferences', 'sidebar-objects', 'app.settings.sidebar_objects'),
+  pane('preferences', 'brand-icon', 'app.settings.entry.brand_icon'),
   pane('preferences', 'shortcut-settings', 'app.tools.entry.shortcuts'),
 
   group('services', 'app.settings.group.services.title', 'app.settings.group.services.description'),

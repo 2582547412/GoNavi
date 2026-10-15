@@ -406,7 +406,7 @@ body[data-ui-version="v2"] .gn-v2-data-grid .rc-virtual-list-holder {
 }
 
 body[data-ui-version="v2"] .gn-v2-data-grid .ant-table-thead > tr > th {
-  height: 48px !important;
+  height: var(--gn-data-table-header-height, 48px) !important;
   padding: 3px 8px 3px 2px !important;
   background: var(--gn-bg-panel-2) !important;
   color: var(--gn-fg-2) !important;

@@ -31,7 +31,7 @@ import type { UseAppThemeSettingsRenderInput } from '../hooks/useAppThemeSetting
 
 export interface ThemeAppearanceSettingsSectionProps {
   renderThemeSettingsSection: UseAppThemeSettingsRenderInput['renderThemeSettingsSection'];
-  options: { hideSectionTabs?: boolean } | undefined;
+  options: { hideSectionTabs?: boolean; page?: string } | undefined;
   t: UseAppThemeSettingsRenderInput['t'];
   renderThemeSettingsRow: UseAppThemeSettingsRenderInput['renderThemeSettingsRow'];
   effectiveUiScale: UseAppThemeSettingsRenderInput['effectiveUiScale'];
@@ -65,7 +65,7 @@ export const ThemeAppearanceSettingsSection = ({
           // 设置中心侧栏已显示「显示与字体」，内容区不再重复分区标题
           options?.hideSectionTabs ? null : t('app.theme.nav.appearance.title'),
           <>
-              {renderThemeSettingsRow({
+              {options?.page !== 'fonts-settings' && renderThemeSettingsRow({
                   label: t('app.theme.appearance.navicat_layout_title'),
                   hint: t('app.theme.appearance.navicat_layout_hint'),
                   stacked: true,
@@ -149,6 +149,7 @@ export const ThemeAppearanceSettingsSection = ({
                       />
                   ),
               })}
+              {options?.page !== 'fonts-settings' && <>
               <WorkbenchSidebarAutoCollapseSetting appearance={appearance} setAppearance={setAppearance} t={t} renderThemeSettingsRow={renderThemeSettingsRow} />
               {renderThemeSettingsRow({
                   label: t('app.theme.appearance.single_database_expansion_title'),
@@ -160,6 +161,7 @@ export const ThemeAppearanceSettingsSection = ({
                       />
                   ),
               })}
+              </>}
           </>,
       )}
       {renderThemeSettingsSection(

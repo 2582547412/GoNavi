@@ -93,6 +93,7 @@ export interface AppearanceSettings
   toolbarButtonColorOverrides: ToolbarButtonColorOverrides;
   sidebarSingleDatabaseExpansion: boolean;
   workbenchSidebarAutoCollapse: boolean;
+  favoriteSettings: string[];
   sidebarHiddenObjectGroups: SidebarObjectGroupKey[];
   customUIFontFamily: string | null;
   customMonoFontFamily: string | null;
