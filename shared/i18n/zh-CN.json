@@ -4077,7 +4077,7 @@
   "connection.sidebar.menu.current": "当前",
   "connection.sidebar.menu.delete": "删除连接",
   "connection.sidebar.menu.disconnect": "断开连接",
-  "connection.sidebar.menu.groupSection": "连接分组",
+	"connection.sidebar.menu.groupSection": "移动到连接分组",
   "connection.sidebar.menu.hostBadge": "HOST",
   "connection.sidebar.menu.hostFallback": "未配置地址",
   "connection.sidebar.menu.moveOutTag": "移出标签",

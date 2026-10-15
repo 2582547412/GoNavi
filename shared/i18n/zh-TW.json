@@ -4084,7 +4084,7 @@
   "connection.sidebar.menu.current": "目前",
   "connection.sidebar.menu.delete": "刪除連線",
   "connection.sidebar.menu.disconnect": "中斷連線",
-  "connection.sidebar.menu.groupSection": "連線分組",
+	"connection.sidebar.menu.groupSection": "移動到連線分組",
   "connection.sidebar.menu.hostBadge": "HOST",
   "connection.sidebar.menu.hostFallback": "位址未設定",
   "connection.sidebar.menu.moveOutTag": "移出標籤",

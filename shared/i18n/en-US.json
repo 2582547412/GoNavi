@@ -4084,7 +4084,7 @@
   "connection.sidebar.menu.current": "Current",
   "connection.sidebar.menu.delete": "Delete connection",
   "connection.sidebar.menu.disconnect": "Disconnect",
-  "connection.sidebar.menu.groupSection": "Connection groups",
+	"connection.sidebar.menu.groupSection": "Move to connection group",
   "connection.sidebar.menu.hostBadge": "HOST",
   "connection.sidebar.menu.hostFallback": "Address not configured",
   "connection.sidebar.menu.moveOutTag": "Remove from tag",

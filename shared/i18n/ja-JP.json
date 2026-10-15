@@ -4084,7 +4084,7 @@
   "connection.sidebar.menu.current": "現在",
   "connection.sidebar.menu.delete": "接続を削除",
   "connection.sidebar.menu.disconnect": "接続を切断",
-  "connection.sidebar.menu.groupSection": "接続グループ",
+	"connection.sidebar.menu.groupSection": "接続グループへ移動",
   "connection.sidebar.menu.hostBadge": "HOST",
   "connection.sidebar.menu.hostFallback": "アドレス未設定",
   "connection.sidebar.menu.moveOutTag": "タグから外す",
