@@ -4199,6 +4199,11 @@
   "connection_modal.field.connection_timeout_seconds": "接続タイムアウト（秒）",
   "connection_modal.field.connection_timeout_seconds_ascii": "接続タイムアウト（秒）",
   "connection_modal.field.defaultDatabase.placeholder": "例: appdb",
+  "connection_modal.field.intersystemsNamespace.label": "ネームスペース（任意）",
+  "connection_modal.field.intersystemsNamespace.placeholder": "空欄でネームスペースを自動検出",
+  "connection_modal.field.intersystemsNamespace.storedUri.placeholder": "保存済み接続 URI で指定",
+  "connection_modal.field.intersystemsNamespace.storedUri.help": "この接続は暗号化された保存済み URI を使用しているため、実際のネームスペースをここに表示できません。接続文字列の欄に新しい URI を入力するか、保存済み URI を消去して保存し、接続設定を開き直してからネームスペースを入力してください。データベースの表示範囲では接続先を変更できません。",
+  "connection_modal.field.intersystemsNamespace.help": "アクセス権のあるネームスペースを入力すると、直接接続してそのネームスペースのみを読み込みます。空欄の場合は自動検出します。接続 URI のネームスペースが優先されるため、変更するには URI を編集または消去してください。データベースの表示範囲は結果の絞り込みのみで、接続先の選択やアクセス権の付与は行いません。",
   "connection_modal.field.default_database_optional": "既定の接続データベース（任意）",
   "connection_modal.field.display_databases_optional": "表示するデータベース（任意）",
   "connection_modal.field.driver.placeholder": "例: mysql, postgres",
@@ -12656,5 +12661,8 @@
   "settings.preview.saved_query": "サンプルクエリをこのプレビュー内に保存しました。",
   "settings.preview.restore_saved_query": "保存したサンプルクエリを復元",
   "settings.group.more_preferences.title": "その他の設定",
-  "settings.group.more_preferences.description": "言語、ブランドアイコン、ショートカットを設定します。"
+  "settings.group.more_preferences.description": "言語、ブランドアイコン、ショートカットを設定します。",
+  "app.titlebar.web_logout": "現在の Web セッションからログアウト",
+  "data_sync.workbench.saved_preflight_failed": "タスクは保存されましたが、保存後の事前チェックに失敗しました：{{detail}}",
+  "result_diff.export.side_by_side_title": "左右比較 · Result Diff"
 }

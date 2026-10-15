@@ -2,7 +2,7 @@ import type { SqlStatementRange } from './sqlStatementSelection';
 
 // MySQL 客户端的 DELIMITER 不是服务端语法：mysql 命令行、Navicat 用它临时更换语句结束符，
 // 好让 CREATE PROCEDURE 里的分号不被当成语句边界。服务端收到 DELIMITER 行会报 1064。
-// 识别规则与后端 internal/app/sql_split_mysql_delimiter.go 保持一致：
+// 识别规则与后端 internal/app/sql_split_stream.go 的客户端指令扫描保持一致：
 // 只在 mysql / mariadb 方言下识别，指令必须独占一行，且出现在语句开头（之前只有注释）。
 
 const MYSQL_CLIENT_DELIMITER_DIALECTS = new Set(['mysql', 'mariadb']);
@@ -11,6 +11,12 @@ const DELIMITER_DIRECTIVE_LINE = /^delimiter[ \t\r\f]+(\S+)[ \t\r\f]*$/i;
 
 export const isMysqlClientDelimiterDialect = (dbType: string): boolean => (
   MYSQL_CLIENT_DELIMITER_DIALECTS.has(String(dbType || '').trim().toLowerCase())
+);
+
+// WHILE / REPEAT do not increase BEGIN depth, so their END must not decrease it.
+export const isSqlControlEndKeyword = (keyword: string, dbType: string): boolean => (
+  ['if', 'loop', 'case'].includes(keyword)
+  || (isMysqlClientDelimiterDialect(dbType) && (keyword === 'while' || keyword === 'repeat'))
 );
 
 const isHorizontalWhitespace = (ch: string): boolean => (
@@ -34,9 +40,8 @@ const resolveDelimiterDirective = (text: string, index: number): { delimiter: st
 };
 
 /**
- * Reports whether a MySQL script contains a standalone DELIMITER line. Such a
- * script must be sent to the backend verbatim: rejoining its statements with
- * semicolons would drop the directive the procedure body depends on.
+ * Fast dialect-aware prefilter for standalone DELIMITER lines. The scanner
+ * still verifies their SQL lexical context before consuming client directives.
  */
 export const textHasMysqlDelimiterDirective = (dbType: string, sql: string): boolean => {
   if (!isMysqlClientDelimiterDialect(dbType)) return false;
@@ -47,12 +52,15 @@ export const textHasMysqlDelimiterDirective = (dbType: string, sql: string): boo
  * Splits a MySQL script that uses DELIMITER directives. Directive lines are
  * not part of any statement, and semicolons between custom delimiters stay
  * inside the statement. trimRange decides whether a slice is executable.
+ * Returns null if every apparent directive was inside SQL or a comment, so
+ * callers can keep using the regular splitter for scripts without directives.
  */
 export const findMysqlDelimiterStatementRanges = (
   text: string,
   trimRange: (start: number, end: number) => SqlStatementRange | null,
-): SqlStatementRange[] => {
+): SqlStatementRange[] | null => {
   const ranges: SqlStatementRange[] = [];
+  let hasDirective = false;
   let delimiter = ';';
   let statementStart = 0;
   let quote = '';
@@ -94,9 +102,10 @@ export const findMysqlDelimiterStatementRanges = (
       continue;
     }
 
-    if (isLineStart(text, index) && !trimRange(statementStart, index)) {
+    if ((ch === 'd' || ch === 'D') && isLineStart(text, index) && !trimRange(statementStart, index)) {
       const directive = resolveDelimiterDirective(text, index);
       if (directive) {
+        hasDirective = true;
         delimiter = directive.delimiter;
         statementStart = directive.lineEnd;
         index = directive.lineEnd - 1;
@@ -130,5 +139,5 @@ export const findMysqlDelimiterStatementRanges = (
   }
 
   push(text.length);
-  return ranges;
+  return hasDirective ? ranges : null;
 };
