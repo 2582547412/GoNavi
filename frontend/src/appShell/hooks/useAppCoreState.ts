@@ -2,7 +2,6 @@ import { notification, message } from 'antd';
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { useSensors, useSensor, PointerSensor } from '@dnd-kit/core';
 import { useI18n } from '../../i18n/provider';
-import { useAIWorkspaceSnapshot } from '../../components/ai/useAIWorkspaceSnapshot';
 import { SavedConnection } from '../../types';
 import {
   useStore,
@@ -61,10 +60,6 @@ export interface UseAppCoreStateInput {
 
 export const useAppCoreState = ({ setFocusedTabDisplayElementKey }: UseAppCoreStateInput) => {
   const { language, t } = useI18n();
-  // The workspace source belongs to the application lifetime, not to the
-  // optional AI panel. This keeps a running harness supplied with a live
-  // snapshot while the panel is hidden, detached, or being remounted.
-  useAIWorkspaceSnapshot({ enabled: true });
   const [notificationApi, notificationContextHolder] = notification.useNotification();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConnectionModalMounted, setIsConnectionModalMounted] = useState(false);
