@@ -7,6 +7,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"math"
+	"math/big"
 	"os"
 	"strconv"
 	"strings"
@@ -166,7 +168,7 @@ func (w *xlsxExportFileWriter) ConsumeRow(row map[string]interface{}) error {
 		}
 		values[i] = formatExportCellText(val)
 	}
-	if err := w.writeStringRow(w.nextRow, values); err != nil {
+	if err := w.writeDataRow(w.nextRow, values); err != nil {
 		return err
 	}
 	w.nextRow++
@@ -193,7 +195,7 @@ func (w *xlsxExportFileWriter) ConsumeRowValues(values []interface{}) error {
 		}
 		record[i] = formatExportCellText(value)
 	}
-	if err := w.writeStringRow(w.nextRow, record); err != nil {
+	if err := w.writeDataRow(w.nextRow, record); err != nil {
 		return err
 	}
 	w.nextRow++
@@ -280,6 +282,14 @@ func (w *xlsxExportFileWriter) cleanupTempSheets() error {
 }
 
 func (w *xlsxExportFileWriter) writeStringRow(rowNumber int, values []string) error {
+	return w.writeRow(rowNumber, values, false)
+}
+
+func (w *xlsxExportFileWriter) writeDataRow(rowNumber int, values []string) error {
+	return w.writeRow(rowNumber, values, true)
+}
+
+func (w *xlsxExportFileWriter) writeRow(rowNumber int, values []string, numericCells bool) error {
 	if w.current == nil {
 		return fmt.Errorf("xlsx sheet not initialized")
 	}
@@ -295,7 +305,7 @@ func (w *xlsxExportFileWriter) writeStringRow(rowNumber int, values []string) er
 	}
 	rowRef := strconv.Itoa(rowNumber)
 	for i, value := range values {
-		if err := writeXLSXInlineStringCell(w.current.writer, w.columnRefs[i], rowRef, value); err != nil {
+		if err := writeXLSXCell(w.current.writer, w.columnRefs[i], rowRef, value, numericCells); err != nil {
 			return err
 		}
 	}
@@ -398,6 +408,84 @@ func writeXLSXSheetHeader(writer *bufio.Writer) error {
 		`<sheetFormatPr defaultRowHeight="15"/>` +
 		`<sheetData>`)
 	return err
+}
+
+func writeXLSXCell(writer *bufio.Writer, columnRef string, rowRef string, value string, numericCells bool) error {
+	if numericCells {
+		if literal, ok := xlsxNumericCellLiteral(value); ok {
+			return writeXLSXNumberCell(writer, columnRef, rowRef, literal)
+		}
+	}
+	return writeXLSXInlineStringCell(writer, columnRef, rowRef, value)
+}
+
+func writeXLSXNumberCell(writer *bufio.Writer, columnRef string, rowRef string, literal string) error {
+	if _, err := writer.WriteString(`<c r="`); err != nil {
+		return err
+	}
+	if _, err := writer.WriteString(columnRef); err != nil {
+		return err
+	}
+	if _, err := writer.WriteString(rowRef); err != nil {
+		return err
+	}
+	if _, err := writer.WriteString(`"><v>`); err != nil {
+		return err
+	}
+	if _, err := writer.WriteString(literal); err != nil {
+		return err
+	}
+	_, err := writer.WriteString(`</v></c>`)
+	return err
+}
+
+// xlsxNumericCellLiteral 把能被 float64 精确表示的十进制写成 Excel 数值。
+// 纯数字若只放在 inlineStr 的 <t> 里，表格软件会按数值单元格去读 <v>，打开后格子是空的。
+// 超出精确范围的整数保持原文本，避免被收成另一个数。
+func xlsxNumericCellLiteral(text string) (string, bool) {
+	if text == "" || text[0] == '+' {
+		return "", false
+	}
+	body := text
+	if body[0] == '-' {
+		body = body[1:]
+	}
+	if body == "" || strings.ContainsAny(body, "eExX_") {
+		return "", false
+	}
+	if len(body) > 1 && body[0] == '0' && body[1] != '.' {
+		return "", false
+	}
+	dot := 0
+	for _, r := range body {
+		switch {
+		case r >= '0' && r <= '9':
+		case r == '.':
+			dot++
+			if dot > 1 {
+				return "", false
+			}
+		default:
+			return "", false
+		}
+	}
+	if dot > 0 && (strings.HasPrefix(body, ".") || strings.HasSuffix(body, ".")) {
+		return "", false
+	}
+	original, ok := new(big.Rat).SetString(text)
+	if !ok {
+		return "", false
+	}
+	value, err := strconv.ParseFloat(text, 64)
+	if err != nil || math.IsNaN(value) || math.IsInf(value, 0) {
+		return "", false
+	}
+	canonical := strconv.FormatFloat(value, 'f', -1, 64)
+	parsed, ok := new(big.Rat).SetString(canonical)
+	if !ok || original.Cmp(parsed) != 0 {
+		return "", false
+	}
+	return canonical, true
 }
 
 func writeXLSXInlineStringCell(writer *bufio.Writer, columnRef string, rowRef string, value string) error {
