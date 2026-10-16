@@ -34,7 +34,7 @@ export interface UseDataGridGridGesturesInput {
   selectionColumnBlank: boolean;
   /** 行选中状态（selectedRowKeys）引用与写入，空白选择列点击选行用。 */
   rowSelectionKeysRef: { current: Iterable<unknown> };
-  setRowSelectionKeys: (keys: string[]) => void;
+  setRowSelectionKeys: (keys: Array<string | number>) => void;
 }
 
 export const useDataGridGridGestures = ({
@@ -97,6 +97,9 @@ export const useDataGridGridGestures = ({
     const rowDragJustEndedRef = { current: false };
     let dragPaintState = false;
     let dragOrderedRowKeys: readonly string[] = [];
+    // DOM 的 data-row-key 恒为字符串，而 antd rowKey 用原始值（查询结果为数字）严格比较；
+    // 写回选中集合必须还原原始键类型，否则行匹配不上（选中态不渲染）。
+    let dragRawKeyByStr = new Map<string, string | number>();
     let dragLastRowKey: string | null = null;
     let dragRafId: number | null = null;
 
@@ -116,7 +119,8 @@ export const useDataGridGridGestures = ({
         else selected.delete(key);
       }
       // 输出保持行的显示顺序，勾选态与视觉行序一致。
-      setRowSelectionKeys(dragOrderedRowKeys.filter((key) => selected.has(key)));
+      const nextKeys = dragOrderedRowKeys.filter((key) => selected.has(key));
+      setRowSelectionKeys(nextKeys.map((key) => dragRawKeyByStr.get(key) ?? key));
     };
 
     const endRowDrag = () => {
@@ -153,10 +157,13 @@ export const useDataGridGridGestures = ({
       if (!rowKey) return;
       const rows = displayDataRef.current ?? [];
       const orderedRowKeys: string[] = [];
+      const rawKeyByStr = new Map<string, string | number>();
       for (const row of rows) {
         const rawKey = row?.[GONAVI_ROW_KEY];
         if (rawKey === undefined || rawKey === null) continue;
-        orderedRowKeys.push(rowKeyStr(rawKey));
+        const keyStr = rowKeyStr(rawKey);
+        orderedRowKeys.push(keyStr);
+        rawKeyByStr.set(keyStr, rawKey);
       }
       if (!orderedRowKeys.includes(rowKey)) return;
       // capture 阶段接管：阻断单元格选区与文本拖选。
@@ -164,6 +171,7 @@ export const useDataGridGridGestures = ({
       event.preventDefault();
       dragAnchorRowKey = rowKey;
       dragOrderedRowKeys = orderedRowKeys;
+      dragRawKeyByStr = rawKeyByStr;
       dragLastRowKey = rowKey;
       dragPaintState = !Array.from(rowSelectionKeysRef.current)
         .some((key) => String(key) === rowKey);
