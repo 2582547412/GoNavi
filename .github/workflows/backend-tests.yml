@@ -53,6 +53,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev
 
+      - name: Check Linux Wails build tags
+        run: python3 tools/backend-workflow.test.py
+
       - name: Run backend tests
         run: go test -tags webkit2_41 ./... -count=1 -timeout=30m
 
@@ -61,7 +64,8 @@ jobs:
       - name: Run DuckDB driver tests
         env:
           CGO_ENABLED: 1
-        run: go test -tags gonavi_duckdb_driver ./internal/db/ ./internal/app/ -run 'DuckDB|Attach|Slugify|SavedConnection|ConnectionSecret|BuildDuckDB|SameExternal|ParseDuckDB|SecretCleanup' -count=1 -timeout=30m
+        # App tests include Wails assetserver CGO even when -run selects only DuckDB.
+        run: go test -tags webkit2_41,gonavi_duckdb_driver ./internal/db/ ./internal/app/ -run 'DuckDB|Attach|Slugify|SavedConnection|ConnectionSecret|BuildDuckDB|SameExternal|ParseDuckDB|SecretCleanup' -count=1 -timeout=30m
 
       # Kafka、RocketMQ、Pulsar 改为驱动代理后带各自的构建标签，主套件不再编译这批
       # 文件；单独跑一遍保留原有覆盖。

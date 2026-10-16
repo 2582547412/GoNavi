@@ -26,6 +26,30 @@ export function AuthorizeMCPConnectionSQL(arg1, arg2) {
   return window['go']['app']['App']['AuthorizeMCPConnectionSQL'](arg1, arg2);
 }
 
+export function BackgroundGalleryCancel(arg1) {
+  return window['go']['app']['App']['BackgroundGalleryCancel'](arg1);
+}
+
+export function BackgroundGalleryDownload(arg1, arg2, arg3) {
+  return window['go']['app']['App']['BackgroundGalleryDownload'](arg1, arg2, arg3);
+}
+
+export function BackgroundGalleryRefresh() {
+  return window['go']['app']['App']['BackgroundGalleryRefresh']();
+}
+
+export function BackgroundGalleryRemove(arg1, arg2) {
+  return window['go']['app']['App']['BackgroundGalleryRemove'](arg1, arg2);
+}
+
+export function BackgroundGalleryResolve(arg1, arg2) {
+  return window['go']['app']['App']['BackgroundGalleryResolve'](arg1, arg2);
+}
+
+export function BackgroundGalleryStatus() {
+  return window['go']['app']['App']['BackgroundGalleryStatus']();
+}
+
 export function BootstrapConnectionSidebarLayout(arg1) {
   return window['go']['app']['App']['BootstrapConnectionSidebarLayout'](arg1);
 }

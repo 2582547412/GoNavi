@@ -1,14 +1,12 @@
-import { useEffect, useLayoutEffect, useMemo } from 'react';
-import { resolvedBackground } from '../../utils/resolvedBackground';
+import { useEffect, useLayoutEffect } from 'react';
+import { useResolvedBackground } from '../../backgroundGallery/useResolvedBackground';
 import { BACKGROUND_IMAGE_STORAGE_KEY, useBackgroundImageStore } from '../../backgroundImageStore';
 import './backgroundImage.css';
 
 export default function BackgroundImageStyleHost() {
-  const uploadedImage = useBackgroundImageStore((state) => state.image);
-  const builtinId = useBackgroundImageStore((state) => state.builtinId);
   const enabled = useBackgroundImageStore((state) => state.enabled);
-  const image = useMemo(() => enabled ? resolvedBackground({ image: uploadedImage, builtinId }) : null,
-    [uploadedImage, builtinId, enabled]);
+  const resolved = useResolvedBackground();
+  const image = enabled ? resolved : null;
   const opacity = useBackgroundImageStore((state) => state.opacity);
   const reload = useBackgroundImageStore((state) => state.reload);
   const positionX = useBackgroundImageStore((state) => state.previewPosition?.positionX ?? state.positionX);
