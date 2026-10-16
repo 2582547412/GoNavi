@@ -38,11 +38,11 @@ body[data-ui-version='v2'] .gn-object-overview-icon {
   border-radius: 7px;
   background: var(--gn-accent-soft, rgba(21, 128, 61, 0.12));
   color: var(--gn-accent, #15803d);
-  font-size: 14px;
+  font-size: calc(var(--gn-font-size-sm, 12px) + 2px);
 }
 
 body[data-ui-version='v2'] .gn-object-overview-title {
-  font-size: 14px;
+  font-size: calc(var(--gn-font-size-sm, 12px) + 2px);
   font-weight: 600;
   color: var(--gn-fg-1, inherit);
   white-space: nowrap;
@@ -52,7 +52,7 @@ body[data-ui-version='v2'] .gn-object-overview-title {
 }
 
 body[data-ui-version='v2'] .gn-object-overview-summary {
-  font-size: 12px;
+  font-size: var(--gn-font-size-sm, 12px);
   color: var(--gn-fg-3, rgba(100, 116, 139, 0.9));
   white-space: nowrap;
 }
@@ -113,14 +113,14 @@ body[data-ui-version='v2'] .gn-object-overview-row-icon {
   width: 18px;
   height: 18px;
   flex: 0 0 18px;
-  font-size: 13px;
+  font-size: calc(var(--gn-font-size-sm, 12px) + 1px);
   color: var(--gn-fg-3, rgba(100, 116, 139, 0.9));
 }
 
 body[data-ui-version='v2'] .gn-object-overview-row-name {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: calc(var(--gn-font-size-sm, 12px) + 1px);
   font-family: var(--gn-font-mono, monospace);
   white-space: nowrap;
   overflow: hidden;
@@ -131,7 +131,7 @@ body[data-ui-version='v2'] .gn-object-overview-row-type {
   flex-shrink: 0;
   padding: 1px 8px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--gn-font-size-xs, 11px);
   line-height: 1.6;
   background: var(--gn-accent-soft, rgba(21, 128, 61, 0.12));
   color: var(--gn-accent, #15803d);
@@ -144,7 +144,7 @@ body[data-ui-version='v2'] .gn-object-overview-row-type.is-procedure {
 
 body[data-ui-version='v2'] .gn-object-overview-row-copy {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: var(--gn-font-size-xs, 11px);
   color: var(--gn-fg-3, rgba(100, 116, 139, 0.9));
   opacity: 0;
   cursor: pointer;
@@ -162,7 +162,7 @@ body[data-ui-version='v2'] .gn-object-overview-row-copy:hover {
 
 body[data-ui-version='v2'] .gn-object-overview-missing-connection {
   padding: 8px 16px;
-  font-size: 12px;
+  font-size: var(--gn-font-size-sm, 12px);
   color: var(--gn-warn, #b45309);
   border-top: 0.5px solid var(--gn-br-1, rgba(15, 23, 42, 0.06));
 }

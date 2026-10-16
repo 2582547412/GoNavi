@@ -109,7 +109,7 @@ body[data-ui-layout='navicat'][data-ui-version='v2'] .gn-v2-main-tabs .ant-tabs-
    颜色继承不进去。 */
 body[data-ui-layout='navicat'][data-ui-version='v2'] .gn-v2-main-tabs .ant-tabs-tab .ant-tabs-tab-btn {
   color: var(--gn-fg-3, #5f5f68);
-  font-size: 12px;
+  font-size: var(--gn-font-size-sm, 12px);
 }
 
 body[data-ui-layout='navicat'][data-ui-version='v2'] .gn-v2-main-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
@@ -189,7 +189,7 @@ body[data-ui-layout='navicat'][data-ui-version='v2'] .gn-v2-main-tabs .gn-v2-tab
 
 /* 主标题：略大更清晰，非激活 500 / 激活 600（颜色沿用基础层 fg-3 / fg-1）。 */
 body[data-ui-layout='navicat'][data-ui-version='v2'] .gn-v2-main-tabs .gn-v2-tab-label-main.tab-title-text {
-  font-size: 12.5px;
+  font-size: calc(var(--gn-font-size-sm, 12px) + 0.5px);
   font-weight: 500;
   letter-spacing: 0.1px;
 }
@@ -200,7 +200,7 @@ body[data-ui-layout='navicat'][data-ui-version='v2'] .gn-v2-main-tabs .ant-tabs-
 
 /* 双行模式第二行：更小更淡 */
 body[data-ui-layout='navicat'][data-ui-version='v2'] .gn-v2-main-tabs .gn-v2-tab-label-secondary {
-  font-size: 10.5px;
+  font-size: var(--gn-font-size-xs, 11px);
   color: var(--gn-fg-4, #8b8b94);
 }
 
