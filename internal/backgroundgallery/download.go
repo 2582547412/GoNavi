@@ -145,6 +145,10 @@ func streamAsset(ctx context.Context, file *os.File, reader io.Reader, a Asset, 
 			return err
 		}
 		n, readErr := reader.Read(buffer)
+		// A canceled HTTP read may finish with EOF instead of a context error.
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		if n > 0 {
 			downloaded += int64(n)
 			if downloaded > a.SizeBytes {
@@ -157,6 +161,10 @@ func streamAsset(ctx context.Context, file *os.File, reader io.Reader, a Asset, 
 				return wrap("integrity", err)
 			}
 			emitProgress(callback, downloaded, a.SizeBytes, "downloading")
+		}
+		// A progress callback can also cancel on the final chunk.
+		if err := ctx.Err(); err != nil {
+			return err
 		}
 		if errors.Is(readErr, io.EOF) {
 			break
