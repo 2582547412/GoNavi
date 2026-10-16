@@ -439,9 +439,9 @@ func writeXLSXNumberCell(writer *bufio.Writer, columnRef string, rowRef string, 
 	return err
 }
 
-// xlsxNumericCellLiteral 把能被 float64 精确表示的十进制写成 Excel 数值。
-// 纯数字若只放在 inlineStr 的 <t> 里，表格软件会按数值单元格去读 <v>，打开后格子是空的。
-// 超出精确范围的整数保持原文本，避免被收成另一个数。
+// xlsxNumericCellLiteral accepts plain decimals within Excel's 15-digit precision.
+// Integers with more than 15 digits stay text (also keeping them below 2^53);
+// decimals must round-trip without changing value, not be exactly binary-representable.
 func xlsxNumericCellLiteral(text string) (string, bool) {
 	if text == "" || text[0] == '+' {
 		return "", false
@@ -470,6 +470,13 @@ func xlsxNumericCellLiteral(text string) (string, bool) {
 		}
 	}
 	if dot > 0 && (strings.HasPrefix(body, ".") || strings.HasSuffix(body, ".")) {
+		return "", false
+	}
+	// Long integer/ID values stay text, even when float64 rounds back to the same spelling.
+	const maxExcelSignificantDigits = 15
+	integer, fraction, _ := strings.Cut(body, ".")
+	significant := strings.TrimLeft(integer+strings.TrimRight(fraction, "0"), "0")
+	if len(integer) > maxExcelSignificantDigits || len(significant) > maxExcelSignificantDigits {
 		return "", false
 	}
 	original, ok := new(big.Rat).SetString(text)
