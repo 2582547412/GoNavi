@@ -219,7 +219,7 @@ type App struct {
 	dataSyncFingerprintMu         sync.Mutex
 	dataSyncFingerprintKey        []byte
 	dataSyncJobsState
-	backgroundGallery         backgroundGalleryState
+	appearanceGalleryState
 	dataSyncJobLeaseOwner     string
 	dataSyncCDCRegistry       *synccdc.Registry
 	dataSyncChangeEventRunner func(context.Context, syncbackend.ChangeEventRequest) syncbackend.ChangeEventResult

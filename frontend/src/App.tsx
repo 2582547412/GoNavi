@@ -317,7 +317,7 @@ function App() {
 
   const {
     linuxResizeHandleStyleBase, showLinuxResizeHandles, resizeGuideColor, v2AntPrimaryColor,
-    v2AntPrimaryBgColor, antdTheme, filterFontOption, renderFontOptionLabel, showLinuxCJKFontBanner,
+    v2AntPrimaryBgColor, antdTheme, showLinuxCJKFontBanner,
     sidebarMetadataFieldItems, toggleSidebarMetadataFieldFromSettings, handleSidebarMetadataDragEnd,
   } = useAppAntdTheme({
     isLinuxRuntime, customThemeAntTokens, darkMode, tokenFontSize, tokenFontSizeSM, tokenFontSizeLG,
@@ -363,8 +363,8 @@ function App() {
     effectiveThemePreference, selectPresetTheme, renderThemeModePreview, renderThemeSettingsRow,
     queryOptions, setQueryOptions,
     effectiveUiScale, setUiScale, effectiveFontSize, setFontSize, effectiveSidebarRailScale,
-    setAppearance, appearance, isFontFamiliesLoading, uiFontOptions, filterFontOption,
-    renderFontOptionLabel, fontFamiliesLoadError, installedFontFamilies, linuxCJKFontInstallHint,
+    setAppearance, appearance, isFontFamiliesLoading, uiFontOptions,
+    fontFamiliesLoadError, installedFontFamilies, linuxCJKFontInstallHint,
     hasLoadedInstalledFontsRef, darkMode, monoFontOptions, newQuerySqlTemplate,
     tabDisplaySettingsPanelRef, tabDisplaySettings, setTabDisplayLayout,
     effectiveTabEnvironmentAccentThickness, tabDisplayElementOrder, visibleTabDisplayElementKeys,

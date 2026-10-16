@@ -384,6 +384,20 @@ export function ExportTablesSQL(arg1:connection.ConnectionConfig,arg2:string,arg
 
 export function ExportTablesSQLWithOptions(arg1:connection.ConnectionConfig,arg2:string,arg3:Array<string>,arg4:boolean,arg5:boolean,arg6:app.ExportFileOptions):Promise<connection.QueryResult>;
 
+export function FontGalleryCancel(arg1:string):Promise<connection.QueryResult>;
+
+export function FontGalleryDownload(arg1:string,arg2:string,arg3:string):Promise<connection.QueryResult>;
+
+export function FontGalleryPreview(arg1:string,arg2:string,arg3:string):Promise<connection.QueryResult>;
+
+export function FontGalleryRefresh():Promise<connection.QueryResult>;
+
+export function FontGalleryRemove(arg1:string,arg2:string):Promise<connection.QueryResult>;
+
+export function FontGalleryResolve(arg1:string,arg2:string):Promise<connection.QueryResult>;
+
+export function FontGalleryStatus():Promise<connection.QueryResult>;
+
 export function ForceQuitApplication():Promise<connection.QueryResult>;
 
 export function GenerateQueryID():Promise<string>;

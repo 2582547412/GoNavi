@@ -43,6 +43,7 @@ docs
 docs/*
 !docs/download-cdn-operations.md
 !docs/background-gallery-operations.md
+!docs/font-gallery-operations.md
 !docs/superpowers/
 docs/superpowers/*
 !docs/superpowers/specs/

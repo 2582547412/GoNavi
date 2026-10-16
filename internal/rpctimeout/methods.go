@@ -37,6 +37,9 @@ func IsLongRunningAppMethod(method string) bool {
 		"MockDataGenerate",
 		"BackgroundGalleryRefresh",
 		"BackgroundGalleryDownload",
+		"FontGalleryRefresh",
+		"FontGalleryDownload",
+		"FontGalleryPreview",
 		"DataSync":
 		return true
 	default:
