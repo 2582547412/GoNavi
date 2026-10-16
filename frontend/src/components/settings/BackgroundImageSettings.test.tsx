@@ -73,7 +73,8 @@ describe('BackgroundImageSettings', () => {
 
   it('provides matching keys and interpolation tokens in all six languages', () => {
     const keys = Object.keys(en).filter((entry) => entry.startsWith('app.theme.background.'));
-    expect(keys).toHaveLength(31);
+    expect(keys).toHaveLength(62);
+    expect(keys.filter(entry => entry.startsWith('app.theme.background.gallery.'))).toHaveLength(31);
     for (const catalog of [en, zh, tw, ja, de, ru]) {
       expect(Object.keys(catalog).filter((entry) => entry.startsWith('app.theme.background.')).sort())
         .toEqual([...keys].sort());

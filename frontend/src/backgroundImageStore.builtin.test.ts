@@ -2,7 +2,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BACKGROUND_IMAGE_STORAGE_KEY as KEY, useBackgroundImageStore as store } from './backgroundImageStore';
 import { prepareBackgroundImage, type BackgroundImage } from './utils/backgroundImage';
-import { BUILTIN_BACKGROUNDS, type BuiltinBackgroundId } from './utils/builtinBackgrounds';
+import { BUILTIN_BACKGROUNDS } from './utils/builtinBackgrounds';
+import { galleryInstalled } from './backgroundGallery/testFixtures';
+vi.mock('./backgroundGallery/adapter', () => ({ getGalleryAdapter: async () => ({
+  resolve: async (id: string) => galleryInstalled(id), cancel: async () => undefined,
+}) }));
 
 vi.mock('./utils/backgroundImage', async (original) => ({
   ...await original<typeof import('./utils/backgroundImage')>(),
@@ -38,17 +42,17 @@ describe('background selection and opt-in persistence', () => {
     expect(store.getState().enabled).toBe(true);
   });
 
-  it.each(BUILTIN_BACKGROUNDS)('selects and restores $id using only its ID, with no image bytes or URLs', ({ id }) => {
+  it.each(BUILTIN_BACKGROUNDS)('selects and restores $id using only its ID, with no image bytes or URLs', async ({ id }) => {
     store.getState().setOpacity(27);
-    store.getState().selectBuiltin(id);
-    expect(saved()).toEqual({ version: 1, enabled: true, builtinId: id, image: null, opacity: 27, positionX: 0, positionY: 0 });
+    await store.getState().selectBuiltin(id);
+    expect(saved()).toEqual({ version: 1, enabled: true, builtinId: id, builtinVersion: '1', image: null, opacity: 27, positionX: 0, positionY: 0 });
     expect(localStorage.getItem(KEY)!.length).toBeLessThan(160);
     store.getState().reload();
     expect(store.getState()).toMatchObject({ enabled: true, builtinId: id, image: null, opacity: 27 });
   });
 
   it.each(['builtin', 'uploaded'])('off/on preserves %s selection, intensity and offsets across reload', async (source) => {
-    if (source === 'builtin') store.getState().selectBuiltin('whale-maid-a');
+    if (source === 'builtin') await store.getState().selectBuiltin('whale-maid-a');
     else await store.getState().importImage(file);
     store.getState().setOpacity(29);
     store.getState().setPosition(12.3, -45.6);
@@ -66,8 +70,8 @@ describe('background selection and opt-in persistence', () => {
   it('switches between uploads and builtins without restoring an obsolete upload', async () => {
     await store.getState().importImage(file);
     store.getState().setPosition(11, 22);
-    store.getState().selectBuiltin('whale-maid-a');
-    store.getState().selectBuiltin('whale-maid-b');
+    await store.getState().selectBuiltin('whale-maid-a');
+    await store.getState().selectBuiltin('whale-maid-b');
     expect(store.getState()).toMatchObject({ image: null, builtinId: 'whale-maid-b', enabled: true, positionX: 11, positionY: 22 });
     expect(saved().image).toBeNull();
     store.getState().setEnabled(false);
@@ -76,8 +80,8 @@ describe('background selection and opt-in persistence', () => {
     expect(prepareBackgroundImage).toHaveBeenCalledTimes(2);
   });
 
-  it.each(['clearImage', 'reset'] as const)('%s removes selection and positions and explicitly disables the background', (action) => {
-    store.getState().selectBuiltin('whale-maid-b');
+  it.each(['clearImage', 'reset'] as const)('%s removes selection and positions and explicitly disables the background', async (action) => {
+    await store.getState().selectBuiltin('whale-maid-b');
     store.getState().setOpacity(24);
     store.getState().setPosition(11, 22);
     store.getState().previewPositionAt(30, 40);
@@ -89,22 +93,22 @@ describe('background selection and opt-in persistence', () => {
     });
   });
 
-  it.each(['https://evil.example/a.webp', 'data:image/webp;base64,AAAA', '__proto__', '', 'whale-maid-c'])('rejects unknown builtin %s', (id) => {
+  it.each(['https://evil.example/a.webp', 'data:image/webp;base64,AAAA', '__proto__', '', 'whale-maid-c'])('rejects unknown builtin %s', async (id) => {
     localStorage.setItem(KEY, JSON.stringify({ version: 1, builtinId: id, enabled: true, image: null, positionX: 50 }));
     store.getState().reload();
     expect(store.getState()).toMatchObject({ enabled: false, builtinId: null, image: null, positionX: 0 });
     const before = store.getState();
-    expect(() => before.selectBuiltin(id as BuiltinBackgroundId)).toThrow();
+    await expect(before.selectBuiltin(id)).rejects.toThrow();
     expect(store.getState()).toBe(before);
   });
 
-  it.each(['toggle', 'select'])('keeps state and persisted selection intact on %s storage failure', (action) => {
-    store.getState().selectBuiltin('whale-maid-a');
+  it.each(['toggle', 'select'])('keeps state and persisted selection intact on %s storage failure', async (action) => {
+    await store.getState().selectBuiltin('whale-maid-a');
     const previous = store.getState();
     const raw = localStorage.getItem(KEY);
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
-    expect(() => action === 'toggle' ? previous.setEnabled(false) : previous.selectBuiltin('whale-maid-b'))
-      .toThrow(expect.objectContaining({ code: 'storage-failed' }));
+    if (action === 'toggle') expect(() => previous.setEnabled(false)).toThrow(expect.objectContaining({ code: 'storage-failed' }));
+    else await expect(previous.selectBuiltin('whale-maid-b')).rejects.toMatchObject({ code: 'storage-failed' });
     expect(store.getState()).toBe(previous);
     expect(localStorage.getItem(KEY)).toBe(raw);
   });
@@ -114,7 +118,7 @@ describe('background selection and opt-in persistence', () => {
     vi.mocked(prepareBackgroundImage).mockReturnValue(new Promise((resolve) => { finish = resolve; }));
     const pending = store.getState().importImage(file);
     if (action === 'toggle') store.getState().setEnabled(false);
-    else store.getState().selectBuiltin('whale-maid-b');
+    else await store.getState().selectBuiltin('whale-maid-b');
     finish(image);
     await pending;
     expect(store.getState()).toMatchObject({ image: null, enabled: action === 'select', builtinId: action === 'select' ? 'whale-maid-b' : null });

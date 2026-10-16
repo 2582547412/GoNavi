@@ -24,6 +24,7 @@ var requiredIssue1098WebRPCContextMethods = []string{
 	"PreviewImportFile", "PreviewImportFileWithOptions", "ImportDataWithProgress", "ImportDataWithProgressOptions",
 	"ImportDatabaseSQL", "ImportDatabaseSQLWithOptions", "ExecuteSQLFile", "ResumeImportJob", "RetryImportJobFailedRows", "VerifySQLAuditIntegrity",
 	"MockDataInspect", "MockDataPreview", "MockDataGenerate",
+	"BackgroundGalleryRefresh", "BackgroundGalleryDownload",
 }
 
 // RequiredIssue1098WebRPCContextMethods returns the exact App method set whose
@@ -37,7 +38,7 @@ func RequiredIssue1098WebRPCContextMethods() []string {
 // method set. Every handler has the original public signature prefixed by a
 // context.Context; the Web server validates the complete map at construction.
 func WebRPCContextHandlers(a *App) map[string]any {
-	return map[string]any{
+	return withBackgroundGalleryContextHandlers(a, map[string]any{
 		"DBQuery": func(ctx context.Context, config connection.ConnectionConfig, dbName, query string) connection.QueryResult {
 			return a.dbQueryContext(ctx, config, dbName, query)
 		},
@@ -240,7 +241,7 @@ func WebRPCContextHandlers(a *App) map[string]any {
 		"MockDataGenerate": func(ctx context.Context, config connection.ConnectionConfig, dbName, tableName string, plan mockdata.Plan, options MockDataRunOptions) connection.QueryResult {
 			return a.mockDataGenerateContext(ctx, config, dbName, tableName, plan, options)
 		},
-	}
+	})
 }
 
 func (a *App) dbQueryContext(ctx context.Context, config connection.ConnectionConfig, dbName, query string) connection.QueryResult {

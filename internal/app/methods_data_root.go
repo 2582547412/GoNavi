@@ -130,6 +130,11 @@ func (a *App) SelectDataRootDirectory(currentDir string) connection.QueryResult 
 func (a *App) ApplyDataRootDirectory(directory string, migrate bool) connection.QueryResult {
 	a.dataRootApplyMu.Lock()
 	defer a.dataRootApplyMu.Unlock()
+	resumeGallery, galleryErr := a.suspendBackgroundGallery()
+	if galleryErr != nil {
+		return a.galleryResult(nil, galleryErr)
+	}
+	defer resumeGallery()
 
 	currentRoot := appdata.MustResolveActiveRoot()
 	targetRoot, err := appdata.ResolveRoot(directory)

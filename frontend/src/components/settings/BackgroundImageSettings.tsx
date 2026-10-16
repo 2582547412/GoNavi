@@ -1,7 +1,7 @@
 import { DeleteOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons';
 import { Alert, Button, Slider } from 'antd';
-import { useId, useMemo, useRef, useState, type ChangeEvent } from 'react';
-import { resolvedBackground } from '../../utils/resolvedBackground';
+import { useId, useRef, useState, type ChangeEvent } from 'react';
+import { useResolvedBackground } from '../../backgroundGallery/useResolvedBackground';
 import BuiltinBackgroundSettings from './BuiltinBackgroundSettings';
 import { useBackgroundImageStore } from '../../backgroundImageStore';
 import { useI18n } from '../../i18n/provider';
@@ -76,10 +76,9 @@ function useBackgroundImageActions() {
 }
 
 export default function BackgroundImageSettings() {
-  const { t } = useI18n();
-  const uploadedImage = useBackgroundImageStore((state) => state.image);
+  const { t, language } = useI18n();
   const builtinId = useBackgroundImageStore((state) => state.builtinId);
-  const image = useMemo(() => resolvedBackground({ image: uploadedImage, builtinId }), [uploadedImage, builtinId]);
+  const image = useResolvedBackground(language);
   const opacity = useBackgroundImageStore((state) => state.opacity);
   const actions = useBackgroundImageActions();
   const intensityId = useId();
@@ -113,14 +112,14 @@ export default function BackgroundImageSettings() {
           {t(actions.busy ? 'app.theme.background.busy' : image
             ? 'app.theme.background.replace' : 'app.theme.background.upload')}
         </Button>
-        {image && (
+        {(image || builtinId) && (
           <Button icon={<DeleteOutlined aria-hidden="true" />} disabled={actions.busy} onClick={actions.remove}>
             {t('app.theme.background.remove')}
           </Button>
         )}
         <Button
           icon={<ReloadOutlined aria-hidden="true" />}
-          disabled={actions.busy || (!image && opacity === 15)}
+          disabled={actions.busy || (!image && !builtinId && opacity === 15)}
           onClick={actions.reset}
         >
           {t('app.theme.background.reset')}

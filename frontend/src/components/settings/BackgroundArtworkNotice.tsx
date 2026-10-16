@@ -1,38 +1,23 @@
 import type { MouseEvent } from 'react';
 import { BrowserOpenURL } from '../../../wailsjs/runtime';
 import { useI18n } from '../../i18n/provider';
-import { BACKGROUND_ARTWORK_LICENSE, BACKGROUND_ARTWORK_SOURCE } from '../../utils/builtinBackgrounds';
-import notice from '../../assets/backgrounds/whale-maid/NOTICE?raw';
-import license from '../../assets/backgrounds/whale-maid/LICENSE-ARTWORK?raw';
+import type { GalleryEntry } from '../../backgroundGallery/types';
 
 function openLink(event: MouseEvent<HTMLAnchorElement>, url: string) {
-  // Leave ordinary anchors to the browser in Web mode; use the OS browser in Wails.
   if (!window.runtime) return;
-  event.preventDefault();
-  BrowserOpenURL(url);
+  event.preventDefault(); BrowserOpenURL(url);
 }
-
-export default function BackgroundArtworkNotice() {
+export default function BackgroundArtworkNotice({ entry }: { entry: GalleryEntry }) {
   const { t } = useI18n();
-  return (
-    <div className="gonavi-background-artwork-notice">
-      <p className="gonavi-background-image-hint">{t('app.theme.background.builtin.attribution')}</p>
-      <p className="gonavi-background-image-hint">{t('app.theme.background.builtin.terms')}</p>
-      <div className="gonavi-background-image-actions">
-        <a href={BACKGROUND_ARTWORK_SOURCE} target="_blank" rel="noopener noreferrer"
-          onClick={(event) => openLink(event, BACKGROUND_ARTWORK_SOURCE)}>
-          {t('app.theme.background.builtin.source')}
-        </a>
-        <a href={BACKGROUND_ARTWORK_LICENSE} target="_blank" rel="noopener noreferrer"
-          onClick={(event) => openLink(event, BACKGROUND_ARTWORK_LICENSE)}>
-          {t('app.theme.background.builtin.license')}
-        </a>
-      </div>
-      <details>
-        <summary>{t('app.theme.background.builtin.full_notice')}</summary>
-        <pre>{notice}</pre>
-        <pre>{license}</pre>
-      </details>
+  return <details className="gonavi-background-artwork-notice">
+    <summary>{t('app.theme.background.gallery.license')}</summary>
+    <p>{entry.attribution}</p>
+    <p>{entry.license.name}</p>
+    {entry.license.nonCommercial && <p>{t('app.theme.background.gallery.non_commercial')}</p>}
+    <div className="gonavi-background-image-actions">
+      <a href={entry.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={event => openLink(event, entry.sourceUrl)}>{t('app.theme.background.gallery.source')}</a>
+      <a href={entry.license.url} target="_blank" rel="noopener noreferrer" onClick={event => openLink(event, entry.license.url)}>{t('app.theme.background.gallery.license_link')}</a>
     </div>
-  );
+    <pre>{entry.license.notice}</pre><pre>{entry.license.text}</pre>
+  </details>;
 }

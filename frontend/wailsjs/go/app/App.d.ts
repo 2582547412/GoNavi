@@ -26,6 +26,18 @@ export function ApplySavedQueryDirectory(arg1:string):Promise<connection.QueryRe
 
 export function AuthorizeMCPConnectionSQL(arg1:connection.ConnectionConfig,arg2:string):Promise<void>;
 
+export function BackgroundGalleryCancel(arg1:string):Promise<connection.QueryResult>;
+
+export function BackgroundGalleryDownload(arg1:string,arg2:string,arg3:string):Promise<connection.QueryResult>;
+
+export function BackgroundGalleryRefresh():Promise<connection.QueryResult>;
+
+export function BackgroundGalleryRemove(arg1:string,arg2:string):Promise<connection.QueryResult>;
+
+export function BackgroundGalleryResolve(arg1:string,arg2:string):Promise<connection.QueryResult>;
+
+export function BackgroundGalleryStatus():Promise<connection.QueryResult>;
+
 export function BootstrapConnectionSidebarLayout(arg1:connection.ConnectionSidebarLayoutInput):Promise<connection.ConnectionSidebarLayout>;
 
 export function BuildDatabaseDiagnosticPackage():Promise<connection.QueryResult>;

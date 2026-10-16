@@ -29,7 +29,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/menu/keys"
 	"github.com/wailsapp/wails/v2/pkg/options"
-	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -233,9 +232,7 @@ func main() {
 		DragAndDrop: &options.DragAndDrop{
 			EnableFileDrop: true,
 		},
-		AssetServer: &assetserver.Options{
-			Assets: assets,
-		},
+		AssetServer:      app.BackgroundGalleryAssetOptions(application, assets),
 		BackgroundColour: backgroundColour,
 		Menu:             appMenu,
 		OnStartup: func(ctx context.Context) {
