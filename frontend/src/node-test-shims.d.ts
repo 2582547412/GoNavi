@@ -34,6 +34,7 @@ declare module 'node:crypto' {
   }
 
   export function createHash(algorithm: 'sha256'): Hash;
+  export const webcrypto: Crypto;
 }
 
 declare const process: {

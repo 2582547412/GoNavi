@@ -29,6 +29,20 @@ def missing_webkit_tag(workflow: str) -> list[str]:
 
 
 class BackendWorkflowTest(unittest.TestCase):
+    def test_clean_frontend_build_is_required_by_the_gate(self):
+        workflow = (ROOT / ".github/workflows/backend-tests.yml").read_text()
+        frontend = re.search(r"(?ms)^  frontend:\n(.*?)(?=^  [\w-]+:|\Z)", workflow)
+        self.assertIsNotNone(frontend, "missing clean frontend job")
+        block = frontend.group(1)
+        self.assertIn("node-version: '20'", block)
+        self.assertIn("working-directory: frontend", block)
+        self.assertIn("run: npm ci --no-audit --no-fund", block)
+        self.assertIn("run: npm run build", block)
+        gate = workflow.split("  gate:", 1)[1]
+        self.assertIn("needs: [frontend, full, platform-sensitive]", gate)
+        self.assertIn("needs.frontend.result", gate)
+        self.assertIn('"${FRONTEND_RESULT}" != "success"', gate)
+
     def test_app_and_root_builds_select_installed_webkit(self):
         workflow = (ROOT / ".github/workflows/backend-tests.yml").read_text()
         self.assertEqual(missing_webkit_tag(workflow), [], "Linux app/root tests must select webkit2_41")
