@@ -30,6 +30,7 @@ describe('non-mutating settings previews', () => {
     act(() => view.unmount());
   });
   it('previews density and row numbers using actual grid spacing without modifying either preference', () => {
+    useStore.setState({ appearance: { ...DEFAULT_APPEARANCE, dataTableDensity: 'comfortable', showDataTableRowNumber: true } });
     let view!: ReturnType<typeof create>;
     act(() => { view = create(<TablePreferencePreview />); });
     const compact = view.root.findAllByType('button').find(button => button.props.children === t('app.theme.data_table.density.compact'))!;
