@@ -12226,6 +12226,7 @@
   "datasource.variant.gbase8a.v8": "MySQL 协议：GBase 8a 8.6 与 9.5（多 VC 环境按账号的默认 VC 浏览）；事务通过关闭自动提交实现，索引只支持 HASH",
   "connection_modal.step1.hint.gbase8a": "MPP 分析型 / MySQL 协议",
   "db.backend.error.gbase8a_connect_failed": "无法连接 GBase 8a：{{detail}}",
+  "db.backend.error.gbase8a_dsn_parse_failed": "解析 GBase 8a 连接串失败：{{detail}}",
   "db.backend.error.gbase8a_mixed_changes": "GBase 8a 的一个事务里，同一张表执行 UPDATE / DELETE 后不能再有其他写入：请把新增、修改、删除分开提交",
   "db.backend.error.gbase8a_rows_mismatch": "提交失败：应影响 {{expected}} 行，实际影响 {{actual}} 行（数据可能已被其他客户端修改），已回滚，请刷新后重试",
   "db.backend.error.gbase8a_update_requires_key": "GBase 8a 修改数据需要主键条件：请为表设置主键，或在 SQL 编辑器里写 UPDATE 语句",

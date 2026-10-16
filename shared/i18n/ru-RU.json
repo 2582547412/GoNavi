@@ -12226,6 +12226,7 @@
   "datasource.variant.gbase8a.v8": "Протокол MySQL: GBase 8a 8.6 и 9.5 (в кластерах с несколькими VC просматривается VC учётной записи по умолчанию); транзакции через отключение autocommit, поддерживаются только индексы HASH",
   "connection_modal.step1.hint.gbase8a": "MPP-аналитика / протокол MySQL",
   "db.backend.error.gbase8a_connect_failed": "Не удалось подключиться к GBase 8a: {{detail}}",
+  "db.backend.error.gbase8a_dsn_parse_failed": "Не удалось разобрать строку подключения GBase 8a: {{detail}}",
   "db.backend.error.gbase8a_mixed_changes": "В транзакции GBase 8a после UPDATE / DELETE таблица не принимает других изменений: фиксируйте вставки, изменения и удаления по отдельности",
   "db.backend.error.gbase8a_rows_mismatch": "Не удалось применить изменения: ожидалось {{expected}} затронутых строк, фактически {{actual}} (данные могли изменить другие клиенты); изменения отменены, обновите данные и повторите",
   "db.backend.error.gbase8a_update_requires_key": "Для изменения строк GBase 8a нужно условие по первичному ключу: задайте таблице первичный ключ или напишите оператор UPDATE в редакторе SQL",
