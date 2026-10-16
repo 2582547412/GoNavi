@@ -12758,5 +12758,16 @@
   "app.theme.background.gallery.error.download_failed": "Не удалось скачать фон. Проверьте подключение к интернету и повторите попытку.",
   "app.theme.background.gallery.error.integrity": "Изображение не прошло проверку. Текущий фон не изменён.",
   "app.theme.background.gallery.error.canceled": "Скачивание отменено.",
-  "app.theme.background.gallery.error.storage_failed": "Не удалось сохранить фон на этом устройстве. Освободите место и повторите попытку."
+  "app.theme.background.gallery.error.storage_failed": "Не удалось сохранить фон на этом устройстве. Освободите место и повторите попытку.",
+  "app.theme.tab_appearance.title": "Внешний вид вкладок",
+  "app.theme.tab_appearance.description": "Настройте стиль вкладок рабочей области и положение кнопки закрытия. Только оформление.",
+  "app.theme.tab_appearance.style.label": "Стиль вкладок",
+  "app.theme.tab_appearance.style.hint": "Стандартные карточки — как сейчас, подчёркивание — легче, пилюля — со скруглением.",
+  "app.theme.tab_appearance.style.card": "Стандартная карточка",
+  "app.theme.tab_appearance.style.underline": "Подчёркивание",
+  "app.theme.tab_appearance.style.pill": "Пилюля",
+  "app.theme.tab_appearance.close_position.label": "Положение кнопки закрытия",
+  "app.theme.tab_appearance.close_position.hint": "Разместите кнопку закрытия слева или справа от текста вкладки.",
+  "app.theme.tab_appearance.close_position.left": "Слева",
+  "app.theme.tab_appearance.close_position.right": "Справа"
 }

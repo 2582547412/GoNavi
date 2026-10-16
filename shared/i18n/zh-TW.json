@@ -12758,5 +12758,16 @@
   "app.theme.background.gallery.error.download_failed": "無法下載背景，請檢查網路連線後重試。",
   "app.theme.background.gallery.error.integrity": "圖片驗證失敗，目前的背景未變更。",
   "app.theme.background.gallery.error.canceled": "下載已取消。",
-  "app.theme.background.gallery.error.storage_failed": "無法在目前裝置儲存背景，請釋放空間後重試。"
+  "app.theme.background.gallery.error.storage_failed": "無法在目前裝置儲存背景，請釋放空間後重試。",
+  "app.theme.tab_appearance.title": "標籤外觀",
+  "app.theme.tab_appearance.description": "調整主工作區標籤列的樣式與關閉按鈕位置，只影響介面顯示。",
+  "app.theme.tab_appearance.style.label": "標籤樣式",
+  "app.theme.tab_appearance.style.hint": "標準卡片維持現狀，下底線更輕量，膠囊圓角更圓潤。",
+  "app.theme.tab_appearance.style.card": "標準卡片",
+  "app.theme.tab_appearance.style.underline": "下底線",
+  "app.theme.tab_appearance.style.pill": "膠囊圓角",
+  "app.theme.tab_appearance.close_position.label": "關閉按鈕位置",
+  "app.theme.tab_appearance.close_position.hint": "把關閉按鈕放到標籤文字的左側或右側。",
+  "app.theme.tab_appearance.close_position.left": "左側",
+  "app.theme.tab_appearance.close_position.right": "右側"
 }
