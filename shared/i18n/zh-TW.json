@@ -12268,6 +12268,7 @@
   "datasource.variant.gbase8a.v8": "MySQL 協定：GBase 8a 8.6 與 9.5（多 VC 環境依帳號的預設 VC 瀏覽）；交易透過關閉自動提交實作，索引只支援 HASH",
   "connection_modal.step1.hint.gbase8a": "MPP 分析型／MySQL 協定",
   "db.backend.error.gbase8a_connect_failed": "無法連線 GBase 8a：{{detail}}",
+  "db.backend.error.gbase8a_dsn_parse_failed": "解析 GBase 8a 連線字串失敗：{{detail}}",
   "db.backend.error.gbase8a_mixed_changes": "GBase 8a 的一個交易中，同一張資料表執行 UPDATE／DELETE 後不能再有其他寫入：請把新增、修改、刪除分開提交",
   "db.backend.error.gbase8a_rows_mismatch": "提交失敗：應影響 {{expected}} 列，實際影響 {{actual}} 列（資料可能已被其他用戶端修改），已回復，請重新整理後重試",
   "db.backend.error.gbase8a_update_requires_key": "GBase 8a 修改資料需要主鍵條件：請為資料表設定主鍵，或在 SQL 編輯器中撰寫 UPDATE 陳述式",
@@ -12800,5 +12801,16 @@
   "app.theme.background.gallery.error.download_failed": "無法下載背景，請檢查網路連線後重試。",
   "app.theme.background.gallery.error.integrity": "圖片驗證失敗，目前的背景未變更。",
   "app.theme.background.gallery.error.canceled": "下載已取消。",
-  "app.theme.background.gallery.error.storage_failed": "無法在目前裝置儲存背景，請釋放空間後重試。"
+  "app.theme.background.gallery.error.storage_failed": "無法在目前裝置儲存背景，請釋放空間後重試。",
+  "app.theme.tab_appearance.title": "標籤外觀",
+  "app.theme.tab_appearance.description": "調整主工作區標籤列的樣式與關閉按鈕位置，只影響介面顯示。",
+  "app.theme.tab_appearance.style.label": "標籤樣式",
+  "app.theme.tab_appearance.style.hint": "標準卡片維持現狀，下底線更輕量，膠囊圓角更圓潤。",
+  "app.theme.tab_appearance.style.card": "標準卡片",
+  "app.theme.tab_appearance.style.underline": "下底線",
+  "app.theme.tab_appearance.style.pill": "膠囊圓角",
+  "app.theme.tab_appearance.close_position.label": "關閉按鈕位置",
+  "app.theme.tab_appearance.close_position.hint": "把關閉按鈕放到標籤文字的左側或右側。",
+  "app.theme.tab_appearance.close_position.left": "左側",
+  "app.theme.tab_appearance.close_position.right": "右側"
 }
