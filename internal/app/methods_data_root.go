@@ -135,6 +135,11 @@ func (a *App) ApplyDataRootDirectory(directory string, migrate bool) connection.
 		return a.galleryResult(nil, galleryErr)
 	}
 	defer resumeGallery()
+	resumeFonts, fontErr := a.suspendFontGallery()
+	if fontErr != nil {
+		return a.fontGalleryResult(nil, fontErr)
+	}
+	defer resumeFonts()
 
 	currentRoot := appdata.MustResolveActiveRoot()
 	targetRoot, err := appdata.ResolveRoot(directory)

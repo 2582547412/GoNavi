@@ -3,6 +3,7 @@ import { message } from 'antd';
 import { withAISettingsLeaveGuard } from '../../utils/aiSettingsLeaveGuard';
 import { shouldSuppressMacNativeEscapeExit } from '../../utils/macWindow';
 import { useStore } from '../../store';
+import { useFontGalleryFaces } from '../../fontGallery/useFontGalleryFaces';
 // 低配/减少动画的降级样式；由本 hook 负责挂 body 类，故样式随本 hook 一起引入。
 import '../../styles/low-spec-runtime.css';
 import {
@@ -93,6 +94,7 @@ export const useAppLayoutEffects = ({
   handleTitleBarWindowToggle, handleManualResetWindowZoom, setCapturingShortcutAction, t,
   updateShortcut,
 }: UseAppLayoutEffectsInput) => {
+  useFontGalleryFaces();
   // 界面布局主题（classic / navicat）：单字段订阅，供首帧 body 属性使用。
   const uiLayoutMode = useStore((state) => state.appearance.uiLayoutMode);
   // 行首选择列形态（true=复选框 / false=隐藏 / null=跟布局）：供 CSS 区分选中样式。

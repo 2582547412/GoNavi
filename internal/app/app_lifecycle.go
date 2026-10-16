@@ -186,6 +186,9 @@ func (a *App) Shutdown() {
 	if !a.shutdownBackgroundGallery() {
 		logger.Warnf("Background gallery downloads did not stop before shutdown timeout")
 	}
+	if !a.shutdownFontGallery() {
+		logger.Warnf("Font gallery downloads did not stop before shutdown timeout")
+	}
 	a.shutdownCloudBackup()
 	a.shutdownDataSyncJobs()
 	if !a.cancelAndWaitImportTasks(5 * time.Second) {
