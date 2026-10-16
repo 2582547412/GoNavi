@@ -365,7 +365,7 @@
   "ai_chat.input.context.selection_bound": "已綁定選取內容",
   "ai_chat.input.context.bind_selection_tooltip": "將目前編輯器選取文字綁定到 AI 上下文",
   "ai_chat.input.context.add_tooltip": "選擇要關聯到本次對話的資料表結構，AI 會據此產生更準確的 SQL",
-  "ai_chat.input.context.connection_tooltip": "目前資料查詢上下文",
+  "ai_chat.input.context.connection_tooltip": "目前資料查詢上下文：{{name}}",
   "ai_chat.input.context.current_count": "目前上下文 · {{count}}",
   "ai_chat.input.context.label": "關聯上下文",
   "ai_chat.input.context.selector.cancel": "取消",

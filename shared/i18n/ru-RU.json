@@ -365,7 +365,7 @@
   "ai_chat.input.context.selection_bound": "Выделение привязано",
   "ai_chat.input.context.bind_selection_tooltip": "Добавить текущее выделение редактора в контекст AI",
   "ai_chat.input.context.add_tooltip": "Выберите таблицы, структуру которых ИИ увидит в этом чате, — SQL получится точнее",
-  "ai_chat.input.context.connection_tooltip": "Текущий контекст запроса данных",
+  "ai_chat.input.context.connection_tooltip": "Текущий контекст запроса данных: {{name}}",
   "ai_chat.input.context.current_count": "Текущий контекст · {{count}}",
   "ai_chat.input.context.label": "Связанный контекст",
   "ai_chat.input.context.selector.cancel": "Отмена",
