@@ -358,7 +358,7 @@
   "ai_chat.input.context.selection_bound": "已绑定选中内容",
   "ai_chat.input.context.bind_selection_tooltip": "将当前编辑器选中文本绑定到 AI 上下文",
   "ai_chat.input.context.add_tooltip": "选择要关联到本次对话的表结构，AI 会据此生成更准确的 SQL",
-  "ai_chat.input.context.connection_tooltip": "当前数据查询上下文",
+  "ai_chat.input.context.connection_tooltip": "当前数据查询上下文：{{name}}",
   "ai_chat.input.context.current_count": "当前上下文 · {{count}}",
   "ai_chat.input.context.label": "关联上下文",
   "ai_chat.input.context.selector.cancel": "取消",

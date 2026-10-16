@@ -365,7 +365,7 @@
   "ai_chat.input.context.selection_bound": "Auswahl angehängt",
   "ai_chat.input.context.bind_selection_tooltip": "Die aktuelle Editorauswahl an den AI-Kontext anhängen",
   "ai_chat.input.context.add_tooltip": "Tabellen auswählen, deren Struktur die KI in diesem Chat sehen darf – für genaueres SQL",
-  "ai_chat.input.context.connection_tooltip": "Aktueller Datenabfragekontext",
+  "ai_chat.input.context.connection_tooltip": "Aktueller Datenabfragekontext: {{name}}",
   "ai_chat.input.context.current_count": "Aktueller Kontext · {{count}}",
   "ai_chat.input.context.label": "Verknüpfter Kontext",
   "ai_chat.input.context.selector.cancel": "Abbrechen",

@@ -365,7 +365,7 @@
   "ai_chat.input.context.selection_bound": "選択範囲を追加済み",
   "ai_chat.input.context.bind_selection_tooltip": "現在のエディター選択範囲を AI コンテキストに追加",
   "ai_chat.input.context.add_tooltip": "このチャットで AI に参照させるテーブル構造を選択します。より正確な SQL を生成できます",
-  "ai_chat.input.context.connection_tooltip": "現在のデータ照会コンテキスト",
+  "ai_chat.input.context.connection_tooltip": "現在のデータ照会コンテキスト：{{name}}",
   "ai_chat.input.context.current_count": "現在のコンテキスト · {{count}}",
   "ai_chat.input.context.label": "関連コンテキスト",
   "ai_chat.input.context.selector.cancel": "キャンセル",

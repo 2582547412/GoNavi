@@ -365,7 +365,7 @@
   "ai_chat.input.context.selection_bound": "Selection bound",
   "ai_chat.input.context.bind_selection_tooltip": "Attach the current editor selection to AI context",
   "ai_chat.input.context.add_tooltip": "Choose tables whose structure the AI can see in this chat, for more accurate SQL",
-  "ai_chat.input.context.connection_tooltip": "Current data query context",
+  "ai_chat.input.context.connection_tooltip": "Current data query context: {{name}}",
   "ai_chat.input.context.current_count": "Current context · {{count}}",
   "ai_chat.input.context.label": "Attached context",
   "ai_chat.input.context.selector.cancel": "Cancel",
