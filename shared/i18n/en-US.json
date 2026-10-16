@@ -12759,5 +12759,16 @@
   "app.theme.background.gallery.error.download_failed": "Could not download the background. Check your connection and retry.",
   "app.theme.background.gallery.error.integrity": "The image failed verification. Your current background has not changed.",
   "app.theme.background.gallery.error.canceled": "Download canceled.",
-  "app.theme.background.gallery.error.storage_failed": "Could not save the background on this device. Free some space and retry."
+  "app.theme.background.gallery.error.storage_failed": "Could not save the background on this device. Free some space and retry.",
+  "app.theme.tab_appearance.title": "Tab Appearance",
+  "app.theme.tab_appearance.description": "Adjust the workbench tab style and the close button position. Display only.",
+  "app.theme.tab_appearance.style.label": "Tab style",
+  "app.theme.tab_appearance.style.hint": "Standard cards keep the current look, Underline is lighter, Pill is fully rounded.",
+  "app.theme.tab_appearance.style.card": "Standard card",
+  "app.theme.tab_appearance.style.underline": "Underline",
+  "app.theme.tab_appearance.style.pill": "Pill",
+  "app.theme.tab_appearance.close_position.label": "Close button position",
+  "app.theme.tab_appearance.close_position.hint": "Place the close button on the left or right of the tab label.",
+  "app.theme.tab_appearance.close_position.left": "Left",
+  "app.theme.tab_appearance.close_position.right": "Right"
 }

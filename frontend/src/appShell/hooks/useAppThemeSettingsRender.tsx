@@ -14,6 +14,7 @@ import type { AppAntdThemeApi } from './useAppAntdTheme';
 import type { AppSecurityUpdateApi } from './useAppSecurityUpdate';
 import { ThemeModeSettingsSection } from '../settings/ThemeModeSettingsSection';
 import { ThemeAppearanceSettingsSection } from '../settings/ThemeAppearanceSettingsSection';
+import { TabAppearanceSettingsSection } from '../settings/TabAppearanceSettingsSection';
 import { TabDisplaySettingsSection } from '../settings/TabDisplaySettingsSection';
 import { DataTableSettingsFields } from '../settings/DataTableSettingsFields';
 
@@ -257,6 +258,7 @@ export const useAppThemeSettingsRender = ({
                                   </div>,
                               )}
                               </>}
+                              {options?.page === 'tabs-settings' && <TabAppearanceSettingsSection />}
                               {options?.page !== 'editor-settings' && <TabDisplaySettingsSection
                                 tabDisplaySettingsPanelRef={tabDisplaySettingsPanelRef} t={t}
                                 renderThemeSettingsRow={renderThemeSettingsRow}

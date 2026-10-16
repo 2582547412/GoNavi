@@ -12759,5 +12759,16 @@
   "app.theme.background.gallery.error.download_failed": "Der Hintergrund konnte nicht heruntergeladen werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
   "app.theme.background.gallery.error.integrity": "Die Bildprüfung ist fehlgeschlagen. Ihr aktueller Hintergrund wurde nicht geändert.",
   "app.theme.background.gallery.error.canceled": "Download abgebrochen.",
-  "app.theme.background.gallery.error.storage_failed": "Der Hintergrund konnte nicht auf diesem Gerät gespeichert werden. Geben Sie Speicherplatz frei und versuchen Sie es erneut."
+  "app.theme.background.gallery.error.storage_failed": "Der Hintergrund konnte nicht auf diesem Gerät gespeichert werden. Geben Sie Speicherplatz frei und versuchen Sie es erneut.",
+  "app.theme.tab_appearance.title": "Tab-Darstellung",
+  "app.theme.tab_appearance.description": "Stil der Arbeitstabs und Position der Schließen-Schaltfläche anpassen. Nur Darstellung.",
+  "app.theme.tab_appearance.style.label": "Tab-Stil",
+  "app.theme.tab_appearance.style.hint": "Standardkarten bleiben unverändert, Unterstrich ist leichter, Pille ist voll gerundet.",
+  "app.theme.tab_appearance.style.card": "Standardkarte",
+  "app.theme.tab_appearance.style.underline": "Unterstrich",
+  "app.theme.tab_appearance.style.pill": "Pille",
+  "app.theme.tab_appearance.close_position.label": "Position der Schließen-Schaltfläche",
+  "app.theme.tab_appearance.close_position.hint": "Die Schließen-Schaltfläche links oder rechts neben dem Tab-Text platzieren.",
+  "app.theme.tab_appearance.close_position.left": "Links",
+  "app.theme.tab_appearance.close_position.right": "Rechts"
 }

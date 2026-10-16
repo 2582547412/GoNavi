@@ -12759,5 +12759,16 @@
   "app.theme.background.gallery.error.download_failed": "背景をダウンロードできませんでした。ネットワーク接続を確認して再試行してください。",
   "app.theme.background.gallery.error.integrity": "画像の検証に失敗しました。現在の背景は変更されていません。",
   "app.theme.background.gallery.error.canceled": "ダウンロードをキャンセルしました。",
-  "app.theme.background.gallery.error.storage_failed": "このデバイスに背景を保存できませんでした。空き容量を増やして再試行してください。"
+  "app.theme.background.gallery.error.storage_failed": "このデバイスに背景を保存できませんでした。空き容量を増やして再試行してください。",
+  "app.theme.tab_appearance.title": "タブの外観",
+  "app.theme.tab_appearance.description": "メインワークスペースのタブのスタイルと閉じるボタンの位置を調整します。表示のみに影響します。",
+  "app.theme.tab_appearance.style.label": "タブのスタイル",
+  "app.theme.tab_appearance.style.hint": "標準カードは現状のまま、下線は軽快、ピルは丸みのある形になります。",
+  "app.theme.tab_appearance.style.card": "標準カード",
+  "app.theme.tab_appearance.style.underline": "下線",
+  "app.theme.tab_appearance.style.pill": "ピル",
+  "app.theme.tab_appearance.close_position.label": "閉じるボタンの位置",
+  "app.theme.tab_appearance.close_position.hint": "閉じるボタンをタブ文字の左側または右側に配置します。",
+  "app.theme.tab_appearance.close_position.left": "左",
+  "app.theme.tab_appearance.close_position.right": "右"
 }

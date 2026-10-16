@@ -12759,5 +12759,16 @@
   "app.theme.background.gallery.error.download_failed": "无法下载背景，请检查网络连接后重试。",
   "app.theme.background.gallery.error.integrity": "图片校验失败，当前背景未更改。",
   "app.theme.background.gallery.error.canceled": "下载已取消。",
-  "app.theme.background.gallery.error.storage_failed": "无法在当前设备保存背景，请释放空间后重试。"
+  "app.theme.background.gallery.error.storage_failed": "无法在当前设备保存背景，请释放空间后重试。",
+  "app.theme.tab_appearance.title": "标签外观",
+  "app.theme.tab_appearance.description": "调整主工作区标签栏的样式和关闭按钮位置，只影响界面显示。",
+  "app.theme.tab_appearance.style.label": "标签样式",
+  "app.theme.tab_appearance.style.hint": "标准卡片保持现状，下划线更轻量，胶囊圆角更圆润。",
+  "app.theme.tab_appearance.style.card": "标准卡片",
+  "app.theme.tab_appearance.style.underline": "下划线",
+  "app.theme.tab_appearance.style.pill": "胶囊圆角",
+  "app.theme.tab_appearance.close_position.label": "关闭按钮位置",
+  "app.theme.tab_appearance.close_position.hint": "把关闭按钮放到标签文字的左侧或右侧。",
+  "app.theme.tab_appearance.close_position.left": "左侧",
+  "app.theme.tab_appearance.close_position.right": "右侧"
 }

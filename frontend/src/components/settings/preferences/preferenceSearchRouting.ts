@@ -14,6 +14,6 @@ export function routePreferenceSearchEntry(entry: SettingsCenterSearchEntrySourc
     page = /single_database_expansion|workbench_sidebar_auto_collapse/.test(label) ? 'sidebar-settings'
       : label.includes('navicat_layout') ? 'layout-settings' : 'fonts-settings';
   }
-  if (entry.item === 'theme-workspace') page = label.includes('tab_display') ? 'tabs-settings' : 'editor-settings';
+  if (entry.item === 'theme-workspace') page = /tab_display|tab_appearance/.test(label) ? 'tabs-settings' : 'editor-settings';
   return page ? { ...entry, group: page, item: page } : entry;
 }
