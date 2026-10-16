@@ -12226,6 +12226,7 @@
   "datasource.variant.gbase8a.v8": "MySQL プロトコル：GBase 8a 8.6 と 9.5（マルチ VC 環境ではアカウントの既定 VC を参照）。トランザクションは自動コミットを無効にして実現し、インデックスは HASH のみ対応",
   "connection_modal.step1.hint.gbase8a": "MPP 分析型／MySQL プロトコル",
   "db.backend.error.gbase8a_connect_failed": "GBase 8a に接続できません：{{detail}}",
+  "db.backend.error.gbase8a_dsn_parse_failed": "GBase 8a の接続文字列の解析に失敗しました：{{detail}}",
   "db.backend.error.gbase8a_mixed_changes": "GBase 8a のトランザクションでは、同じテーブルに UPDATE／DELETE を実行した後は他の書き込みができません。追加・変更・削除は別々にコミットしてください",
   "db.backend.error.gbase8a_rows_mismatch": "コミットに失敗しました：{{expected}} 行が対象のはずが {{actual}} 行でした（他のクライアントが変更した可能性があります）。ロールバックしました。更新してから再試行してください",
   "db.backend.error.gbase8a_update_requires_key": "GBase 8a のデータ変更には主キー条件が必要です：テーブルに主キーを設定するか、SQL エディターで UPDATE 文を記述してください",

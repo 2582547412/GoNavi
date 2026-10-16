@@ -129,7 +129,8 @@ func (g *GBase8aDB) openPool(config connection.ConnectionConfig) error {
 func gbase8aForceInterpolateParams(dsn string) (string, error) {
 	parsed, err := mysql.ParseDSN(dsn)
 	if err != nil {
-		return "", fmt.Errorf("解析 GBase 8a 连接串失败：%w", err)
+		// 连接串由本包拼装，解析失败意味着内部构造有误；文案仍走 i18n 目录，底层原因作为 detail 渲染。
+		return "", localizedDatabaseRuntimeError("db.backend.error.gbase8a_dsn_parse_failed", map[string]any{"detail": err.Error()})
 	}
 	if parsed.InterpolateParams {
 		return dsn, nil

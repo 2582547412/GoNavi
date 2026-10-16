@@ -135,8 +135,14 @@ func TestGBase8aForceInterpolateParams(t *testing.T) {
 }
 
 func TestGBase8aForceInterpolateParamsRejectsBrokenDSN(t *testing.T) {
-	if _, err := gbase8aForceInterpolateParams("not-a-dsn"); err == nil {
+	_, err := gbase8aForceInterpolateParams("not-a-dsn")
+	if err == nil {
 		t.Fatal("连接串无法解析时必须报错，而不是静默丢掉该参数")
+	}
+	// 文案必须来自 i18n 目录（localizedDatabaseRuntimeError），不能是硬编码字符串。
+	prefix := localizedDriverRuntimeText("db.backend.error.gbase8a_dsn_parse_failed", map[string]any{"detail": ""})
+	if !strings.HasPrefix(err.Error(), prefix) {
+		t.Fatalf("错误文案必须走 i18n 目录，实际 %q，期望以 %q 开头", err.Error(), prefix)
 	}
 }
 
