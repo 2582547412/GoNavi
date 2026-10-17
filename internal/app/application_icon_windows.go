@@ -105,6 +105,9 @@ var (
 	windowsRecreateTaskbarButtonForPinRefresh  = recreateWindowsTaskbarButtonForPinRefresh
 	windowsApplicationIconDestroyCall          = destroyWindowsApplicationIcon
 	windowsUpdateCurrentApplicationShortcuts   = updateCurrentWindowsApplicationShortcuts
+	// Injectable so tests that exercise the never-selected (empty pointer) startup
+	// branch do not spawn the real migration against the developer's own machine.
+	windowsRepairDefaultApplicationShortcuts = repairDefaultWindowsApplicationShortcuts
 )
 
 const mainWindowSetPositionIsLocal = true
@@ -216,7 +219,9 @@ func applyPersistedWindowsApplicationIcon(runtimeContext context.Context, config
 		// 安装器授予的单文件 Users-Modify 修改权是跨用户篡改面，迁移完成
 		// 即关闭；MSI 修复/升级重建机器层条目后，下次启动再次迁移，其他
 		// 用户的开始菜单入口也借此自愈。后台执行，失败不阻塞启动。
-		go repairDefaultWindowsApplicationShortcuts()
+		// 注意：这里只做快捷方式层迁移，从不凭空套用图标——「没有选择记录」
+		// 就等于保留默认图标。
+		go windowsRepairDefaultApplicationShortcuts()
 		return clearPersistedWindowsApplicationIcon(configDir)
 	}
 	// 每次启动都幂等执行固定项修复：没有一次性标记，失败（文件被占用、
