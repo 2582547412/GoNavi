@@ -1347,6 +1347,7 @@ export namespace app {
 	
 	export class ExportFileOptions {
 	    format: string;
+	    csvEncoding?: string;
 	    columns?: string[];
 	    columnComments?: Record<string, string>;
 	    xlsxMaxRowsPerSheet?: number;
@@ -1368,6 +1369,7 @@ export namespace app {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.format = source["format"];
+	        this.csvEncoding = source["csvEncoding"];
 	        this.columns = source["columns"];
 	        this.columnComments = source["columnComments"];
 	        this.xlsxMaxRowsPerSheet = source["xlsxMaxRowsPerSheet"];

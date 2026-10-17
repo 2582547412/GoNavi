@@ -1,5 +1,6 @@
 import type { WorkbenchTabType } from '../tabTypes';
 import type { TabData } from '../types';
+import { DATABASE_JOB_KINDS } from '../typeDefs/databaseJobTypes';
 import { pinSettingsCenterTabFirst } from './settingsCenterTab';
 
 /**
@@ -49,6 +50,7 @@ const COMES_BACK_AFTER_RESTART: Record<WorkbenchTabType, boolean> = {
   trigger: true,
   'view-def': true,
   'event-def': true,
+  'job-def': true,
   'routine-def': true,
   'sequence-def': true,
   'package-def': true,
@@ -80,6 +82,8 @@ const TEXT_FIELDS = [
   'triggerTableName',
   'viewName',
   'eventName',
+  'jobName',
+  'jobLabel',
   'routineName',
   'routineType',
   'sequenceName',
@@ -91,6 +95,7 @@ const TEXT_FIELDS = [
 
 const CHOICE_FIELDS = {
   providerMode: ['jmx', 'endpoint', 'agent'],
+  jobKind: DATABASE_JOB_KINDS,
   objectType: ['table', 'view', 'materialized-view'],
   viewKind: ['view', 'materialized'],
   overviewKind: ['views', 'routines', 'events'],

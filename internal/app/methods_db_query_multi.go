@@ -61,22 +61,11 @@ func (a *App) dbQueryMulti(
 	auditStartedAt := time.Now()
 	var statementAuditEvents []sqlaudit.Event
 	if trackSQLAudit {
-		defer func() {
-			a.recordSQLAuditQuery(sqlAuditQueryInput{
-				Config:     runConfig,
-				Database:   dbName,
-				DBType:     resolvedDBType,
-				QueryID:    queryID,
-				SQL:        originalQuery,
-				Source:     auditSource,
-				CommitMode: result.CommitMode,
-				Duration:   time.Since(auditStartedAt),
-				Result:     result,
-			})
-		}()
-		defer func() {
-			a.appendSQLAuditEvents(statementAuditEvents)
-		}()
+		defer a.beginSQLAuditMulti(sqlAuditQueryInput{
+			Config: runConfig, Database: dbName, DBType: resolvedDBType,
+			QueryID: queryID, SQL: originalQuery, Source: auditSource,
+			MCPContext: sqlaudit.MCPContextFrom(traceContext),
+		}, auditStartedAt, &result, &statementAuditEvents)()
 	}
 	// 慢 SQL 埋点：成功执行后记录（低于阈值 500ms 自动跳过）。
 	// 用 named return + defer 覆盖所有 return path，避免遗漏。
@@ -239,7 +228,7 @@ func (a *App) dbQueryMulti(
 			Err:            statementErr,
 		})
 		event.Timestamp = completedAt.UnixMilli()
-		statementAuditEvents = append(statementAuditEvents, event)
+		statementAuditEvents = append(statementAuditEvents, sqlaudit.ApplyMCPContext(event, sqlaudit.MCPContextFrom(traceContext)))
 	}
 	allReadOnly := true
 	for _, stmt := range statements {

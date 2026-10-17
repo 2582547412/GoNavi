@@ -26,6 +26,18 @@ export function ApplySavedQueryDirectory(arg1:string):Promise<connection.QueryRe
 
 export function AuthorizeMCPConnectionSQL(arg1:connection.ConnectionConfig,arg2:string):Promise<void>;
 
+export function BackgroundGalleryCancel(arg1:string):Promise<connection.QueryResult>;
+
+export function BackgroundGalleryDownload(arg1:string,arg2:string,arg3:string):Promise<connection.QueryResult>;
+
+export function BackgroundGalleryRefresh():Promise<connection.QueryResult>;
+
+export function BackgroundGalleryRemove(arg1:string,arg2:string):Promise<connection.QueryResult>;
+
+export function BackgroundGalleryResolve(arg1:string,arg2:string):Promise<connection.QueryResult>;
+
+export function BackgroundGalleryStatus():Promise<connection.QueryResult>;
+
 export function BootstrapConnectionSidebarLayout(arg1:connection.ConnectionSidebarLayoutInput):Promise<connection.ConnectionSidebarLayout>;
 
 export function BuildDatabaseDiagnosticPackage():Promise<connection.QueryResult>;
@@ -371,6 +383,20 @@ export function ExportTablesDataSQL(arg1:connection.ConnectionConfig,arg2:string
 export function ExportTablesSQL(arg1:connection.ConnectionConfig,arg2:string,arg3:Array<string>,arg4:boolean):Promise<connection.QueryResult>;
 
 export function ExportTablesSQLWithOptions(arg1:connection.ConnectionConfig,arg2:string,arg3:Array<string>,arg4:boolean,arg5:boolean,arg6:app.ExportFileOptions):Promise<connection.QueryResult>;
+
+export function FontGalleryCancel(arg1:string):Promise<connection.QueryResult>;
+
+export function FontGalleryDownload(arg1:string,arg2:string,arg3:string):Promise<connection.QueryResult>;
+
+export function FontGalleryPreview(arg1:string,arg2:string,arg3:string):Promise<connection.QueryResult>;
+
+export function FontGalleryRefresh():Promise<connection.QueryResult>;
+
+export function FontGalleryRemove(arg1:string,arg2:string):Promise<connection.QueryResult>;
+
+export function FontGalleryResolve(arg1:string,arg2:string):Promise<connection.QueryResult>;
+
+export function FontGalleryStatus():Promise<connection.QueryResult>;
 
 export function ForceQuitApplication():Promise<connection.QueryResult>;
 

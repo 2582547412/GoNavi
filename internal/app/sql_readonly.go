@@ -33,7 +33,7 @@ func isReadOnlySQLQuery(dbType string, query string) bool {
 			return !db.InfluxFluxQueryWrites(query)
 		}
 	}
-	if hasExecutableSQLComment(dbType, query) {
+	if hasExecutableSQLComment(dbType, query) || hasDatabaseJobMutationSQL(dbType, query) {
 		return false
 	}
 

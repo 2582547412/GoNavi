@@ -1,4 +1,5 @@
 import React from "react";
+import { ConnectionConfigPanels } from "./ConnectionConfigPanels";
 import {
   Alert,
   Button,
@@ -504,15 +505,6 @@ const ConnectionModalStep2: React.FC<ConnectionModalStep2Props> = (props) => {
           </div>
         );
 
-        const currentSectionContent =
-          resolvedSection === "basic"
-            ? baseInfoSection
-            : resolvedSection === "appearance"
-              ? appearanceSection
-              : resolvedSection === "advanced"
-                ? advancedSection
-                : networkSecuritySection;
-
         const illustration = (
           <div className="gn-conn-illustration" aria-hidden="true">
             <div className="gn-conn-illustration-icon">
@@ -576,7 +568,7 @@ const ConnectionModalStep2: React.FC<ConnectionModalStep2Props> = (props) => {
                   ) : null}
                 </div>
               ) : null}
-              {currentSectionContent}
+              <ConnectionConfigPanels active={resolvedSection} sections={{ basic: baseInfoSection, network: networkSecuritySection, appearance: appearanceSection, advanced: advancedSection }} />
             </div>
           </div>
           </>

@@ -11,6 +11,11 @@ import {
 import { useTabManagerState } from './tabManager/hooks/useTabManagerState';
 import { useTabManagerItems } from './tabManager/hooks/useTabManagerItems';
 import { useTabManagerEmptyWorkbench } from './tabManager/hooks/useTabManagerEmptyWorkbench';
+import {
+  sanitizeTabAppearanceStyle,
+  sanitizeTabCloseButtonPosition,
+} from '../utils/tabAppearance';
+import './tabManager/tabAppearance.css';
 
 export {
   isBackgroundTaskWorkbenchTab,
@@ -100,6 +105,8 @@ const TabManager: React.FC<TabManagerProps> = React.memo<TabManagerProps>(({ onF
       ref={tabWorkbenchRef}
       className={`${TAB_WORKBENCH_CLASS_NAME} gn-v2-tab-workbench`}
       style={tabWorkbenchStyle}
+      data-tab-appearance={sanitizeTabAppearanceStyle(appearance.tabAppearanceStyle)}
+      data-tab-close-position={sanitizeTabCloseButtonPosition(appearance.tabCloseButtonPosition)}
     >
         <style>{`
             .${TAB_WORKBENCH_CLASS_NAME} {

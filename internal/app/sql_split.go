@@ -223,7 +223,7 @@ func splitSQLStatementsForDialectMode(dbType, sql string, backslashEscapes bool)
 					skipNextPLSQLCaseEndToken = true
 				}
 				justClosedPLSQLBlock = false
-			} else if token == "end" && plsqlDepth > 0 && !isPLSQLControlEnd(text, tokenEnd) {
+			} else if token == "end" && plsqlDepth > 0 && !isPLSQLControlEnd(text, tokenEnd, dbType) {
 				plsqlDepth--
 				if plsqlDeclareBeginSkips > plsqlDepth {
 					plsqlDeclareBeginSkips = plsqlDepth
@@ -657,15 +657,6 @@ func isPLSQLBlockStatementForDialect(dbType string, stmt string) bool {
 
 func shouldEnterPLSQLDeclareBlock(text string, tokenEnd int) bool {
 	return nextSQLSignificantToken(text, tokenEnd) != ""
-}
-
-func isPLSQLControlEnd(text string, tokenEnd int) bool {
-	switch nextSQLSignificantToken(text, tokenEnd) {
-	case "if", "loop", "case":
-		return true
-	default:
-		return false
-	}
 }
 
 func isCreateRoutineHeaderPrefix(text string) bool {

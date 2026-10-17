@@ -68,10 +68,12 @@ const DEFAULT_DOUBLE_TAB_DISPLAY_SNAPSHOT: TabDisplayLayoutSnapshot = {
   secondaryElements: ['kind', 'connection', 'database'],
 };
 
+// 默认单行页签（Navicat 式阅读节奏：页签只占一行，只回答「我在看哪个对象」；
+// 副标题/SYNC 等徽标属于双行布局，需要更全上下文的用户可在设置里切回双行）。
 export const DEFAULT_TAB_DISPLAY_SETTINGS: TabDisplaySettings = {
-  layout: 'double',
-  primaryElements: [...DEFAULT_DOUBLE_TAB_DISPLAY_SNAPSHOT.primaryElements],
-  secondaryElements: [...DEFAULT_DOUBLE_TAB_DISPLAY_SNAPSHOT.secondaryElements],
+  layout: 'single',
+  primaryElements: [...DEFAULT_SINGLE_TAB_DISPLAY_SNAPSHOT.primaryElements],
+  secondaryElements: [...DEFAULT_SINGLE_TAB_DISPLAY_SNAPSHOT.secondaryElements],
 };
 
 export const getCurrentTabDisplaySnapshot = (settings: TabDisplaySettings): TabDisplayLayoutSnapshot => ({
@@ -524,6 +526,7 @@ const buildCompactObjectTabTitle = (tab: TabData, translate: TabDisplayTranslate
   if (tab.type === 'event-def') {
     return replaceTitleObjectLabel(tab.title, tab.eventName);
   }
+  if (tab.type === 'job-def') return tab.title;
   if (tab.type === 'routine-def') {
     return replaceTitleObjectLabel(tab.title, tab.routineName);
   }
@@ -567,6 +570,7 @@ export const getTabDisplayKindLabel = (tab: TabData): string => {
   if (tab.type === 'trigger') return 'TRG';
   if (tab.type === 'view-def') return tab.viewKind === 'materialized' ? 'MV' : 'VIEW';
   if (tab.type === 'event-def') return 'EVT';
+  if (tab.type === 'job-def') return 'JOB';
   if (tab.type === 'routine-def') return 'FUNC';
   if (tab.type === 'sequence-def') return 'SEQ';
   if (tab.type === 'package-def') return 'PKG';
@@ -579,6 +583,7 @@ const getTabRawObjectLabel = (tab: TabData, translate: TabDisplayTranslate = def
   if (tab.tableName) return tab.tableName;
   if (tab.viewName) return tab.viewName;
   if (tab.eventName) return tab.eventName;
+  if (tab.jobName) return tab.jobLabel || tab.jobName;
   if (tab.routineName) return tab.routineName;
   if (tab.sequenceName) return tab.sequenceName;
   if (tab.packageName) return tab.packageName;

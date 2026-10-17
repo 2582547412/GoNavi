@@ -4,8 +4,7 @@ import { Layout, ConfigProvider } from 'antd';
 import ConnectionGroupManagementModal from './components/sidebar/ConnectionGroupManagementModal';
 import ConnectionModal from './components/ConnectionModal';
 import LinuxCJKFontBanner from './components/LinuxCJKFontBanner';
-import CustomThemeStyleHost from './components/theme/CustomThemeStyleHost';
-import ToolbarAppearanceStyleHost from './components/theme/ToolbarAppearanceStyleHost';
+import AppAppearanceStyleHosts from './components/theme/AppAppearanceStyleHosts';
 import { type TabDisplayElementKey } from './utils/tabDisplay';
 import { APP_NESTED_MODAL_Z_INDEX } from './utils/overlayZIndex';
 import { getAntdLocale } from './i18n/frameworkLocale';
@@ -103,7 +102,7 @@ function App() {
     setConnectionImportNotice, browserConnectionImportInputRef,
     aiPanelRenderNonce, setAiPanelRenderNonce,
     aiSettingsRenderNonce, setAiSettingsRenderNonce, LazyAIChatPanel, LazyAISettingsContent,
-    sidebarWidth, setSidebarWidth, documentPlatform, isMacRuntime,
+    sidebarWidth, setSidebarWidth, documentPlatform, isMacRuntime, isBrowserServedApp,
     shouldDockCollapsedSidebarActionsInTitlebar, collapsedSidebarActionsTarget,
     handleCollapseSidebarPanel, handleEnsureSidebarExpanded, handleExpandSidebarPanel,
     isCollapsedSidebarActionsDocked, isSidebarCollapsed, setCollapsedSidebarActionsTarget,
@@ -191,7 +190,7 @@ function App() {
     releaseNotesModalVisible, emitWindowDiagnostic, handleNewQuery, switchActiveTabByOffset,
     resetApplicationQuitRequest, forceQuitApplication,
   } = useAppUpdateAndDiagnostics({
-    isMacRuntime, shortcutOptions, runtimeBuildType, t, windowDiagSequenceRef,
+    isMacRuntime, isBrowserServedApp, shortcutOptions, runtimeBuildType, t, windowDiagSequenceRef,
     windowDiagLastSignatureRef, windowDiagLastAtRef, activeTabId, tabs, connections, activeContext,
     addTab, appearance, setActiveTab, applicationQuitHandlingRef, applicationQuitConfirmRef,
   });
@@ -318,7 +317,7 @@ function App() {
 
   const {
     linuxResizeHandleStyleBase, showLinuxResizeHandles, resizeGuideColor, v2AntPrimaryColor,
-    v2AntPrimaryBgColor, antdTheme, filterFontOption, renderFontOptionLabel, showLinuxCJKFontBanner,
+    v2AntPrimaryBgColor, antdTheme, showLinuxCJKFontBanner,
     sidebarMetadataFieldItems, toggleSidebarMetadataFieldFromSettings, handleSidebarMetadataDragEnd,
   } = useAppAntdTheme({
     isLinuxRuntime, customThemeAntTokens, darkMode, tokenFontSize, tokenFontSizeSM, tokenFontSizeLG,
@@ -364,8 +363,8 @@ function App() {
     effectiveThemePreference, selectPresetTheme, renderThemeModePreview, renderThemeSettingsRow,
     queryOptions, setQueryOptions,
     effectiveUiScale, setUiScale, effectiveFontSize, setFontSize, effectiveSidebarRailScale,
-    setAppearance, appearance, isFontFamiliesLoading, uiFontOptions, filterFontOption,
-    renderFontOptionLabel, fontFamiliesLoadError, installedFontFamilies, linuxCJKFontInstallHint,
+    setAppearance, appearance, isFontFamiliesLoading, uiFontOptions,
+    fontFamiliesLoadError, installedFontFamilies, linuxCJKFontInstallHint,
     hasLoadedInstalledFontsRef, darkMode, monoFontOptions, newQuerySqlTemplate,
     tabDisplaySettingsPanelRef, tabDisplaySettings, setTabDisplayLayout,
     effectiveTabEnvironmentAccentThickness, tabDisplayElementOrder, visibleTabDisplayElementKeys,
@@ -381,7 +380,7 @@ function App() {
   const {
     settingsCenterGroups, activeSettingsCenterDetailPanelStyle, settingsCenterDetailBodyStyle,
     renderSettingsCenterPane, sidebarPanelCollapseLabel, sidebarPanelExpandLabel,
-    handleAppContextMenu, handleNativeMenuCheckUpdate, titleBarSystemActionsNode, titleBarActionRow,
+    handleAppContextMenu, handleNativeMenuCheckUpdate, titleBarSystemActionsNode, titleBarActionRow, titleBarObjectActionsRow,
     dockedSidebarActionsHost,
   } = useAppSettingsCenterRender({
     t, handleOpenSettingsCenterPane, setThemeModalSection, themeSettingsSections, isWebRuntime,
@@ -418,11 +417,10 @@ function App() {
         theme={antdTheme}
     >
         {notificationContextHolder}
-        <CustomThemeStyleHost
+        <AppAppearanceStyleHosts
             contextKey={customThemeStyleContextKey}
             onAntTokensChange={setComputedCustomThemeAntTokens}
         />
-        <ToolbarAppearanceStyleHost />
         <Layout
           className="gn-v2-app-root"
           onContextMenu={handleAppContextMenu}
@@ -464,7 +462,7 @@ function App() {
             handleApplicationQuitRequest={handleApplicationQuitRequest}
           />
 
-          {!titleBarActionsInline && titleBarActionRow}{/* 工具条不套 mac 红绿灯留白 */}
+          {!titleBarActionsInline && titleBarActionRow}{titleBarObjectActionsRow}
           {!titleBarActionsInline && dockedSidebarActionsHost}
 
           {showLinuxCJKFontBanner && (

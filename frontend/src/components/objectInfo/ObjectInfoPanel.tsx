@@ -24,6 +24,17 @@ export const ObjectInfoContent: React.FC = () => {
     value === undefined ? '' : value.toLocaleString()
   );
 
+  // 驱动返回的创建/更新时间是 ISO 串（如 2026-09-11T16:19:52+08:00），
+  // 展示为 YYYY-MM-DD HH:mm:ss；解析失败时原样返回。
+  const formatDateTime = (value?: string) => {
+    if (!value) return '';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())} `
+      + `${pad(parsed.getHours())}:${pad(parsed.getMinutes())}:${pad(parsed.getSeconds())}`;
+  };
+
   const rows = details ? ([
     details.engine && { key: 'engine', label: t('object_info.field.engine'), value: details.engine },
     details.comment && { key: 'comment', label: t('object_info.field.comment'), value: details.comment },
@@ -33,8 +44,8 @@ export const ObjectInfoContent: React.FC = () => {
     details.dataLength !== undefined && { key: 'dataLength', label: t('object_info.field.data_size'), value: formatBytes(details.dataLength) },
     details.indexLength !== undefined && { key: 'indexLength', label: t('object_info.field.index_size'), value: formatBytes(details.indexLength) },
     details.autoIncrement && { key: 'autoIncrement', label: t('object_info.field.auto_increment'), value: details.autoIncrement },
-    details.createTime && { key: 'createTime', label: t('object_info.field.create_time'), value: details.createTime },
-    details.updateTime && { key: 'updateTime', label: t('object_info.field.update_time'), value: details.updateTime },
+    details.createTime && { key: 'createTime', label: t('object_info.field.create_time'), value: formatDateTime(details.createTime) },
+    details.updateTime && { key: 'updateTime', label: t('object_info.field.update_time'), value: formatDateTime(details.updateTime) },
   ].filter(Boolean) as Array<{ key: string; label: string; value: string }>) : [];
 
   return (

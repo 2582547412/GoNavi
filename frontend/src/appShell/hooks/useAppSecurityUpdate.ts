@@ -137,7 +137,8 @@ export const useAppSecurityUpdate = ({
       () => activeTabId ? tabs.find(tab => tab.id === activeTabId) : undefined,
       [activeTabId, tabs],
   );
-  useWorkbenchSidebarAutoCollapse(activeWorkbenchTab?.type, isSidebarCollapsed, setIsSidebarCollapsed);
+  const autoCollapseSidebar = useStore(state => state.appearance.workbenchSidebarAutoCollapse);
+  useWorkbenchSidebarAutoCollapse(activeWorkbenchTab?.type, isSidebarCollapsed, setIsSidebarCollapsed, autoCollapseSidebar);
   useWorkbenchSessionRestore(isStoreHydrated && hasLoadedSecureConfig);
   const titlebarContext = useMemo(
       () => resolveTitlebarContext({

@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"sort"
 	"strings"
 	"time"
 )
@@ -55,8 +54,8 @@ type SyncConfig struct {
 	// column-identity object rename. It is intentionally not part of the public
 	// config payload: callers express it through Mappings.
 	identityMappingTarget SyncObjectRef
-	BatchSize             int                     `json:"batchSize,omitempty"`
-	RowErrorPolicy        string                  `json:"rowErrorPolicy,omitempty"`
+	BatchSize             int    `json:"batchSize,omitempty"`
+	RowErrorPolicy        string `json:"rowErrorPolicy,omitempty"`
 	// ExistingTargetInsertWithoutKey 允许「目标表已存在 + 源表无物理主键」的
 	// insert_update 任务降级为追加写入：不再要求稳定 key 做行级比对，
 	// 直接把源行整体插入目标表。仅由任务编排层在确认该映射本可自动建表
@@ -608,31 +607,8 @@ func (s *SyncEngine) runSync(config SyncConfig) SyncResult {
 				}
 			}
 			if len(targetColsResolved) > 0 {
-				targetColSet := make(map[string]struct{}, len(targetColsResolved))
-				writableColSet := make(map[string]struct{}, len(targetColsResolved))
-				for _, c := range targetColsResolved {
-					name := strings.ToLower(strings.TrimSpace(c.Name))
-					if name == "" {
-						continue
-					}
-					targetColSet[name] = struct{}{}
-					if !connection.IsGeneratedColumnExtra(c.Extra) {
-						writableColSet[name] = struct{}{}
-					}
-				}
-				requiredCols := collectRequiredColumns(changeSet.Inserts, changeSet.Updates)
-				missing := make([]string, 0)
-				for lower, original := range requiredCols {
-					if _, ok := targetColSet[lower]; !ok {
-						missing = append(missing, original)
-					}
-				}
-				sort.Strings(missing)
-				// 生成列（MySQL VIRTUAL/STORED GENERATED 等）由数据库算值，
-				// 写进 INSERT/UPDATE 会直接报 MySQL 3105 之类的错，写入前过滤掉。
-				// 缺列检测要在过滤前跑：生成列在目标端「存在」，先过滤会误判缺失。
-				changeSet.Inserts = filterInsertRows(changeSet.Inserts, writableColSet)
-				changeSet.Updates = filterUpdateRows(changeSet.Updates, writableColSet)
+				writableColSet := buildWritableTargetColumnSet(targetColsResolved)
+				missing := missingChangeSetColumns(changeSet, targetColsResolved)
 				if len(missing) > 0 {
 					if hasExplicitSyncMappings(config) {
 						message := fmt.Sprintf("映射目标表缺少字段：%s", strings.Join(missing, ", "))
@@ -678,13 +654,16 @@ func (s *SyncEngine) runSync(config SyncConfig) SyncResult {
 								continue
 							}
 							added++
-							targetColSet[colLower] = struct{}{}
+							writableColSet[colLower] = struct{}{}
 						}
 						s.appendLog(config.JobID, &result, "info", fmt.Sprintf("  -> 自动补字段完成：成功=%d 失败=%d", added, len(missing)-added))
 					} else {
 						s.appendLog(config.JobID, &result, "warn", fmt.Sprintf("  -> 目标表缺少字段 %d 个（未开启自动补齐），将自动忽略：%s", len(missing), strings.Join(missing, ", ")))
 					}
 				}
+				// 补列完成后只过滤一次，保留成功新增普通列的源值。
+				changeSet.Inserts = filterInsertRows(changeSet.Inserts, writableColSet)
+				changeSet.Updates = filterUpdateRows(changeSet.Updates, writableColSet)
 			}
 			if tableFailure != "" {
 				return
