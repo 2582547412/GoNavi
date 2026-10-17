@@ -47,6 +47,7 @@ func encodeWindowsApplicationIconICO(source image.Image) ([]byte, error) {
 	if source == nil {
 		return nil, errors.New("application icon source is nil")
 	}
+	source, _ = normalizeWindowsApplicationIconArtwork(source)
 
 	frames := make([][]byte, 0, len(windowsApplicationIconSizes))
 	for _, size := range windowsApplicationIconSizes {
@@ -416,7 +417,7 @@ func loadPersistedWindowsApplicationIcon(configDir string) (string, error) {
 		if filepath.Base(iconName) == iconName && filepath.Ext(iconName) == ".ico" {
 			iconPath := filepath.Join(iconDir, iconName)
 			if info, statErr := os.Stat(iconPath); statErr == nil && info.Mode().IsRegular() {
-				return iconPath, nil
+				return preparePersistedWindowsApplicationIconArtwork(iconPath, configDir)
 			}
 		}
 	} else if !errors.Is(err, os.ErrNotExist) {
