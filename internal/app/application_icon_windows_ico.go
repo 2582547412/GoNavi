@@ -48,11 +48,16 @@ func encodeWindowsApplicationIconICO(source image.Image) ([]byte, error) {
 		return nil, errors.New("application icon source is nil")
 	}
 	source, _ = normalizeWindowsApplicationIconArtwork(source)
+	taskbarSource, _ := composeWindowsTaskbarArtwork(source)
 
 	frames := make([][]byte, 0, len(windowsApplicationIconSizes))
 	for _, size := range windowsApplicationIconSizes {
+		frameSource := source
+		if size <= windowsTaskbarArtworkMaxPixels {
+			frameSource = taskbarSource
+		}
 		target := image.NewNRGBA(image.Rect(0, 0, size, size))
-		draw.CatmullRom.Scale(target, target.Bounds(), source, source.Bounds(), draw.Over, nil)
+		draw.CatmullRom.Scale(target, target.Bounds(), frameSource, frameSource.Bounds(), draw.Over, nil)
 		frame, err := encodeWindowsApplicationIconFrame(target, size)
 		if err != nil {
 			return nil, err
@@ -292,7 +297,7 @@ func migrateWindowsApplicationIconFile(iconPath string) error {
 
 func windowsApplicationIconCandidatePath(pngBytes []byte, configDir string) string {
 	hash := sha256.Sum256(pngBytes)
-	return filepath.Join(strings.TrimSpace(configDir), windowsApplicationIconDirectoryName, fmt.Sprintf("gonavi-brand-%x.ico", hash[:12]))
+	return filepath.Join(strings.TrimSpace(configDir), windowsApplicationIconDirectoryName, fmt.Sprintf(windowsApplicationIconRenderPrefix+"%x.ico", hash[:12]))
 }
 
 func persistWindowsApplicationIcon(pngBytes []byte, configDir string) (string, error) {
