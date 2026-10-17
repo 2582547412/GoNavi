@@ -213,7 +213,28 @@ func repairPersistedWindowsApplicationShortcuts(iconPath string) {
 
 const (
 	windowsPinsWatcherPollMs = 2000
+	// 固定项首切安全网延迟：Explorer 在按钮结构变化（固定/取消固定/分组重
+	// 绑定）后会吞掉紧跟的第一个 shell 通知（Win11 26200 实测，5bdaeb25），
+	// 表现为「固定后第一次切换无效、第二次才生效」。切换完成后延迟补一轮
+	// 定向 shell 通知与按钮重注册，让被吞的第一次直接生效。
+	windowsPinFirstSwitchRefreshDelayMs = 1500
 )
+
+// windowsSchedulePinFirstSwitchRefresh 独立成变量以便测试注入同步执行。
+var windowsSchedulePinFirstSwitchRefresh = func(delayMs int, runtimeContext context.Context) {
+	time.AfterFunc(time.Duration(delayMs)*time.Millisecond, func() {
+		windowsSendShortcutRefreshNotifications()
+		applicationBrandIconMu.Lock()
+		defer applicationBrandIconMu.Unlock()
+		freshHwnd, err := resolveWailsMainWindowHandle(runtimeContext)
+		if err != nil || freshHwnd == 0 {
+			return
+		}
+		if err := windowsRefreshTaskbarButton(freshHwnd); err != nil {
+			logger.Warnf("延迟重注册任务栏按钮失败：%v", err)
+		}
+	})
+}
 
 var (
 	windowsPinsWatcherOnce sync.Once
@@ -520,6 +541,15 @@ func setApplicationIconPNG(pngBytes []byte, configDir string, runtimeContext con
 	// 和「刚取消固定」，而后者的按钮同样带着过期快照；代价是 Explorer 重绘
 	// 一次桌面图标（切换本身已会让开始菜单列表闪烁）。
 	windowsApplicationIconNotifyAssociationChanged()
+	// 固定项首切安全网：Explorer 吞掉结构变化后的第一个通知（固定/取消固
+	// 定后首次切换无效，5bdaeb25 实测），重建按钮（recreateWindowsTaskbar
+	// ButtonForPinRefresh）也覆盖不了全部场景。延迟补一轮定向 shell 通知
+	// （UPDATEITEM/UPDATEDIR，不含全局 ASSOCCHANGED——桌面重绘留给上面的
+	// 即时刷新）与一次按钮重注册。只发通知与重注册、不重加载图标、不重应
+	// 用窗口状态，因此不存在 19955c7e 删除旧安全网时提到的「watcher 用旧
+	// 图标覆盖新图标」竞态——那个竞态来自对旧状态的全量重应用，不是通知
+	// 本身。回调内重取窗口句柄并校验存活，防止旧句柄复用。
+	windowsSchedulePinFirstSwitchRefresh(windowsPinFirstSwitchRefreshDelayMs, runtimeContext)
 	if err := activatePersistedWindowsApplicationIcon(iconPath, configDir); err != nil {
 		return err
 	}
