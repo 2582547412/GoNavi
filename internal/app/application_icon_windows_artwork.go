@@ -84,7 +84,7 @@ func preparePersistedWindowsApplicationIconArtwork(iconPath, configDir string) (
 	}
 	normalized, changed := normalizeWindowsApplicationIconArtwork(source)
 	if !changed {
-		return iconPath, nil
+		return preparePersistedWindowsTaskbarArtwork(iconPath, configDir)
 	}
 	var encoded bytes.Buffer
 	if err := png.Encode(&encoded, normalized); err != nil {
