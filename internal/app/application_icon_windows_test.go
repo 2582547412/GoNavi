@@ -14,6 +14,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 )
 
 type fakeBrandIconWindow struct {
@@ -610,7 +611,7 @@ func TestInitializePersistedNativeBrandIconIgnoresResidualIconsWithoutPointer(t 
 	// 的 Users-Modify 权限是跨用户篡改面，首次启动就该收敛。
 	select {
 	case <-repairDefaultCalls:
-	default:
+	case <-time.After(time.Second):
 		t.Fatal("never-selected startup branch must still migrate machine-layer shortcuts")
 	}
 	// 启动路径也不得把猜测结果固化成指针：空指针即「已清理」，必须保持原样。
