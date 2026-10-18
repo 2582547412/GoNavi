@@ -40,7 +40,7 @@ func applyPersistedWindowsApplicationIcon(runtimeContext context.Context, config
 	// The shortcut already carries the persisted icon. Explorer resolves it
 	// while creating the taskbar button, so startup does not need the global
 	// association broadcast used by a live brand switch.
-	_, err = setCurrentWindowsApplicationIconMode(runtimeContext, iconPath, false)
+	_, _, err = setCurrentWindowsApplicationIconMode(runtimeContext, iconPath, false)
 	if err != nil {
 		return err
 	}
