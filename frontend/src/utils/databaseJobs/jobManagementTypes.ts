@@ -13,7 +13,11 @@ export const resolveJobManagementDialect = (config?: ConnectionConfig): JobTarge
   const engine = String(config?.type === 'custom' ? config.driver : config?.type).toLowerCase();
   return engine === 'mysql' || engine === 'mariadb' ? engine : null;
 };
-export type JobSnapshot = { job: DatabaseJobRow; steps: DatabaseJobRow[]; schedules: DatabaseJobRow[]; exceptions?: DatabaseJobRow[] };
+export type JobSnapshot = {
+  job: DatabaseJobRow; steps: DatabaseJobRow[]; schedules: DatabaseJobRow[]; exceptions?: DatabaseJobRow[];
+  // Status reads must keep the accessible catalog/version selected during metadata loading.
+  definitionQueryIndex?: number;
+};
 export type JobCreateInput = { name: string; action: string; schedule: string; program: string; scheduleName: string; jobType: string };
 export type JobSQLPlan = { sql: string; readOnly: boolean; warning?: string };
 export const emptyJobSnapshot = (): JobSnapshot => ({ job: {}, steps: [], schedules: [] });

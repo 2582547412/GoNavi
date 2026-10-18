@@ -6,7 +6,7 @@
 body[data-ui-version='v2'] .gn-object-info {
   position: relative;
   padding: 8px 12px 10px;
-  font-size: 12px;
+  font-size: var(--gn-font-size-sm, 12px);
 }
 
 body[data-ui-version='v2'] .gn-object-info-loading-dot {
@@ -26,7 +26,7 @@ body[data-ui-version='v2'] .gn-object-info-loading-dot {
 
 body[data-ui-version='v2'] .gn-object-info-empty {
   padding: 18px 14px;
-  font-size: 12px;
+  font-size: var(--gn-font-size-sm, 12px);
   color: var(--gn-fg-3, rgba(100, 116, 139, 0.9));
   text-align: center;
 }
@@ -40,7 +40,7 @@ body[data-ui-version='v2'] .gn-object-info-head {
 body[data-ui-version='v2'] .gn-object-info-head-name {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 13px;
+  font-size: calc(var(--gn-font-size-sm, 12px) + 1px);
   font-weight: 600;
   font-family: var(--gn-font-mono, monospace);
   color: var(--gn-fg-1, inherit);
@@ -50,14 +50,15 @@ body[data-ui-version='v2'] .gn-object-info-head-name {
 }
 
 body[data-ui-version='v2'] .gn-object-info-reload {
+  /* 与整体 UI 同档：28x28 热区，且随 UI 缩放一起变。 */
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
+  width: calc(28px * var(--gn-ui-scale, 1));
+  height: calc(28px * var(--gn-ui-scale, 1));
   border: none;
   border-radius: 5px;
   background: transparent;
   color: var(--gn-fg-3, rgba(100, 116, 139, 0.9));
-  font-size: 13px;
+  font-size: calc(var(--gn-font-size-sm, 12px) + 4px);
   line-height: 1;
   cursor: pointer;
 }
@@ -69,7 +70,7 @@ body[data-ui-version='v2'] .gn-object-info-reload:hover {
 
 body[data-ui-version='v2'] .gn-object-info-meta {
   margin-top: 1px;
-  font-size: 11px;
+  font-size: var(--gn-font-size-xs, 11px);
   color: var(--gn-fg-3, rgba(100, 116, 139, 0.9));
   white-space: nowrap;
   overflow: hidden;
@@ -82,7 +83,7 @@ body[data-ui-version='v2'] .gn-object-info-unsupported {
   border-radius: 6px;
   background: var(--gn-bg-hover, rgba(15, 23, 42, 0.05));
   color: var(--gn-fg-3, rgba(100, 116, 139, 0.9));
-  font-size: 11.5px;
+  font-size: var(--gn-font-size-xs, 11px);
   line-height: 1.6;
 }
 
@@ -120,7 +121,7 @@ body[data-ui-version='v2'] .gn-object-info-ddl {
 }
 
 body[data-ui-version='v2'] .gn-object-info-ddl-title {
-  font-size: 11.5px;
+  font-size: var(--gn-font-size-xs, 11px);
   font-weight: 600;
   color: var(--gn-fg-2, inherit);
   margin-bottom: 4px;
@@ -135,7 +136,7 @@ body[data-ui-version='v2'] .gn-object-info-ddl-body {
   border-radius: 6px;
   background: var(--gn-monaco-bg, var(--gn-bg-panel-2, transparent));
   font-family: var(--gn-font-mono, monospace);
-  font-size: 11px;
+  font-size: var(--gn-font-size-xs, 11px);
   line-height: 1.65;
   color: var(--gn-fg-2, inherit);
   white-space: pre;

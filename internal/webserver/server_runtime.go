@@ -131,6 +131,8 @@ func (s *SharedRuntime) EmitToBestEffort(targetID string, name string, args ...a
 
 func (s *SharedRuntime) routes() http.Handler {
 	mux := http.NewServeMux()
+	mux.Handle("/__gonavi/background-gallery/assets/", appcore.BackgroundGalleryAssetHandler(s.server.app))
+	mux.Handle("/__gonavi/font-gallery/assets/", appcore.FontGalleryAssetHandler(s.server.app))
 	mux.Handle(internalRoutePrefix+"/api/invoke", wrapInvokeRoute(http.HandlerFunc(s.server.handleInvoke)))
 	mux.Handle(internalRoutePrefix+"/events", httpserverlimits.StreamingWriteTimeout(http.HandlerFunc(s.server.handleEvents)))
 	mux.HandleFunc(s.runtimeBridgePath, func(w http.ResponseWriter, r *http.Request) {

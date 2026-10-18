@@ -14,6 +14,7 @@ import type { AppAntdThemeApi } from './useAppAntdTheme';
 import type { AppSecurityUpdateApi } from './useAppSecurityUpdate';
 import { ThemeModeSettingsSection } from '../settings/ThemeModeSettingsSection';
 import { ThemeAppearanceSettingsSection } from '../settings/ThemeAppearanceSettingsSection';
+import { TabAppearanceSettingsSection } from '../settings/TabAppearanceSettingsSection';
 import { TabDisplaySettingsSection } from '../settings/TabDisplaySettingsSection';
 import { DataTableSettingsFields } from '../settings/DataTableSettingsFields';
 
@@ -38,8 +39,6 @@ export interface UseAppThemeSettingsRenderInput {
   appearance: AppCoreStateApi['appearance'];
   isFontFamiliesLoading: AppShellStateApi['isFontFamiliesLoading'];
   uiFontOptions: AppShellStateApi['uiFontOptions'];
-  filterFontOption: AppAntdThemeApi['filterFontOption'];
-  renderFontOptionLabel: AppAntdThemeApi['renderFontOptionLabel'];
   fontFamiliesLoadError: AppShellStateApi['fontFamiliesLoadError'];
   installedFontFamilies: AppShellStateApi['installedFontFamilies'];
   linuxCJKFontInstallHint: AppShellStateApi['linuxCJKFontInstallHint'];
@@ -82,8 +81,8 @@ export const useAppThemeSettingsRender = ({
   effectiveThemePreference, selectPresetTheme, renderThemeModePreview, renderThemeSettingsRow,
   queryOptions, setQueryOptions,
   effectiveUiScale, setUiScale, effectiveFontSize, setFontSize, effectiveSidebarRailScale,
-  setAppearance, appearance, isFontFamiliesLoading, uiFontOptions, filterFontOption,
-  renderFontOptionLabel, fontFamiliesLoadError, installedFontFamilies, linuxCJKFontInstallHint,
+  setAppearance, appearance, isFontFamiliesLoading, uiFontOptions,
+  fontFamiliesLoadError, installedFontFamilies, linuxCJKFontInstallHint,
   hasLoadedInstalledFontsRef, darkMode, monoFontOptions, newQuerySqlTemplate,
   tabDisplaySettingsPanelRef, tabDisplaySettings, setTabDisplayLayout,
   effectiveTabEnvironmentAccentThickness, tabDisplayElementOrder, visibleTabDisplayElementKeys,
@@ -186,8 +185,7 @@ export const useAppThemeSettingsRender = ({
                             effectiveSidebarRailScale={effectiveSidebarRailScale}
                             setAppearance={setAppearance} appearance={appearance}
                             isFontFamiliesLoading={isFontFamiliesLoading}
-                            uiFontOptions={uiFontOptions} filterFontOption={filterFontOption}
-                            renderFontOptionLabel={renderFontOptionLabel}
+                            uiFontOptions={uiFontOptions}
                             fontFamiliesLoadError={fontFamiliesLoadError}
                             installedFontFamilies={installedFontFamilies}
                             linuxCJKFontInstallHint={linuxCJKFontInstallHint}
@@ -257,6 +255,7 @@ export const useAppThemeSettingsRender = ({
                                   </div>,
                               )}
                               </>}
+                              {options?.page === 'tabs-settings' && <TabAppearanceSettingsSection />}
                               {options?.page !== 'editor-settings' && <TabDisplaySettingsSection
                                 tabDisplaySettingsPanelRef={tabDisplaySettingsPanelRef} t={t}
                                 renderThemeSettingsRow={renderThemeSettingsRow}

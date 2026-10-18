@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode }
 import { createPortal } from 'react-dom';
 import { ConfigProvider } from 'antd';
 import { StyleProvider, createCache } from '@ant-design/cssinjs';
-import { collectPreviewStyles } from './previewStyleScope';
+import { subscribePreviewStyles } from './previewStyleSubscription';
+import { usePreviewVisibility } from './usePreviewVisibility';
 import './livePreview.css';
 
 type Props = { mode: 'classic' | 'navicat'; children: ReactNode; height?: number; label: string };
@@ -14,23 +15,30 @@ export function PreviewSurface({ mode, children, height = 640, label }: Props) {
   modeRef.current = mode;
   const [shadow, setShadow] = useState<ShadowRoot | null>(null);
   const [width, setWidth] = useState(1080);
-  const cache = useMemo(() => createCache(), []);
+  const visible = usePreviewVisibility(host);
+  const cache = useMemo(() => visible ? createCache() : null, [visible]);
   useLayoutEffect(() => {
     if (!host.current) return;
-    setShadow(host.current.shadowRoot || host.current.attachShadow({ mode: 'open' }));
     const resize = () => setWidth(host.current?.clientWidth || 1080);
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(host.current);
     return () => observer.disconnect();
   }, []);
+  useLayoutEffect(() => {
+    if (visible && host.current) setShadow(host.current.shadowRoot || host.current.attachShadow({ mode: 'open' }));
+  }, [visible]);
   useEffect(() => {
     if (!shadow) return;
     const style = document.createElement('style');
     shadow.prepend(style);
+    const unsubscribe = subscribePreviewStyles(document, css => { style.textContent = css; });
+    return () => { unsubscribe(); style.remove(); };
+  }, [shadow]);
+  useEffect(() => {
+    if (!shadow) return;
     let frame = 0;
     const sync = () => {
-      style.textContent = collectPreviewStyles(document);
       for (const [source, target] of [[document.body, body.current], [document.documentElement, root.current]] as const) {
         if (!target) continue;
         for (const attribute of Array.from(target.attributes)) {
@@ -52,17 +60,16 @@ export function PreviewSurface({ mode, children, height = 640, label }: Props) {
     const schedule = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(sync); };
     sync();
     const observer = new MutationObserver(schedule);
-    observer.observe(document.head, { subtree: true, childList: true, characterData: true, attributes: true });
     observer.observe(document.body, { attributes: true });
     observer.observe(document.documentElement, { attributes: true });
-    return () => { observer.disconnect(); cancelAnimationFrame(frame); style.remove(); };
+    return () => { observer.disconnect(); cancelAnimationFrame(frame); };
   }, [shadow, mode]);
   const scale = Math.min(1, width / 1080);
   useLayoutEffect(() => {
     if (host.current) { host.current.scrollTop = 0; host.current.scrollLeft = 0; }
   }, [mode, scale]);
   return <div className="gn-live-preview-host" ref={host} style={{ height: height * scale }} role="region" aria-label={label}>
-    {shadow && createPortal(<StyleProvider container={shadow} cache={cache}>
+    {shadow && cache && createPortal(<StyleProvider container={shadow} cache={cache}>
       <div ref={root} data-preview-root="true" style={{ width: 1080, height, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
         <div ref={body} data-preview-body="true" data-ui-layout={mode} style={{ width: 1080, height }} onKeyDown={event => event.stopPropagation()}>
           <ConfigProvider getPopupContainer={() => body.current || host.current!}>{children}</ConfigProvider>

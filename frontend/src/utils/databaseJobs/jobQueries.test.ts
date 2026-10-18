@@ -20,13 +20,15 @@ describe('database job catalog scope', () => {
     expect(queries[1]).toContain('SCHEMA_USER = USER');
   });
 
-  it('disambiguates native Dameng jobs from Oracle-compatible SYS.USER_JOBS', () => {
+  it('uses SYSJOB catalogs for both native and Oracle-compatible Dameng jobs', () => {
     const groups = buildDatabaseJobListQueries('dm', 'APP');
     expect(groups[0].queries).toHaveLength(2);
     expect(groups[0].queries[0]).toContain('FROM SYSJOB.SYSJOBS');
     expect(groups[0].queries[1]).toContain('FROM SYSJOB.USER_JOBS_VIEW');
     expect(groups[0].queries.every((sql) => sql.includes("USERNAME = 'APP'"))).toBe(true);
-    expect(groups[1].queries[0]).toContain('FROM SYS.USER_JOBS');
+    expect(groups[1].queries[0]).toContain('FROM SYSJOB.DBA_JOBS');
+    expect(groups[1].queries[1]).toContain('FROM SYSJOB.USER_JOBS');
+    expect(groups.every((group) => group.probeQueries?.[0].includes("OWNER = 'SYSJOB'"))).toBe(true);
     expect(buildDatabaseJobListQueries('sqlite', 'APP')).toEqual([]);
   });
 

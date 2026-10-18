@@ -4,6 +4,10 @@ import { DEFAULT_BRAND_ICON_ID, sanitizeBrandIconId } from "../brand/brandIcons"
 import { DEFAULT_DATA_GRID_DISPLAY_SETTINGS } from "../utils/dataGridDisplay";
 import { DEFAULT_SQL_EDITOR_TYPOGRAPHY_SETTINGS } from "../utils/sqlEditorTypography";
 import { DEFAULT_TITLEBAR_ACTIONS_PLACEMENT_SETTINGS } from "../utils/titlebarActionsPlacement";
+import {
+  DEFAULT_TAB_APPEARANCE_STYLE,
+  DEFAULT_TAB_CLOSE_BUTTON_POSITION,
+} from "../utils/tabAppearance";
 import type { LanguagePreference } from "../i18n";
 import { DEFAULT_TAB_DISPLAY_SETTINGS } from "../utils/tabDisplay";
 import { DEFAULT_REDIS_DB_ALIASES } from "../utils/redisDbAlias";
@@ -50,6 +54,8 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   v2SidebarPersistedFilter: "",
   v2SidebarRailScale: DEFAULT_V2_SIDEBAR_RAIL_SCALE,
   tabEnvironmentAccentThickness: DEFAULT_TAB_ENVIRONMENT_ACCENT_THICKNESS,
+  tabAppearanceStyle: DEFAULT_TAB_APPEARANCE_STYLE,
+  tabCloseButtonPosition: DEFAULT_TAB_CLOSE_BUTTON_POSITION,
   toolbarButtonColorOverrides: { ...DEFAULT_TOOLBAR_BUTTON_COLOR_OVERRIDES },
   sidebarSingleDatabaseExpansion: false,
   workbenchSidebarAutoCollapse: false,

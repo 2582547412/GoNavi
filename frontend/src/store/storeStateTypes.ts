@@ -25,6 +25,7 @@ import {
 import type { DataGridDisplaySettings } from "../utils/dataGridDisplay";
 import type { SqlEditorTypographySettings } from "../utils/sqlEditorTypography";
 import type { TitlebarActionsPlacementSettings } from "../utils/titlebarActionsPlacement";
+import type { TabAppearanceStyle, TabCloseButtonPosition } from "../utils/tabAppearance";
 import type {
   DetachedWorkbenchWindow,
   DetachedQueryResultWindow,
@@ -90,6 +91,8 @@ export interface AppearanceSettings
   v2SidebarPersistedFilter: string;
   v2SidebarRailScale: number;
   tabEnvironmentAccentThickness: number;
+  tabAppearanceStyle: TabAppearanceStyle;
+  tabCloseButtonPosition: TabCloseButtonPosition;
   toolbarButtonColorOverrides: ToolbarButtonColorOverrides;
   sidebarSingleDatabaseExpansion: boolean;
   workbenchSidebarAutoCollapse: boolean;

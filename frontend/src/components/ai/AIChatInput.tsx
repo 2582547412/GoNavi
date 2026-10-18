@@ -202,7 +202,8 @@ export const AIChatInput: React.FC<AIChatInputProps> = ({
             shortcut: getShortcutDisplayLabel(combo, shortcutPlatform),
         });
     }, [sendShortcutBinding?.combo, sendShortcutBinding?.enabled, shortcutPlatform, t]);
-    const connectionTooltipLabel = t('ai_chat.input.context.connection_tooltip');
+    const connectionContextLabel = activeContext?.dbName ? `${activeConnName} / ${activeContext.dbName}` : activeConnName;
+    const connectionTooltipLabel = t('ai_chat.input.context.connection_tooltip', { name: connectionContextLabel });
     const composerActionHandler = typeof onComposerAction === 'function' ? onComposerAction : undefined;
     const composerNoticeActionHandler = composerNotice?.action?.key && composerActionHandler
         ? handleComposerNoticeAction
@@ -310,7 +311,7 @@ export const AIChatInput: React.FC<AIChatInputProps> = ({
                                 <span className="gn-v2-ai-context-live-dot" />
                                 <GnDatabaseIcon />
                                 <span className="gn-v2-ai-context-chip-text">
-                                    {activeConnName}{activeContext?.dbName ? ` / ${activeContext.dbName}` : ''}
+                                    {connectionContextLabel}
                                 </span>
                             </div>
                         </Tooltip>
