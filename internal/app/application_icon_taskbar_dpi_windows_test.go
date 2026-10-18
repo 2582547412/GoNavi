@@ -55,7 +55,7 @@ func TestWindowsTaskbarAndAltTabRequestedFramesAcrossDPI(t *testing.T) {
 				}
 				return 0, stop
 			}
-			if _, err := setCurrentWindowsApplicationIconMode(context.Background(), path, false); !errors.Is(err, stop) {
+			if _, _, err := setCurrentWindowsApplicationIconMode(context.Background(), path, false); !errors.Is(err, stop) {
 				t.Fatalf("unexpected native load result: %v", err)
 			}
 			if len(requested) != 2 || requested[0] != tt.small || requested[1] != tt.large {

@@ -100,7 +100,7 @@ func TestApplyWindowsApplicationIconVerifiesMainWindowReadback(t *testing.T) {
 	}
 
 	const iconPath = `C:\Users\tester\gonavi-brand.ico`
-	if err := applyWindowsApplicationIcon(hwnd, iconPath, small, large); err != nil {
+	if _, err := applyWindowsApplicationIcon(hwnd, iconPath, small, large); err != nil {
 		t.Fatalf("apply Windows application icon: %v", err)
 	}
 	if len(calls) != 4 {
@@ -143,7 +143,7 @@ func TestApplyWindowsApplicationIconRejectsSilentSetFailure(t *testing.T) {
 		return nil
 	}
 
-	err := applyWindowsApplicationIcon(0x1234, `C:\brand.ico`, 0x2001, 0x2002)
+	_, err := applyWindowsApplicationIcon(0x1234, `C:\brand.ico`, 0x2001, 0x2002)
 	if err == nil {
 		t.Fatal("expected readback mismatch to fail")
 	}
@@ -181,7 +181,7 @@ func TestApplyWindowsApplicationIconReturnsTaskbarPropertyFailure(t *testing.T) 
 		return nil
 	}
 
-	err := applyWindowsApplicationIcon(0x1234, `C:\brand.ico`, 0x2001, 0x2002)
+	_, err := applyWindowsApplicationIcon(0x1234, `C:\brand.ico`, 0x2001, 0x2002)
 	if err == nil || !strings.Contains(err.Error(), "taskbar") {
 		t.Fatalf("expected taskbar property error, got %v", err)
 	}
@@ -213,7 +213,7 @@ func TestApplyWindowsApplicationIconReturnsTaskbarRefreshFailure(t *testing.T) {
 		return errors.New("Explorer rejected taskbar refresh")
 	}
 
-	err := applyWindowsApplicationIcon(0x1234, `C:\brand.ico`, 0x2001, 0x2002)
+	_, err := applyWindowsApplicationIcon(0x1234, `C:\brand.ico`, 0x2001, 0x2002)
 	if err == nil || !strings.Contains(err.Error(), "refresh Windows taskbar icon") {
 		t.Fatalf("expected taskbar refresh failure, got %v", err)
 	}
@@ -459,7 +459,7 @@ func TestSetApplicationIconPNGDoesNotActivateAfterShortcutFailure(t *testing.T) 
 		return errors.New("shortcut update failed")
 	}
 
-	if err := setApplicationIconPNG(encoded.Bytes(), configDir, context.Background()); err == nil {
+	if _, err := setApplicationIconPNG(encoded.Bytes(), configDir, context.Background()); err == nil {
 		t.Fatal("expected shortcut update failure")
 	}
 	activeStatePath := filepath.Join(configDir, windowsApplicationIconDirectoryName, windowsApplicationIconStateFileName)
@@ -951,7 +951,7 @@ func TestSetApplicationIconPNGFlushesAssociationOnEveryLiveSwitch(t *testing.T) 
 	recreatesForPin := 0
 	windowsRecreateTaskbarButtonForPinRefresh = func(uintptr) bool { recreatesForPin++; return true }
 
-	if err := setApplicationIconPNG(encoded.Bytes(), configDir, ctx); err != nil {
+	if _, err := setApplicationIconPNG(encoded.Bytes(), configDir, ctx); err != nil {
 		t.Fatalf("set application icon with GoNavi pin: %v", err)
 	}
 	if associationFlushes != 1 {
@@ -966,7 +966,7 @@ func TestSetApplicationIconPNGFlushesAssociationOnEveryLiveSwitch(t *testing.T) 
 	if err := os.Remove(pinPath); err != nil {
 		t.Fatal(err)
 	}
-	if err := setApplicationIconPNG(encoded.Bytes(), configDir, ctx); err != nil {
+	if _, err := setApplicationIconPNG(encoded.Bytes(), configDir, ctx); err != nil {
 		t.Fatalf("set application icon without GoNavi pin: %v", err)
 	}
 	if associationFlushes != 2 {
@@ -1128,7 +1128,7 @@ func TestApplyWindowsApplicationIconModeRecreatesButtonOnlyForPins(t *testing.T)
 	recreated := 0
 	windowsRecreateTaskbarButtonForPinRefresh = func(uintptr) bool { recreated++; return true }
 
-	if err := applyWindowsApplicationIconMode(hwnd, `C:\brand.ico`, small, large, true); err != nil {
+	if _, err := applyWindowsApplicationIconMode(hwnd, `C:\brand.ico`, small, large, true); err != nil {
 		t.Fatalf("apply icon with pin: %v", err)
 	}
 	if recreated != 1 {
@@ -1138,7 +1138,7 @@ func TestApplyWindowsApplicationIconModeRecreatesButtonOnlyForPins(t *testing.T)
 	if err := os.Remove(pinPath); err != nil {
 		t.Fatal(err)
 	}
-	if err := applyWindowsApplicationIconMode(hwnd, `C:\brand.ico`, small, large, true); err != nil {
+	if _, err := applyWindowsApplicationIconMode(hwnd, `C:\brand.ico`, small, large, true); err != nil {
 		t.Fatalf("apply icon without pin: %v", err)
 	}
 	if recreated != 1 {
@@ -1148,11 +1148,73 @@ func TestApplyWindowsApplicationIconModeRecreatesButtonOnlyForPins(t *testing.T)
 	if err := os.WriteFile(pinPath, nil, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := applyWindowsApplicationIconMode(hwnd, `C:\brand.ico`, small, large, false); err != nil {
+	if _, err := applyWindowsApplicationIconMode(hwnd, `C:\brand.ico`, small, large, false); err != nil {
 		t.Fatalf("apply icon on startup path: %v", err)
 	}
 	if recreated != 1 {
 		t.Fatalf("recreation count on startup path = %d, want still 1", recreated)
+	}
+}
+
+// 固定项按钮重建失败时热应用并未覆盖固定按钮（Explorer 快照不重采样）：
+// 必须透传 restartRecommended 让前端引导用户重启；重建成功时不得误报。
+func TestApplyWindowsApplicationIconModeReportsRestartRecommendedWhenPinRebuildFails(t *testing.T) {
+	pinsDir := t.TempDir()
+	pinPath := filepath.Join(pinsDir, "GoNavi.lnk")
+	if err := os.WriteFile(pinPath, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	const (
+		hwnd  = uintptr(0x1234)
+		small = uintptr(0x2001)
+		large = uintptr(0x2002)
+	)
+	originalPinsDirectory := windowsTaskbarPinsDirectory
+	originalSend := windowsApplicationIconSendMessageCall
+	originalSetClass := windowsApplicationIconSetClassIcon
+	originalSetTaskbarProperties := windowsApplicationIconSetTaskbarProperties
+	originalRefreshTaskbar := windowsRefreshTaskbarButton
+	originalRecreate := windowsRecreateTaskbarButtonForPinRefresh
+	t.Cleanup(func() {
+		windowsTaskbarPinsDirectory = originalPinsDirectory
+		windowsApplicationIconSendMessageCall = originalSend
+		windowsApplicationIconSetClassIcon = originalSetClass
+		windowsApplicationIconSetTaskbarProperties = originalSetTaskbarProperties
+		windowsRefreshTaskbarButton = originalRefreshTaskbar
+		windowsRecreateTaskbarButtonForPinRefresh = originalRecreate
+	})
+	windowsTaskbarPinsDirectory = func() string { return pinsDir }
+	current := map[uintptr]uintptr{}
+	windowsApplicationIconSendMessageCall = func(_, message, iconType, icon uintptr) uintptr {
+		switch message {
+		case windowsSetIconMessage:
+			current[iconType] = icon
+		case windowsGetIconMessage:
+			return current[iconType]
+		}
+		return 0
+	}
+	windowsApplicationIconSetClassIcon = func(uintptr, int32, uintptr) {}
+	windowsApplicationIconSetTaskbarProperties = func(uintptr, string) error { return nil }
+	windowsRefreshTaskbarButton = func(uintptr) error { return nil }
+
+	windowsRecreateTaskbarButtonForPinRefresh = func(uintptr) bool { return false }
+	restartRecommended, err := applyWindowsApplicationIconMode(hwnd, `C:\brand.ico`, small, large, true)
+	if err != nil {
+		t.Fatalf("apply icon with failed pin rebuild: %v", err)
+	}
+	if !restartRecommended {
+		t.Fatal("expected restartRecommended when pin rebuild fails")
+	}
+
+	windowsRecreateTaskbarButtonForPinRefresh = func(uintptr) bool { return true }
+	restartRecommended, err = applyWindowsApplicationIconMode(hwnd, `C:\brand.ico`, small, large, true)
+	if err != nil {
+		t.Fatalf("apply icon with successful pin rebuild: %v", err)
+	}
+	if restartRecommended {
+		t.Fatal("expected no restart recommendation when pin rebuild succeeds")
 	}
 }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
-import { message } from 'antd';
-import { SetApplicationBrandIcon } from '../../wailsjs/go/app/App';
+import { message, Modal } from 'antd';
+import { RestartApplication, SetApplicationBrandIcon } from '../../wailsjs/go/app/App';
 import { Environment } from '../../wailsjs/runtime';
 import { useI18n } from '../i18n/provider';
 import { useStore } from '../store';
@@ -153,6 +153,19 @@ export function useBrandIconSync(runtimePlatform: string) {
         throw new Error(result?.message || 'Windows brand icon update failed');
       }
       message.success(t('app.settings.entry.brand_icon.applied'));
+      // 固定项按钮重建失败时，热应用覆盖不了已固定的任务栏按钮（Explorer
+      // 快照不重采样）；引导用户重启应用，让按钮按新快捷方式重建。复用
+      // f71b318b 时代的重启文案与 RestartApplication 绑定。
+      const restartRecommended = (result?.data as { restartRecommended?: boolean } | undefined)?.restartRecommended === true;
+      if (restartRecommended) {
+        Modal.confirm({
+          title: t('app.settings.entry.brand_icon.windows_restart.title'),
+          content: t('app.settings.entry.brand_icon.windows_restart.description'),
+          okText: t('app.settings.entry.brand_icon.windows_restart.now'),
+          cancelText: t('app.settings.entry.brand_icon.windows_restart.later'),
+          onOk: () => { void RestartApplication(); },
+        });
+      }
     } catch (error) {
       // 只有当没有更新的选择接管时才回退：A 失败时用户可能已经改选 B，
       // 无条件回退会把过期的 previousId 写回 store——随后 B 成功时选择器

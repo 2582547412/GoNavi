@@ -11,6 +11,9 @@ const messageApi = vi.hoisted(() => ({
   error: vi.fn(),
 }));
 
+const modalConfirm = vi.hoisted(() => vi.fn());
+const restartApplication = vi.hoisted(() => vi.fn(async () => ({ success: true })));
+
 const storeState = vi.hoisted(() => ({
   brandIconId: 'legacy',
   setBrandIconId: (_id: string) => {},
@@ -29,12 +32,13 @@ const brandDefinitionState = vi.hoisted(() => ({
 // Windows 原生合成的取景缩放：按 id 返回（捕获传错 id 的回归），默认 1。
 const nativeIconZoomState = vi.hoisted(() => ({ forId: '', value: 1 }));
 
-vi.mock('antd', () => ({ message: messageApi }));
+vi.mock('antd', () => ({ message: messageApi, Modal: { confirm: modalConfirm } }));
 vi.mock('../store', () => ({
   useStore: (selector: (state: unknown) => unknown) => selector(storeState),
 }));
 vi.mock('../../wailsjs/go/app/App', () => ({
   SetApplicationBrandIcon: setApplicationBrandIcon,
+  RestartApplication: restartApplication,
   GetBrandIconDataURL: vi.fn(),
 }));
 vi.mock('../../wailsjs/runtime', () => ({
@@ -193,6 +197,41 @@ describe('useBrandIconSync handleBrandIconChange', () => {
 
     expect(composeWindowsNativeIcon).toHaveBeenCalledWith('dock:aurora', { zoom: 1.25 });
     expect(setApplicationBrandIcon).toHaveBeenCalledWith('b64');
+  });
+
+  it('prompts a restart only when the backend reports restartRecommended', async () => {
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(React.createElement(Harness));
+    });
+
+    // 正常成功（无标记）：不弹重启引导。
+    setApplicationBrandIcon.mockImplementationOnce(async () => ({ success: true }));
+    await act(async () => {
+      await capturedHandler('aurora' as BrandIconId);
+    });
+    expect(modalConfirm).not.toHaveBeenCalled();
+
+    // 固定项按钮重建失败（后端标记 restartRecommended）：弹重启引导。
+    setApplicationBrandIcon.mockImplementationOnce(async () => ({
+      success: true,
+      data: { restartRecommended: true },
+    }));
+    await act(async () => {
+      await capturedHandler('ember' as BrandIconId);
+    });
+    expect(modalConfirm).toHaveBeenCalledTimes(1);
+    expect(modalConfirm).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'app.settings.entry.brand_icon.windows_restart.title',
+      content: 'app.settings.entry.brand_icon.windows_restart.description',
+      okText: 'app.settings.entry.brand_icon.windows_restart.now',
+      cancelText: 'app.settings.entry.brand_icon.windows_restart.later',
+    }));
+    // 点「马上重启」才调 RestartApplication。
+    const onOk = modalConfirm.mock.calls[0][0].onOk as () => void;
+    await act(async () => { onOk(); });
+    expect(restartApplication).toHaveBeenCalledTimes(1);
+    void renderer;
   });
 });
 

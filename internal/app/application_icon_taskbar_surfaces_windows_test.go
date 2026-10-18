@@ -54,7 +54,7 @@ func TestWindowsTaskbarLoadsCompleteCenteredSmallFramesButKeepsDesktopLargeFrame
 		loadedPath, loadedSize = path, pixels
 		return 0, stop
 	}
-	if _, err := setCurrentWindowsApplicationIconMode(context.Background(), iconPath, false); !errors.Is(err, stop) {
+	if _, _, err := setCurrentWindowsApplicationIconMode(context.Background(), iconPath, false); !errors.Is(err, stop) {
 		t.Fatalf("unexpected native load result: %v", err)
 	}
 	if loadedPath != iconPath || loadedSize != 48 {

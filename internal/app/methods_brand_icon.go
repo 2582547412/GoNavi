@@ -58,10 +58,20 @@ func (a *App) SetApplicationBrandIcon(imageBase64 string) (result connection.Que
 		configDir = a.configDir
 		runtimeContext = a.ctx
 	}
-	if err := setApplicationIconPNG(png, configDir, runtimeContext); err != nil {
+	restartRecommended, err := setApplicationIconPNG(png, configDir, runtimeContext)
+	if err != nil {
 		return connection.QueryResult{Success: false, Message: a.appText("app.backend.error.set_brand_icon_failed", map[string]any{
 			"detail": err.Error(),
 		})}
+	}
+	// 固定项按钮重建失败时热应用无法覆盖固定按钮（Explorer 快照不重采样），
+	// 前端据此引导用户重启应用，让按钮按新快捷方式重建。
+	if restartRecommended {
+		return connection.QueryResult{
+			Success: true,
+			Message: a.appText("app.backend.message.brand_icon_updated", nil),
+			Data:    map[string]any{"restartRecommended": true},
+		}
 	}
 	return connection.QueryResult{Success: true, Message: a.appText("app.backend.message.brand_icon_updated", nil)}
 }
