@@ -12,7 +12,8 @@ const messageApi = vi.hoisted(() => ({
 }));
 
 const modalConfirm = vi.hoisted(() => vi.fn());
-const restartApplication = vi.hoisted(() => vi.fn(async () => ({ success: true })));
+const restartApplication = vi.hoisted(() =>
+  vi.fn(async (): Promise<{ success: boolean; message?: string }> => ({ success: true })));
 
 const storeState = vi.hoisted(() => ({
   brandIconId: 'legacy',
@@ -103,6 +104,9 @@ describe('useBrandIconSync handleBrandIconChange', () => {
     messageApi.success.mockClear();
     messageApi.warning.mockClear();
     messageApi.error.mockClear();
+    modalConfirm.mockClear();
+    restartApplication.mockReset();
+    restartApplication.mockResolvedValue({ success: true });
     setApplicationBrandIcon.mockReset();
     nativeIconZoomState.forId = '';
     nativeIconZoomState.value = 1;
@@ -231,6 +235,60 @@ describe('useBrandIconSync handleBrandIconChange', () => {
     const onOk = modalConfirm.mock.calls[0][0].onOk as () => void;
     await act(async () => { onOk(); });
     expect(restartApplication).toHaveBeenCalledTimes(1);
+    void renderer;
+  });
+
+  // 审查发现的回归场景：连续两次切换都重建失败时，antd 静态 confirm 每次
+  // 调用都新建实例，不设防会叠加两个确认框。关闭（afterClose）后才允许再弹。
+  it('keeps a single restart confirm across consecutive rebuild failures', async () => {
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(React.createElement(Harness));
+    });
+
+    const applyWithRestartFlag = async () => {
+      setApplicationBrandIcon.mockImplementationOnce(async () => ({
+        success: true,
+        data: { restartRecommended: true },
+      }));
+      await act(async () => {
+        await capturedHandler('aurora' as BrandIconId);
+      });
+    };
+
+    await applyWithRestartFlag();
+    await applyWithRestartFlag();
+    expect(modalConfirm).toHaveBeenCalledTimes(1);
+
+    // 用户关闭弹窗（确定/取消最终都触发 afterClose）后，下一次失败可以再弹。
+    const afterClose = modalConfirm.mock.calls[0][0].afterClose as () => void;
+    afterClose();
+    await applyWithRestartFlag();
+    expect(modalConfirm).toHaveBeenCalledTimes(2);
+    void renderer;
+  });
+
+  // RestartApplication 返回 QueryResult 不抛异常：子进程拉起失败必须显式
+  // 报错，否则用户以为在重启、实际毫无动静。
+  it('surfaces a restart failure instead of swallowing it', async () => {
+    let renderer: ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = create(React.createElement(Harness));
+    });
+
+    setApplicationBrandIcon.mockImplementationOnce(async () => ({
+      success: true,
+      data: { restartRecommended: true },
+    }));
+    await act(async () => {
+      await capturedHandler('aurora' as BrandIconId);
+    });
+    restartApplication.mockResolvedValueOnce({ success: false, message: 'spawn failed' });
+
+    const onOk = modalConfirm.mock.calls[0][0].onOk as () => Promise<void>;
+    await act(async () => { await onOk(); });
+    expect(restartApplication).toHaveBeenCalledTimes(1);
+    expect(messageApi.error).toHaveBeenCalledWith('spawn failed');
     void renderer;
   });
 });

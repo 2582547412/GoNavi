@@ -64,6 +64,9 @@ func recreateWindowsTaskbarButtonForPinRefresh(hwnd uintptr) bool {
 		logger.Warnf("固定项按钮重建放弃：读取窗口状态失败（本次切换的固定项图标可能保持旧图）")
 		return false
 	}
+	// ShowWindow 的返回值是调用前的可见性，不是本次隐藏是否成功，无法据其
+	// 判定失败；主窗口可见是切换图标的常态，极端情况下隐藏未生效仍会返回
+	// true（残余盲区，操作系统的接口限制，非本次可修复项）。
 	windowsTaskbarRecreationShowWindow.Call(hwnd, windowsShowWindowHide)
 	// ShowCmd 保持隐藏前读到的原值（1=正常/2=最小化/3=最大化），
 	// SetWindowPlacement 按原状态恢复且不需要激活。

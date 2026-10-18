@@ -33,6 +33,8 @@ export function useBrandIconSync(runtimePlatform: string) {
   // applying the same icon through the native bridge, so the shortcut update
   // and window identity rotation run exactly once.
   const windowsBrandIconApplyingRef = useRef<BrandIconId | null>(null);
+  // 重启确认框去重：连续切换连续失败时 antd 静态 confirm 会叠加多个弹窗。
+  const restartConfirmActiveRef = useRef(false);
 
   // Apply the selected brand mascot to the favicon and supported native OS surfaces.
   useEffect(() => {
@@ -157,13 +159,23 @@ export function useBrandIconSync(runtimePlatform: string) {
       // 快照不重采样）；引导用户重启应用，让按钮按新快捷方式重建。复用
       // f71b318b 时代的重启文案与 RestartApplication 绑定。
       const restartRecommended = (result?.data as { restartRecommended?: boolean } | undefined)?.restartRecommended === true;
-      if (restartRecommended) {
+      if (restartRecommended && !restartConfirmActiveRef.current) {
+        restartConfirmActiveRef.current = true;
         Modal.confirm({
           title: t('app.settings.entry.brand_icon.windows_restart.title'),
           content: t('app.settings.entry.brand_icon.windows_restart.description'),
           okText: t('app.settings.entry.brand_icon.windows_restart.now'),
           cancelText: t('app.settings.entry.brand_icon.windows_restart.later'),
-          onOk: () => { void RestartApplication(); },
+          // 无论确定/取消/ESC 关闭后才允许再弹，避免连续失败时弹窗堆叠。
+          afterClose: () => { restartConfirmActiveRef.current = false; },
+          onOk: async () => {
+            // RestartApplication 返回 QueryResult 不抛异常：子进程拉起失败
+            // 时必须显式报错，否则用户以为在重启、实际毫无动静。
+            const res = await RestartApplication();
+            if (res && res.success === false) {
+              message.error(res.message || t('common.unknown'));
+            }
+          },
         });
       }
     } catch (error) {
