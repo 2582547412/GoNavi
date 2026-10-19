@@ -9,7 +9,7 @@ import (
 )
 
 func TestBridgeGalleryNetworkMethodsUseDomainBudgetAndRemainCancelable(t *testing.T) {
-	for _, method := range []string{"BackgroundGalleryRefresh", "BackgroundGalleryDownload"} {
+	for _, method := range []string{"BackgroundGalleryRefresh", "BackgroundGalleryDownload", "FontGalleryRefresh", "FontGalleryDownload", "FontGalleryPreview"} {
 		t.Run(method, func(t *testing.T) {
 			bridge := newTimeoutTestBridge(20 * time.Millisecond)
 			ctx, cancel := context.WithCancel(context.Background())

@@ -3,7 +3,6 @@ import { theme } from 'antd';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { APP_OVERLAY_Z_INDEX_BASE } from '../../utils/overlayZIndex';
-import { matchFontFamilyOption, type FontFamilyOption } from '../../utils/fontFamilies';
 import { useStore } from '../../store';
 import {
   detectRuntimeCapabilityCached,
@@ -188,20 +187,6 @@ export const useAppAntdTheme = ({
       resolvedMonoFontFamily,
       resolvedUiFontFamily,
   ]);
-  const filterFontOption = useCallback((input: string, option?: { value?: string; label?: React.ReactNode }) => (
-      matchFontFamilyOption(input, {
-          value: String(option?.value || ''),
-          label: String(option?.label || ''),
-      })
-  ), []);
-  const renderFontOptionLabel = useCallback((option: FontFamilyOption) => (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, lineHeight: 1.35 }}>
-          <span>{option.label}</span>
-          <span style={{ fontSize: 11, color: darkMode ? 'rgba(255,255,255,0.45)' : 'rgba(16,24,40,0.45)' }}>
-              {option.value}
-          </span>
-      </div>
-  ), [darkMode]);
   const showLinuxCJKFontBanner = Boolean(
       linuxCJKFontInstallHint &&
       hasLoadedInstalledFontsRef.current &&
@@ -255,7 +240,7 @@ export const useAppAntdTheme = ({
   }, [setQueryOptions, sidebarMetadataFieldItems, sidebarTableMetadataFields]);
   return {
     linuxResizeHandleStyleBase, showLinuxResizeHandles, resizeGuideColor, v2AntPrimaryColor,
-    v2AntPrimaryBgColor, antdTheme, filterFontOption, renderFontOptionLabel, showLinuxCJKFontBanner,
+    v2AntPrimaryBgColor, antdTheme, showLinuxCJKFontBanner,
     sidebarMetadataFieldItems, toggleSidebarMetadataFieldFromSettings, handleSidebarMetadataDragEnd,
   };
 };

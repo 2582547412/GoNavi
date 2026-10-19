@@ -742,6 +742,34 @@ export function ExportTablesSQLWithOptions(arg1, arg2, arg3, arg4, arg5, arg6) {
   return window['go']['app']['App']['ExportTablesSQLWithOptions'](arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
+export function FontGalleryCancel(arg1) {
+  return window['go']['app']['App']['FontGalleryCancel'](arg1);
+}
+
+export function FontGalleryDownload(arg1, arg2, arg3) {
+  return window['go']['app']['App']['FontGalleryDownload'](arg1, arg2, arg3);
+}
+
+export function FontGalleryPreview(arg1, arg2, arg3) {
+  return window['go']['app']['App']['FontGalleryPreview'](arg1, arg2, arg3);
+}
+
+export function FontGalleryRefresh() {
+  return window['go']['app']['App']['FontGalleryRefresh']();
+}
+
+export function FontGalleryRemove(arg1, arg2) {
+  return window['go']['app']['App']['FontGalleryRemove'](arg1, arg2);
+}
+
+export function FontGalleryResolve(arg1, arg2) {
+  return window['go']['app']['App']['FontGalleryResolve'](arg1, arg2);
+}
+
+export function FontGalleryStatus() {
+  return window['go']['app']['App']['FontGalleryStatus']();
+}
+
 export function ForceQuitApplication() {
   return window['go']['app']['App']['ForceQuitApplication']();
 }
