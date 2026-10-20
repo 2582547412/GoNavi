@@ -20,20 +20,17 @@ export const useNacosJsonParser = ({ tr, readOnly }: UseNacosJsonParserInput) =>
   const originalTextRef = useRef('');
   const rangeRef = useRef<unknown>(null);
   const editorRef = useRef<any>(null);
-  const monacoRef = useRef<any>(null);
   const [editorVersion, setEditorVersion] = useState(0);
 
-  const handleEditorMount = useCallback((editor: any, monaco: any) => {
+  const handleEditorMount = useCallback((editor: any) => {
     editorRef.current = editor;
-    monacoRef.current = monaco;
     setEditorVersion((version) => version + 1);
   }, []);
 
   useEffect(() => {
     const editor = editorRef.current;
-    const monaco = monacoRef.current;
-    if (!editor || !monaco) return undefined;
-    return registerNacosJsonParserAction(editor, monaco, {
+    if (!editor) return undefined;
+    return registerNacosJsonParserAction(editor, {
       label: tr('nacos_viewer.action.json_parser'),
       onOpen: ({ text, range }) => {
         originalTextRef.current = text;

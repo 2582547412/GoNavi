@@ -36,6 +36,7 @@ const createHarness = (selectedText: string) => {
   const range = { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 8 };
   const editor: any = {
     addAction: vi.fn((_action: any) => action),
+    createContextKey: vi.fn(() => contextKey),
     getModel: vi.fn(() => ({ getValueInRange: vi.fn(() => selectedText) })),
     getSelection: vi.fn(() => range),
     onDidChangeCursorSelection: vi.fn((handler: () => void) => {
@@ -47,10 +48,8 @@ const createHarness = (selectedText: string) => {
       return contentDisposable;
     }),
   };
-  const monaco = { editor: { createContextKey: vi.fn(() => contextKey) } };
   return {
     editor,
-    monaco,
     contextKey,
     action,
     selectionDisposable,
@@ -66,12 +65,12 @@ describe('registerNacosJsonParserAction', () => {
     const harness = createHarness('{"a":1}');
     const onOpen = vi.fn();
 
-    registerNacosJsonParserAction(harness.editor, harness.monaco, {
+    registerNacosJsonParserAction(harness.editor, {
       label: 'JSON parser',
       onOpen,
     });
 
-    expect(harness.monaco.editor.createContextKey).toHaveBeenCalledWith(
+    expect(harness.editor.createContextKey).toHaveBeenCalledWith(
       NACOS_JSON_SELECTION_CONTEXT_KEY,
       false,
     );
@@ -90,7 +89,7 @@ describe('registerNacosJsonParserAction', () => {
   it('opens the parser with the selected JSON and range', () => {
     const harness = createHarness('{"a":1}');
     const onOpen = vi.fn();
-    registerNacosJsonParserAction(harness.editor, harness.monaco, { label: 'JSON parser', onOpen });
+    registerNacosJsonParserAction(harness.editor, { label: 'JSON parser', onOpen });
 
     harness.editor.addAction.mock.calls[0][0].run();
 
@@ -100,7 +99,7 @@ describe('registerNacosJsonParserAction', () => {
   it('ignores non-JSON selections when the action runs', () => {
     const harness = createHarness('hello');
     const onOpen = vi.fn();
-    registerNacosJsonParserAction(harness.editor, harness.monaco, { label: 'JSON parser', onOpen });
+    registerNacosJsonParserAction(harness.editor, { label: 'JSON parser', onOpen });
 
     expect(harness.contextKey.set).toHaveBeenLastCalledWith(false);
     harness.editor.addAction.mock.calls[0][0].run();
@@ -110,7 +109,7 @@ describe('registerNacosJsonParserAction', () => {
 
   it('refreshes the context key when selection or content changes', () => {
     const harness = createHarness('hello');
-    registerNacosJsonParserAction(harness.editor, harness.monaco, {
+    registerNacosJsonParserAction(harness.editor, {
       label: 'JSON parser',
       onOpen: vi.fn(),
     });
@@ -127,7 +126,7 @@ describe('registerNacosJsonParserAction', () => {
 
   it('disposes the action, listeners and context key', () => {
     const harness = createHarness('{"a":1}');
-    const dispose = registerNacosJsonParserAction(harness.editor, harness.monaco, {
+    const dispose = registerNacosJsonParserAction(harness.editor, {
       label: 'JSON parser',
       onOpen: vi.fn(),
     });
@@ -140,11 +139,13 @@ describe('registerNacosJsonParserAction', () => {
     expect(harness.contextKey.reset).toHaveBeenCalledTimes(1);
   });
 
-  it('returns a no-op when Monaco context keys are unavailable', () => {
-    const dispose = registerNacosJsonParserAction({} as any, {} as any, {
+  it('no-ops when the editor cannot create context keys', () => {
+    const editorWithoutContextKey = { addAction: vi.fn() };
+    const dispose = registerNacosJsonParserAction(editorWithoutContextKey as any, {
       label: 'JSON parser',
       onOpen: vi.fn(),
     });
+    expect(editorWithoutContextKey.addAction).not.toHaveBeenCalled();
     expect(() => dispose()).not.toThrow();
   });
 });

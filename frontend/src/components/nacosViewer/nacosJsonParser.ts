@@ -39,14 +39,14 @@ export const isJsonLikeText = (value: string): boolean => {
 
 export const registerNacosJsonParserAction = (
   editor: any,
-  monaco: any,
   options: RegisterNacosJsonParserActionOptions,
 ): (() => void) => {
-  if (!editor?.addAction || typeof monaco?.editor?.createContextKey !== 'function') {
+  // Monaco 0.55 的 createContextKey 只挂在编辑器实例上，monaco.editor 上没有该 API。
+  if (!editor?.addAction || typeof editor.createContextKey !== 'function') {
     return () => {};
   }
 
-  const contextKey = monaco.editor.createContextKey(NACOS_JSON_SELECTION_CONTEXT_KEY, false);
+  const contextKey = editor.createContextKey(NACOS_JSON_SELECTION_CONTEXT_KEY, false);
   const readSelection = (): NacosJsonParserSelection | null => {
     const model = editor.getModel?.();
     const range = editor.getSelection?.();

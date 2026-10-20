@@ -136,6 +136,7 @@ const mountConfigEditor = async (renderer: ReactTestRenderer, selectedText: stri
   const action = { dispose: vi.fn() };
   const editor: any = {
     addAction: vi.fn((_action: any) => action),
+    createContextKey: vi.fn(() => contextKey),
     getModel: vi.fn(() => ({ getValueInRange: vi.fn(() => selectedText) })),
     getSelection: vi.fn(() => range),
     onDidChangeCursorSelection: vi.fn(() => ({ dispose: vi.fn() })),
@@ -143,12 +144,11 @@ const mountConfigEditor = async (renderer: ReactTestRenderer, selectedText: stri
     executeEdits: vi.fn(),
     focus: vi.fn(),
   };
-  const monaco = { editor: { createContextKey: vi.fn(() => contextKey) } };
   await act(async () => {
-    findConfigEditor(renderer).props.onMount(editor, monaco);
+    findConfigEditor(renderer).props.onMount(editor, {});
   });
   await flushEffects();
-  return { editor, monaco, contextKey, action, range };
+  return { editor, contextKey, action, range };
 };
 
 describe('NacosConfigDetailPane JSON parser', () => {
