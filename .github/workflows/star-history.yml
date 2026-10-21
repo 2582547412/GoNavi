@@ -199,9 +199,3 @@ jobs:
             echo "Updated existing Star History PR #$pr_number"
           fi
 
-          # GITHUB_TOKEN-created pushes do not start pull_request workflows.
-          # Dispatch the required CI explicitly for the generated PR head.
-          gh workflow run "Backend Tests" --repo "${{ github.repository }}" --ref "$STAR_HISTORY_BRANCH"
-          if [[ -n "$pr_number" ]]; then
-            gh workflow run "PR Review" --repo "${{ github.repository }}" --ref "$STAR_HISTORY_BRANCH" -f pr="$pr_number"
-          fi
