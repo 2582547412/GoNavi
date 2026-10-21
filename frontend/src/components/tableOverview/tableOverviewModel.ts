@@ -109,9 +109,14 @@ export const isSchemaScopedTableOverviewDialect = (dialect: string): boolean => 
     'gaussdb',
 ].includes(dialect);
 
-const TABLE_LIST_OVERVIEW_DIALECTS = new Set(['tdengine', 'sqlite', 'sqlite3', 'milvus', 'milvusdb', 'milvus-db']);
+const TABLE_LIST_OVERVIEW_DIALECTS = new Set([
+    'tdengine', 'sqlite', 'sqlite3', 'milvus', 'milvusdb', 'milvus-db',
+    // MongoDB 没有 information_schema，且没有 internal/datasource/specs 描述文件，
+    // 只能在这里显式列出，否则表概览会回落到信息模式 SQL 而失败。
+    'mongodb',
+]);
 
-/** 表概览改用 DBGetTables 表名列表的方言：没有 information_schema 的 TDengine / SQLite / Milvus，
+/** 表概览改用 DBGetTables 表名列表的方言：没有 information_schema 的 TDengine / SQLite / Milvus / MongoDB，
  * 以及非 SQL 查询语言、也没有声明表状态查询的描述表数据源（etcd、ZooKeeper、Weaviate、InfluxDB 等）。 */
 export const usesTableListOverview = (dialect: string, connType?: string): boolean => {
     if (TABLE_LIST_OVERVIEW_DIALECTS.has(dialect)) return true;
