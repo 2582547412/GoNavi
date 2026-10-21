@@ -302,6 +302,10 @@ func (a *App) connectDatabaseWithStartupRetry(rawConfig connection.ConnectionCon
 }
 
 func (a *App) connectEffectiveDatabaseWithStartupRetry(rawConfig connection.ConnectionConfig) (db.Database, connection.ConnectionConfig, error) {
+	if isPluginDataSourceType(rawConfig.Type) {
+		instance, err := a.openPluginDataSource(a.pluginDataSourceContext(), rawConfig)
+		return instance, rawConfig, err
+	}
 	var lastErr error
 	var lastEffectiveConfig connection.ConnectionConfig
 

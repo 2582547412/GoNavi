@@ -1,4 +1,5 @@
 import type { AIProviderAuthMode, AIProviderConfig, AIProviderType } from '../types';
+import { isPluginAIProviderNamespace } from '../plugins/aiProvider/identity';
 
 export const LEGACY_QWEN_BAILIAN_OPENAI_BASE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1';
 export const LEGACY_QWEN_CODING_PLAN_OPENAI_BASE_URL = 'https://coding.dashscope.aliyuncs.com/v1';
@@ -262,6 +263,7 @@ export const resolveProviderPresetKey = (
   presets: ProviderPresetMatcher[],
   fallbackKey = 'custom',
 ): string => {
+  if (isPluginAIProviderNamespace(provider.type)) return provider.type;
   if (String(provider.id || '').trim() === 'gonavi-ai') return 'gonavi-ai';
   const inferredAuthMode = inferProviderAuthMode(provider);
   const mergedModePreset = presets.find((preset) =>
