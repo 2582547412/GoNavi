@@ -29,4 +29,13 @@ describe('table overview for command-language registry types', () => {
       expect(usesTableListOverview(dialect, type), `${type} -> ${dialect}`).toBe(true);
     }
   });
+
+  it('uses the table list for message queues and Redis, whose drivers reject SQL metadata queries', () => {
+    // 这些驱动的「表」是 topic / queue / key：Kafka 只认 SHOW TOPICS 一类语句，Redis 把 SQL 当命令执行，
+    // information_schema 查询必然失败，表概览必须走 DBGetTables。
+    for (const type of ['kafka', 'pulsar', 'rocketmq', 'mqtt', 'rabbitmq', 'redis']) {
+      const dialect = getMetadataDialect(type);
+      expect(usesTableListOverview(dialect, type), `${type} -> ${dialect}`).toBe(true);
+    }
+  });
 });
