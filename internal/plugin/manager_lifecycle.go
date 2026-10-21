@@ -196,15 +196,30 @@ func (m *Manager) activate(inst *instance) error {
 	if err = inst.ctx.Err(); err != nil {
 		return err
 	}
+	// Readiness is published before the persisted running state becomes visible. List, replace and
+	// the UI treat that state as an invitable generation, so any caller that observes it must
+	// already pass the invocation fence instead of failing with ErrDisabled.
+	m.mu.Lock()
+	owned := m.instances[r.Manifest.ID] == inst && inst.ctx.Err() == nil
+	process := inst.process
+	if owned {
+		inst.ready = true
+	}
+	m.mu.Unlock()
+	if !owned {
+		if ctxErr := inst.ctx.Err(); ctxErr != nil {
+			return ctxErr
+		}
+		return fmt.Errorf("plugin generation %d is no longer owned by this runtime", r.Generation)
+	}
 	if err = m.updateRecord(inst.ctx, r.Manifest.ID, r.Generation, func(value *record) { value.State = StateRunning; value.LastError = "" }); err != nil {
+		m.mu.Lock()
+		inst.ready = false
+		m.mu.Unlock()
 		return err
 	}
-	m.mu.Lock()
-	inst.ready = inst.ctx.Err() == nil
-	live := inst.ready && inst.process != nil
-	m.mu.Unlock()
-	if live {
-		inst.process.notify("plugin.lifecycle", map[string]any{"event": "running", "generation": r.Generation})
+	if process != nil {
+		process.notify("plugin.lifecycle", map[string]any{"event": "running", "generation": r.Generation})
 	}
 	m.notify()
 	return m.monitor(inst)
