@@ -42,7 +42,8 @@ class BackendWorkflowTest(unittest.TestCase):
         self.assertIn("node ../../frontend/node_modules/typescript/bin/tsc --noEmit -p tsconfig.json", block)
         self.assertIn("--lib ES2022,DOM test/manifest-types.ts", block)
         self.assertIn("node ../../frontend/node_modules/vitest/vitest.mjs run --config vitest.config.mjs", block)
-        self.assertIn("npm test -- src/plugins/dataSource src/plugins/skills src/plugins/aiProvider src/plugins/exporter --maxWorkers=2 --minWorkers=1", block)
+        self.assertIn("npm test -- src/plugins --maxWorkers=2 --minWorkers=1", block)
+        self.assertIn("npm test -- src/i18n/keyResolution.test.ts --maxWorkers=1 --minWorkers=1", block)
         gate = workflow.split("  gate:", 1)[1]
         self.assertIn("needs: [frontend, full, platform-sensitive, marketplace-contract]", gate)
         self.assertIn("needs.frontend.result", gate)
