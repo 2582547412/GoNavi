@@ -24,8 +24,9 @@ type cachedDatabase struct {
 }
 
 type cachedConnectFailure struct {
-	occurredAt time.Time
-	err        error
+	occurredAt      time.Time
+	err             error
+	releaseMatchKey string
 }
 
 type databaseConnectFlight struct {
