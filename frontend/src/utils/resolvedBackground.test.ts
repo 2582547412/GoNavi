@@ -24,11 +24,10 @@ describe('trusted background resolution', () => {
     expect(resolvedBackground({ builtinId: url, image: null })).toBeNull();
     expect(resolvedBackground({ image: { ...image, dataUrl: url } })).toBeNull();
   });
-  it('ships no embedded image bytes or asset paths in the legacy catalog', () => {
-    for (const builtin of BUILTIN_BACKGROUNDS) {
-      for (const value of Object.values(builtin)) {
-        if (typeof value === 'string') expect(value).not.toMatch(/^data:image|\.(?:webp|png|jpe?g)$/i);
-      }
-    }
+  it('keeps the legacy catalog free of bundled or inline artwork', () => {
+    // 目录只保留选择元数据：任何内联图片（data:）或打包图片引用都会出现在序列化结果里。
+    const serialized = JSON.stringify(BUILTIN_BACKGROUNDS);
+    expect(serialized).not.toContain('data:');
+    expect(serialized).not.toMatch(/\.(?:webp|png|jpe?g|gif|svg)\b/i);
   });
 });

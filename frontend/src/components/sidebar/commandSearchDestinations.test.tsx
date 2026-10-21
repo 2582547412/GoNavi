@@ -87,7 +87,7 @@ describe('command search destinations', () => {
       expect(focusRequests.requestSettingsCenterEntryFocus).toHaveBeenCalledWith({ text: label });
     });
 
-    it('opens the right child page for a preference page and an AI section', () => {
+    it('opens the right flattened preference page and AI section page', () => {
       const openSettingsNavigation = vi.fn();
       const run = (keyword: string, key: string) => {
         const { settings } = buildCommandSearchDestinationSections(makeArgs({
@@ -98,10 +98,10 @@ describe('command search destinations', () => {
         if (item?.kind === 'action') item.onRun();
       };
 
-      run(t('settings.page.common-settings.title'), 'settings-menu:common-settings/common-settings');
+      run(t('settings.page.fonts-settings.title'), 'settings-menu:fonts-settings/fonts-settings');
       run(t('ai_settings.nav.mcp.title'), 'settings-menu:services/ai-mcp');
 
-      expect(openSettingsNavigation).toHaveBeenNthCalledWith(1, { group: 'common-settings', pane: 'common-settings' });
+      expect(openSettingsNavigation).toHaveBeenNthCalledWith(1, { group: 'fonts-settings', pane: 'fonts-settings' });
       expect(openSettingsNavigation).toHaveBeenNthCalledWith(2, { group: 'services', pane: 'ai', section: 'mcp' });
     });
 
