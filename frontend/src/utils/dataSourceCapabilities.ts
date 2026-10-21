@@ -1,4 +1,6 @@
 import type { ConnectionConfig } from '../types';
+import { isPluginDataSourceNamespace, pluginDataSourceConfigType } from '../plugins/dataSource/identity';
+import { pluginDataSourceCapabilities } from '../plugins/dataSource/capabilities';
 import dataSourceCapabilityContractDocument from '../../../internal/db/data_source_capability_contract.json';
 import {
   isConnectionDataImportRestricted,
@@ -114,6 +116,8 @@ const normalizeDataSourceToken = (raw: string): string => {
 
 export const resolveDataSourceType = (config: ConnectionLike): string => {
   if (!config) return '';
+  const pluginType = pluginDataSourceConfigType(config);
+  if (pluginType) return pluginType;
   const type = normalizeDataSourceToken(String(config.type || ''));
   if (type === 'custom') {
     const driver = normalizeDataSourceToken(String(config.driver || ''));
@@ -276,6 +280,7 @@ const cloneCapabilityProfile = (
 
 export const getDataSourceCapabilityContract = (config: ConnectionLike): DataSourceCapabilityContract => {
   const type = resolveDataSourceType(config) || 'unknown';
+  if (isPluginDataSourceNamespace(type)) return pluginDataSourceCapabilities(type, isPluginDataSourceNamespace(config?.type));
   const customConnection = normalizeDataSourceToken(String(config?.type || '')) === 'custom';
   const profileName = DATA_SOURCE_CAPABILITY_REGISTRY.drivers[type]
     || (customConnection ? 'custom' : 'unknown');

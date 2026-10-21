@@ -1,4 +1,5 @@
 import type { ConnectionConfig } from "../types";
+import { pluginDataSourceConfigType, parsePluginDataSourceType } from "../plugins/dataSource/identity";
 import { convertMongoShellToJsonCommand } from "./mongodb";
 import { resolveSqlDialect } from "./sqlDialect";
 import { hasEmbeddedWriteStatement } from "./sqlEmbeddedWrite";
@@ -265,6 +266,8 @@ const resolveConnectionReadOnlyType = (
   config: ConnectionReadOnlyLike,
 ): string => {
   if (!config) return "";
+  const pluginType = pluginDataSourceConfigType(config);
+  if (pluginType) return parsePluginDataSourceType(pluginType)?.dialect ?? "unknown";
   return String(
     resolveSqlDialect(String(config.type || ""), String(config.driver || ""), {
       oceanBaseProtocol: config.oceanBaseProtocol,
@@ -367,6 +370,8 @@ const isConnectionReadOnlyStatement = (
   config: ConnectionReadOnlyLike,
   statement: string,
 ): boolean => {
+  const pluginType = pluginDataSourceConfigType(config);
+  if (pluginType && !parsePluginDataSourceType(pluginType)) return false;
   const dialect = resolveConnectionReadOnlyType(config);
   if (dialect === "mongodb") {
     return isReadOnlyMongoStatement(statement);
@@ -506,6 +511,7 @@ const hasSafeKeepAliveStatementDelimiter = (
 export const supportsConnectionKeepAliveSQL = (
   config: ConnectionReadOnlyLike,
 ): boolean => {
+  if (pluginDataSourceConfigType(config)) return false;
   const type = resolveConnectionReadOnlyType(config);
   return (
     type !== "mongodb" &&
@@ -543,7 +549,7 @@ export const isSingleReadOnlyConnectionQuery = (
 export const supportsConnectionReadOnlyMode = (
   config: ConnectionReadOnlyLike,
 ): boolean => {
-  return CONNECTION_PROTECTION_TYPES.has(resolveConnectionReadOnlyType(config));
+  return Boolean(pluginDataSourceConfigType(config)) || CONNECTION_PROTECTION_TYPES.has(resolveConnectionReadOnlyType(config));
 };
 
 export const normalizeConnectionProtectionConfig = (
@@ -574,6 +580,7 @@ export const deriveLegacyConnectionReadOnlyFlag = (
 export const resolveConnectionProtectionConfig = (
   config: ConnectionReadOnlyLike,
 ): ConnectionProtectionConfig => {
+  if (pluginDataSourceConfigType(config)) return { ...FULL_CONNECTION_PROTECTION };
   if (!supportsConnectionReadOnlyMode(config)) {
     return createEmptyConnectionProtectionConfig();
   }

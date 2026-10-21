@@ -1,4 +1,6 @@
 import React from 'react';
+import { isPluginAIProviderNamespace } from '../../plugins/aiProvider/identity';
+import { pluginProviderPreset } from './AIPluginProviderPreset';
 import {
   ApiOutlined,
   AppstoreOutlined,
@@ -191,6 +193,7 @@ const PROVIDER_PRESET_KEY_ALIASES: Record<string, string> = {
 export const normalizeProviderPresetKey = (key: string): string => PROVIDER_PRESET_KEY_ALIASES[key] || key;
 
 export const findPreset = (key: string): ProviderPreset => {
+  if (isPluginAIProviderNamespace(key)) return pluginProviderPreset(key);
   const normalizedKey = normalizeProviderPresetKey(key);
   return PROVIDER_PRESETS.find((preset) => preset.key === normalizedKey) || PROVIDER_PRESETS[PROVIDER_PRESETS.length - 1];
 };
