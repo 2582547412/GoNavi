@@ -23,6 +23,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: star-history
@@ -162,22 +163,37 @@ jobs:
           printf '%s\n' "${{ steps.gate.outputs.current }}" > "$STAR_BASELINE_FILE"
           echo "Updated baseline -> ${{ steps.gate.outputs.current }}"
 
-      - name: Commit if changed
+      - name: Commit and open update PR
         if: steps.gate.outputs.should_commit == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STAR_HISTORY_BRANCH: automation/star-history
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [[ "${{ steps.gate.outputs.should_refresh }}" == "true" ]]; then
             git add assets/star-history README.md README.zh-CN.md
-            msg="chore(docs): refresh star history chart [skip ci]"
+            msg="chore(docs): refresh star history chart"
           else
             git add "$STAR_BASELINE_FILE"
-            msg="chore(docs): seed star history baseline [skip ci]"
+            msg="chore(docs): seed star history baseline"
           fi
           if git diff --staged --quiet; then
             echo "No star-history changes"
             exit 0
           fi
           git commit -m "$msg"
-          git push
+          git push --force origin "HEAD:$STAR_HISTORY_BRANCH"
+
+          pr_number="$(gh pr list --repo "${{ github.repository }}" --state open --head "$STAR_HISTORY_BRANCH" --json number --jq '.[0].number')"
+          if [[ -z "$pr_number" ]]; then
+            gh pr create \
+              --repo "${{ github.repository }}" \
+              --base "${{ github.ref_name }}" \
+              --head "$STAR_HISTORY_BRANCH" \
+              --title "Star History 自动更新" \
+              --body "由 Star History workflow 自动生成。CI 通过后合并此 PR。"
+          else
+            echo "Updated existing Star History PR #$pr_number"
+          fi
