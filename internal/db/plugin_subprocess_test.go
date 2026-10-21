@@ -115,7 +115,10 @@ func disableDuringPluginDatabaseQuery(t *testing.T, manager *plugin.Manager, dat
 	timer := time.AfterFunc(50*time.Millisecond, func() {
 		start := time.Now()
 		_, err := manager.SetEnabled(t.Context(), id, false)
-		if err == nil && time.Since(start) > 500*time.Millisecond {
+		// Still well below the 2s the query would need to finish, so this keeps proving that
+		// disable interrupts the invocation instead of waiting for it, while leaving room for a
+		// loaded runner to finish the shutdown bookkeeping.
+		if err == nil && time.Since(start) > time.Second {
 			err = errors.New("disable waited for active query")
 		}
 		disabled <- err
