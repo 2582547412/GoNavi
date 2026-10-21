@@ -58,7 +58,8 @@ describe('namespace loading with an old database display scope', () => {
     const node = { key: connection.id, dataRef: connection, type: 'connection' };
     await act(async () => { await loaders!.loadDatabases(node); });
     expect(mocks.error).toHaveBeenCalled();
-    const errorCall = mocks.error.mock.calls.at(-1)?.[0] as { content?: React.ReactNode };
+    const errorCalls = mocks.error.mock.calls;
+    const errorCall = errorCalls[errorCalls.length - 1]?.[0] as { content?: React.ReactNode };
     expect(React.isValidElement(errorCall.content)).toBe(true);
     const errorElement = errorCall.content as React.ReactElement<{ children: React.ReactNode }>;
     const retryElement = React.Children.toArray(errorElement.props.children)

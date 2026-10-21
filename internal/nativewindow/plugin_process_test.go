@@ -70,7 +70,7 @@ func awaitPluginFile(t *testing.T, path string) []byte {
 	for {
 		select {
 		case <-ticker.C:
-			if bytes, err := os.ReadFile(path); err == nil {
+			if bytes, err := os.ReadFile(path); err == nil && len(bytes) > 0 {
 				return bytes
 			}
 		case <-timeout.C:
