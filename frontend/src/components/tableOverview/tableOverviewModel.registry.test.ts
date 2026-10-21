@@ -15,4 +15,8 @@ describe('table overview for command-language registry types', () => {
     expect(usesTableListOverview('sqlite', 'sqlite')).toBe(true);
     expect(usesTableListOverview('mysql', 'mysql')).toBe(false);
   });
+
+  it('uses the table list for MongoDB, which has no information_schema', () => {
+    expect(usesTableListOverview('mongodb', 'mongodb')).toBe(true);
+  });
 });
