@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"time"
 )
 
@@ -20,6 +21,10 @@ type rpcEnvelope struct {
 		Message string `json:"message"`
 	} `json:"error"`
 }
+
+// processExitGrace bounds how long the read side waits for the authoritative process exit cause
+// once the protocol stream ends.
+const processExitGrace = 200 * time.Millisecond
 
 func (p *rpcProcess) readProtocol() {
 	defer p.workers.Done()
@@ -45,11 +50,19 @@ func (p *rpcProcess) readProtocol() {
 			return
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		p.fail(fmt.Errorf("plugin protocol frame invalid or oversized: %w", err))
-		return
+	cause := fmt.Errorf("plugin protocol closed")
+	if err := scanner.Err(); err != nil && !errors.Is(err, os.ErrClosed) {
+		cause = fmt.Errorf("plugin protocol frame invalid or oversized: %w", err)
 	}
-	p.fail(fmt.Errorf("plugin protocol closed"))
+	// exec.Cmd.Wait closes the parent pipe ends before it reports how the process ended, so the
+	// read side always observes a closed or drained pipe first. The exit status explains that far
+	// better than the pipe observation, so the wait worker gets a bounded chance to publish it;
+	// a stdout that closes while the process keeps running still faults with the pipe diagnostic.
+	select {
+	case <-p.done:
+	case <-time.After(processExitGrace):
+	}
+	p.fail(cause)
 }
 func (p *rpcProcess) receive(frame []byte) error {
 	var message rpcEnvelope
