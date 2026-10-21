@@ -64,6 +64,23 @@ body[data-ui-version='v2'] .gn-titlebar-toolbar::-webkit-scrollbar-thumb {
   border-radius: 999px;
 }
 
+/* 滚动条自动隐藏（与资源树 v2-theme-14 同一模式）：指针不在工具栏上
+   （且无滚动/拖动交互）时滚动条整体透明；悬停工具栏、滚轮或拖动滑块
+   （:active）时恢复显示。滚动槽始终保留，按钮不因显隐跳动。 */
+body[data-ui-version='v2'] .gn-titlebar-toolbar:not(:hover):not(:active) {
+  scrollbar-color: transparent transparent;
+}
+
+body[data-ui-version='v2'] .gn-titlebar-toolbar:not(:hover):not(:active)::-webkit-scrollbar,
+body[data-ui-version='v2'] .gn-titlebar-toolbar:not(:hover):not(:active)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body[data-ui-version='v2'] .gn-titlebar-toolbar:not(:hover):not(:active)::-webkit-scrollbar-thumb {
+  background: transparent;
+  background-color: transparent;
+}
+
 /* 动作组容器：内部按钮按 row 排列，与工具条同向。 */
 body[data-ui-version='v2'] .gn-titlebar-toolbar > .gonavi-titlebar-primary-actions,
 body[data-ui-version='v2'] .gn-titlebar-toolbar > .gn-v2-titlebar-quick-actions,
