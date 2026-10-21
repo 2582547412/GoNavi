@@ -7,7 +7,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"runtime"
 	"syscall"
 	"testing"
 	"time"
@@ -22,17 +21,24 @@ func createSkillDirectoryLink(t *testing.T, link, target string) {
 	}
 	t.Cleanup(func() { os.Remove(link) })
 }
+
+// skillTestHandleCount reports how many descriptors this process currently holds. Enumerating
+// /dev/fd on darwin fails as soon as one descriptor closes mid-scan, so live descriptors are
+// probed one by one instead of relying on the platform's descriptor directory.
 func skillTestHandleCount(t *testing.T) uint32 {
 	t.Helper()
-	directory := "/proc/self/fd"
-	if runtime.GOOS == "darwin" {
-		directory = "/dev/fd"
+	limit := uint64(4096)
+	var rl unix.Rlimit
+	if err := unix.Getrlimit(unix.RLIMIT_NOFILE, &rl); err == nil && rl.Cur > 0 && rl.Cur < limit {
+		limit = rl.Cur
 	}
-	entries, err := os.ReadDir(directory)
-	if err != nil {
-		t.Fatal(err)
+	count := uint32(0)
+	for fd := uintptr(0); fd < uintptr(limit); fd++ {
+		if _, err := unix.FcntlInt(fd, unix.F_GETFD, 0); err == nil {
+			count++
+		}
 	}
-	return uint32(len(entries))
+	return count
 }
 
 func assertSkillHandleClosed(t *testing.T, handle uintptr) {
