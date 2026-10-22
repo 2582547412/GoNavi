@@ -8,12 +8,9 @@ import (
 
 var dataSourceID = regexp.MustCompile(`^[a-z][a-z0-9_.-]{0,63}$`)
 
-// ValidateDataSource checks the public read-only declaration. It does not grant writes
-// or prove that the command is declared on a backend.
+// ValidateDataSource checks the public declaration. It does not grant writes
+// or prove that the command is declared on a backend; the host connection policy remains authoritative.
 func ValidateDataSource(source DataSource) error {
-	if !source.ReadOnly {
-		return errors.New("data source must declare readOnly true")
-	}
 	if source.Dialect != "mysql" && source.Dialect != "postgres" && source.Dialect != "sqlite" {
 		return errors.New("unsupported data source dialect")
 	}
@@ -26,7 +23,7 @@ func ValidateDataSource(source DataSource) error {
 	return nil
 }
 
-// ValidateDataSourceCommand checks that the referenced command is the same one and does not advertise writes.
+// ValidateDataSourceCommand checks the referenced command. Read-only sources cannot use a write effect.
 func ValidateDataSourceCommand(source DataSource, command Command) error {
 	if err := ValidateDataSource(source); err != nil {
 		return err
@@ -34,8 +31,8 @@ func ValidateDataSourceCommand(source DataSource, command Command) error {
 	if source.Command == "" || source.Command != command.ID {
 		return errors.New("data source command mismatch")
 	}
-	if command.Effect != "" && command.Effect != "read" && command.Effect != "unknown" {
-		return errors.New("data source command effect must be read or unknown")
+	if source.ReadOnly && command.Effect != "" && command.Effect != "read" && command.Effect != "unknown" {
+		return errors.New("read-only data source command effect must be read or unknown")
 	}
 	return nil
 }

@@ -36,7 +36,6 @@ func TestCLIPluginProviderRejectsForeignConfigBeforeFactory(t *testing.T) {
 		{"effort", func(c *ai.ProviderConfig) { c.Effort = "low" }},
 		{"thinking", func(c *ai.ProviderConfig) { c.ThinkingIntensity = "off" }},
 		{"auth", func(c *ai.ProviderConfig) { c.AuthMode = "bearer" }},
-		{"images", func(c *ai.ProviderConfig) { yes := true; c.SupportsImages = &yes }},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config := cliPluginProviderConfig()

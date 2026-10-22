@@ -3,6 +3,7 @@ const knownPermissions: Record<string, string> = {
   'ai.skills': 'plugin.permission.ai_skills',
   'ai.providers': 'plugin.permission.ai_providers',
   'data.sources': 'plugin.permission.data_sources',
+  'ui.html-panel': 'plugin.permission.ui_html_panel',
   'data.export': 'plugin.permission.data_export',
   'host.log': 'plugin.permission.host_log',
   'host.describe': 'plugin.permission.host_describe',

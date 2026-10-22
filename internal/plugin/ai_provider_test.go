@@ -33,7 +33,6 @@ func TestAIProviderDeclarationValidation(t *testing.T) {
 		{"name limit", func(m *Manifest) { m.Contributes.AIProviders[0].Name = strings.Repeat("x", 257) }},
 		{"name byte limit", func(m *Manifest) { m.Contributes.AIProviders[0].Name = strings.Repeat("中", 86) }},
 		{"model name byte limit", func(m *Manifest) { m.Contributes.AIProviders[0].Models[0].Name = strings.Repeat("中", 86) }},
-		{"images", func(m *Manifest) { m.Contributes.AIProviders[0].SupportsImages = true }},
 		{"no models", func(m *Manifest) { m.Contributes.AIProviders[0].Models = nil }},
 		{"model id", func(m *Manifest) { m.Contributes.AIProviders[0].Models[0].ID = "bad model" }},
 		{"duplicate model", func(m *Manifest) { p := &m.Contributes.AIProviders[0]; p.Models = append(p.Models, p.Models[0]) }},
@@ -54,6 +53,12 @@ func TestAIProviderDeclarationValidation(t *testing.T) {
 	}
 	m := aiProviderManifest()
 	p := &m.Contributes.AIProviders[0]
+	p.SupportsImages = true
+	if err := ValidateManifest(m); err != nil {
+		t.Fatalf("explicit image capability rejected: %v", err)
+	}
+	m = aiProviderManifest()
+	p = &m.Contributes.AIProviders[0]
 	p.SupportsTools = false
 	p.Models = append(p.Models, AIModel{ID: "MODEL/A:1+v@x", Name: "Case distinct", ContextWindow: 262144, MaxOutputTokens: 65536})
 	for len(p.Models) < 32 {
@@ -92,7 +97,6 @@ func TestAIProviderStrictJSON(t *testing.T) {
 	cases := []string{`null`, `[]`,
 		strings.Replace(valid, `"supportsTools":true,`, "", 1),
 		strings.Replace(valid, `"supportsImages":false`, `"supportsImages":null`, 1),
-		strings.Replace(valid, `"supportsImages":false`, `"supportsImages":true`, 1),
 		strings.Replace(valid, `"supportsImages":false`, `"SupportsImages":false`, 1),
 		strings.Replace(valid, `"supportsImages":false`, `"supportsImages":false,"\u0073upportsImages":false`, 1),
 		strings.Replace(valid, `"supportsImages":false`, `"supportsImages":false,"extra":0`, 1),
@@ -109,6 +113,10 @@ func TestAIProviderStrictJSON(t *testing.T) {
 	var provider AIProvider
 	if err = json.Unmarshal([]byte(strings.Replace(valid, "supportsTools", `supports\u0054ools`, 1)), &provider); err != nil {
 		t.Fatal("unambiguous escaped key rejected", err)
+	}
+	var images AIProvider
+	if err = json.Unmarshal([]byte(strings.Replace(valid, `"supportsImages":false`, `"supportsImages":true`, 1)), &images); err != nil || !images.SupportsImages {
+		t.Fatal("explicit image capability rejected", err)
 	}
 	before := provider.Name
 	if err = json.Unmarshal([]byte(cases[2]), &provider); err == nil || provider.Name != before {

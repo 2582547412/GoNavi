@@ -15,7 +15,7 @@ export interface DataSource {
   /** Lowercase ASCII: /^[a-z][a-z0-9_.-]{0,63}$/; no namespace separators. */
   id: string; name: string; dialect: DataSourceDialect; command: string;
   /** Omit (or use zero) when the connection has no default port. */
-  defaultPort?: number; readOnly: true;
+  defaultPort?: number; readOnly: boolean;
 }
 /** Opaque packaged text: explicit use only, no tools/hooks or automatic prompt injection. */
 export interface Skill { id: string; name: string; description: string; entry: string; resources?: string[] }
@@ -32,7 +32,7 @@ export interface AIProvider {
   supportsTools: boolean; supportsImages: false;
 }
 /** Requires data.export and a backend command; metadata grants no filesystem access. */
-export interface Exporter { id: string; name: string; command: string; extension: string; contentType: string }
+export interface Exporter { id: string; name: string; command: string; extension: string; contentType: string; streaming?: boolean }
 export interface Manifest {
   schemaVersion: 1; apiVersion: 1; id: string; name: string; version: string;
   description?: string; author?: string; license?: string; minHostVersion?: string;

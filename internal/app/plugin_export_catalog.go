@@ -29,7 +29,7 @@ func pluginExporterCatalog(statuses []plugin.Status, owned, safe bool) PluginExp
 			if format == "" {
 				continue
 			}
-			candidates = append(candidates, PluginExporterView{Format: format, PluginID: status.Manifest.ID, ID: decl.ID, Name: decl.Name, Extension: decl.Extension, ContentType: decl.ContentType, Version: status.Manifest.Version, Digest: status.Digest, Generation: status.Generation, Available: reason == "", State: status.State, Reason: reason})
+			candidates = append(candidates, PluginExporterView{Format: format, PluginID: status.Manifest.ID, ID: decl.ID, Name: decl.Name, Extension: decl.Extension, ContentType: decl.ContentType, Streaming: decl.Streaming, Version: status.Manifest.Version, Digest: status.Digest, Generation: status.Generation, Available: reason == "", State: status.State, Reason: reason})
 		}
 	}
 	sort.Slice(candidates, func(i, j int) bool { return candidates[i].Format < candidates[j].Format })

@@ -53,14 +53,16 @@ export function snapshotColumns(source: readonly string[], selected?: readonly s
   if (!Array.isArray(columns) || !columns.length || columns.length > 256 || new Set(columns).size !== columns.length || columns.some((name) => !known.has(name))) return exporterError('snapshot');
   return Object.freeze([...columns]);
 }
-export function freezeExportSnapshot(format: string, data: readonly unknown[], sourceColumns: readonly string[], selected?: readonly string[]): FrozenExportSnapshot {
+export function freezeExportSnapshot(format: string, data: readonly unknown[], sourceColumns: readonly string[], selected?: readonly string[], streaming = false): FrozenExportSnapshot {
   const identity = parsePluginExporterFormat(format); if (!identity) return exporterError('selection');
   const columns = snapshotColumns(sourceColumns, selected);
-  if (!Array.isArray(data) || data.length > 4096 || data.length * columns.length > 16384) return exporterError('limit');
-  const budget: Budget = { nodes: 5 + columns.length + data.length, textBytes: columns.reduce((sum, name) => sum + utf8Bytes(name), 0), stack: new Set() };
-  const rows: Readonly<Record<string, SnapshotValue>>[] = []; const wireRows: WireCell[][] = [];
+  if (!Array.isArray(data) || (!streaming && (data.length > 4096 || data.length * columns.length > 16384))) return exporterError('limit');
+  const names = columns.reduce((sum, name) => sum + utf8Bytes(name), 0);
+  const shared: Budget = { nodes: 5 + columns.length + data.length, textBytes: names, stack: new Set() };
+  const rows: Readonly<Record<string, SnapshotValue>>[] = []; let wireRows: WireCell[][] = [];
   for (const source of data) {
     if (!source || typeof source !== 'object' || Array.isArray(source) || !plain(source)) return exporterError('snapshot');
+    const budget: Budget = streaming ? { nodes: 5 + columns.length, textBytes: names, stack: new Set() } : shared;
     const row: Record<string, SnapshotValue> = Object.create(null); const wire: WireCell[] = [];
     for (const column of columns) {
       const entry = Object.getOwnPropertyDescriptor(source, column);
@@ -71,7 +73,13 @@ export function freezeExportSnapshot(format: string, data: readonly unknown[], s
       budget.nodes += 2; if (budget.nodes > 131072) return exporterError('limit'); wire.push(cell(value));
     }
     rows.push(Object.freeze(row)); wireRows.push(wire);
+    if (streaming && wireRows.length === 512) {
+      if (utf8Bytes(goJSON({ protocolVersion: 2, exporterId: identity.id, columns, chunkIndex: 0, chunkCount: 1, rows: wireRows })) > EXPORT_ENVELOPE_BYTES) return exporterError('limit');
+      wireRows = [];
+    }
   }
-  if (utf8Bytes(goJSON({ protocolVersion: 1, exporterId: identity.id, columns, rows: wireRows })) > EXPORT_ENVELOPE_BYTES) return exporterError('limit');
+  if (streaming) {
+    if (wireRows.length && utf8Bytes(goJSON({ protocolVersion: 2, exporterId: identity.id, columns, chunkIndex: 0, chunkCount: 1, rows: wireRows })) > EXPORT_ENVELOPE_BYTES) return exporterError('limit');
+  } else if (utf8Bytes(goJSON({ protocolVersion: 1, exporterId: identity.id, columns, rows: wireRows })) > EXPORT_ENVELOPE_BYTES) return exporterError('limit');
   return Object.freeze({ columns, rows: Object.freeze(rows) });
 }

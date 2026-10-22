@@ -21,14 +21,28 @@ func decodeExporterRequest(ctx context.Context, raw json.RawMessage) (ExporterRe
 	if err := scanExporterJSON(ctx, raw, 0, &budget); err != nil {
 		return request, err
 	}
-	object, err := exporterObject(raw, "protocolVersion", "exporterId", "columns", "rows")
+	object, err := exporterObjectOptional(raw, []string{"protocolVersion", "exporterId", "columns", "rows"}, []string{"chunkIndex", "chunkCount"})
 	if err != nil {
 		return request, err
 	}
-	if json.Unmarshal(raw, &request) != nil || request.ProtocolVersion != 1 || !exporterLocalID.MatchString(request.ExporterID) {
+	if json.Unmarshal(raw, &request) != nil || !exporterLocalID.MatchString(request.ExporterID) {
 		return request, exporterError("invalid_request")
 	}
-	if request.Columns == nil || len(request.Columns) == 0 || len(request.Columns) > 256 || request.Rows == nil || len(request.Rows) > 4096 || len(request.Rows)*len(request.Columns) > 16384 {
+	rowLimit, cellLimit := 4096, 16384
+	switch request.ProtocolVersion {
+	case 1:
+		if request.ChunkIndex != nil || request.ChunkCount != nil {
+			return request, exporterError("invalid_request")
+		}
+	case 2:
+		if request.ChunkIndex == nil || request.ChunkCount == nil || *request.ChunkCount < 1 || *request.ChunkIndex < 0 || *request.ChunkIndex >= *request.ChunkCount || *request.ChunkCount > 1<<20 {
+			return request, exporterError("invalid_request")
+		}
+		rowLimit, cellLimit = ExporterChunkRows, 131072
+	default:
+		return request, exporterError("invalid_request")
+	}
+	if request.Columns == nil || len(request.Columns) == 0 || len(request.Columns) > 256 || request.Rows == nil || len(request.Rows) > rowLimit || len(request.Rows)*len(request.Columns) > cellLimit {
 		return request, exporterError("invalid_request")
 	}
 	names := make(map[string]bool, len(request.Columns))
@@ -104,6 +118,21 @@ func validateExporterCell(ctx context.Context, cell ExporterCell, budget *export
 		return exporterError("invalid_request")
 	}
 	return nil
+}
+
+func validateExporterChunkResult(ctx context.Context, exporterID string, index int, text string, rowCount int) (ExporterChunkResult, error) {
+	result := ExporterChunkResult{ProtocolVersion: 2, ExporterID: exporterID, ChunkIndex: index, RowCount: rowCount, Text: text}
+	if err := ctx.Err(); err != nil {
+		return ExporterChunkResult{}, err
+	}
+	if len(text) > ExporterMaxEnvelopeBytes || !utf8.ValidString(text) || strings.ContainsRune(text, 0) {
+		return ExporterChunkResult{}, exporterError("invalid_result")
+	}
+	encoded, err := json.Marshal(result)
+	if err != nil || len(encoded) > ExporterMaxEnvelopeBytes {
+		return ExporterChunkResult{}, exporterError("limit_exceeded")
+	}
+	return result, nil
 }
 
 func validateExporterResult(ctx context.Context, text string, rowCount int) (ExporterResult, error) {

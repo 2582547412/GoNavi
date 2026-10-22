@@ -1,7 +1,7 @@
 import { ProtocolError } from './protocol.js';
 import type { Handler } from './protocol.js';
 import type { ExporterHandlers, ExporterRender, ExporterResult } from './exportTypes.js';
-import { copyExporterSnapshot, exportRecord, exporterID, exporterResult, parseExporterRequest, validateExporterRequest } from './exportValidation.js';
+import { copyExporterSnapshot, exportRecord, exporterID, exporterChunkResult, exporterResult, parseExporterRequest, validateExporterRequest } from './exportValidation.js';
 import { exportFault, exporterArguments } from './exportJson.js';
 
 export * from './exportTypes.js';
@@ -29,7 +29,7 @@ export class ExporterDispatcher {
    let text: unknown;
    try { text = await render(snapshot, controller.signal); } catch { exportFault(controller.signal.aborted ? (deadline ? 'deadline' : 'canceled') : 'render_failed'); }
    if (signal.aborted || controller.signal.aborted) exportFault(deadline ? 'deadline' : 'canceled');
-   return exporterResult(text, rowCount);
+   return request.protocolVersion === 2 ? exporterChunkResult(text, request.exporterId, request.chunkIndex as number, rowCount) : exporterResult(text, rowCount);
   } catch (error: unknown) {
    if (error instanceof ProtocolError && ['invalid_request', 'invalid_result', 'limit_exceeded', 'unsupported', 'canceled', 'deadline', 'render_failed'].includes(error.message)) throw error;
    exportFault();

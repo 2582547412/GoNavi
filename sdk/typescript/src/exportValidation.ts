@@ -44,15 +44,26 @@ function cell(value: unknown, budget: ExportBudget, replaceWireString = true): v
 }
 
 function preflight(input: unknown): ExporterRequest {
- const object = fields(input, ['protocolVersion', 'exporterId', 'columns', 'rows']);
- if (object.protocolVersion !== 1 || !exporterID(object.exporterId)) exportFault();
+ const raw = exportRecord(input);
+ const header = Object.getOwnPropertyNames(raw);
+ const chunked = header.includes('chunkIndex') || header.includes('chunkCount');
+ const object = fields(input, chunked
+  ? ['protocolVersion', 'exporterId', 'columns', 'rows', 'chunkIndex', 'chunkCount']
+  : ['protocolVersion', 'exporterId', 'columns', 'rows']);
+ if (!exporterID(object.exporterId)) exportFault();
+ if (chunked) {
+  if (object.protocolVersion !== 2 || !Number.isSafeInteger(object.chunkCount) || !Number.isSafeInteger(object.chunkIndex)
+   || (object.chunkCount as number) < 1 || (object.chunkCount as number) > 1 << 20
+   || (object.chunkIndex as number) < 0 || (object.chunkIndex as number) >= (object.chunkCount as number)) exportFault();
+ } else if (object.protocolVersion !== 1) exportFault();
  const columns = array(object.columns, 256); if (!columns.length) exportFault();
  const names = new Set<string>(); let size = 0;
  for (const name of columns) {
   if (typeof name !== 'string' || name.includes('\0') || blank.test(name) || names.has(name)) exportFault();
   size += exportBytes(name, 1024); names.add(name);
  }
- const rows = array(object.rows, 4096); const budget = { nodes: 5 + columns.length + rows.length }; if (rows.length * columns.length > 16384) exportFault('limit_exceeded');
+ const rows = array(object.rows, chunked ? 512 : 4096); const budget = { nodes: 5 + columns.length + rows.length };
+ if (rows.length * columns.length > (chunked ? 131072 : 16384)) exportFault('limit_exceeded');
  for (const row of rows) {
   const values = array(row, 256); if (values.length !== columns.length) exportFault();
   for (const value of values) {
@@ -74,7 +85,7 @@ export function validateExporterRequest(input: unknown, raw?: string): ExporterR
  const encoded = raw ?? JSON.stringify(request);
  exportBytes(encoded, EXPORTER_MAX_ENVELOPE_BYTES);
  const budget = { nodes: 0 }; const scanner = new ExportJSONScanner(encoded, budget); scanner.scan();
- if (scanner.versionToken !== '1') exportFault();
+ if (scanner.versionToken !== String(request.protocolVersion)) exportFault();
  for (const row of request.rows) for (const value of row) cell(value, budget);
  return request;
 }
@@ -84,9 +95,19 @@ export function parseExporterRequest(raw: string): ExporterRequest {
  return validateExporterRequest(input, raw);
 }
 export function copyExporterSnapshot(request: ExporterRequest): ExporterSnapshot {
- return Object.freeze({ columns: Object.freeze([...request.columns]), rows: Object.freeze(request.rows.map((row) =>
+ const chunk = request.protocolVersion === 2
+  ? { protocolVersion: 2 as const, chunkIndex: request.chunkIndex, chunkCount: request.chunkCount }
+  : {};
+ return Object.freeze({ ...chunk, columns: Object.freeze([...request.columns]), rows: Object.freeze(request.rows.map((row) =>
   Object.freeze(row.map((value) => Object.freeze({ ...value }) as ExporterCell)))) });
 }
+export function exporterChunkResult(text: unknown, exporterId: string, chunkIndex: number, rowCount: number): ExporterResult {
+ if (typeof text !== 'string' || text.includes('\0')) exportFault('invalid_result');
+ exportBytes(text, EXPORTER_MAX_ENVELOPE_BYTES);
+ const result: ExporterResult = { protocolVersion: 2, exporterId, chunkIndex, rowCount, text };
+ exportBytes(JSON.stringify(result), EXPORTER_MAX_ENVELOPE_BYTES); return result;
+}
+
 export function exporterResult(text: unknown, rowCount: number): ExporterResult {
  if (typeof text !== 'string' || text.includes('\0') || (rowCount > 0 && text === '')) exportFault('invalid_result');
  exportBytes(text, EXPORTER_MAX_ENVELOPE_BYTES);

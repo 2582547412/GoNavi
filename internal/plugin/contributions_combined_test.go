@@ -30,7 +30,7 @@ func TestCombinedContributionsParse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = ParseManifest(raw); err == nil {
-		t.Fatal("image provider was accepted")
+	if _, err = ParseManifest(raw); err != nil {
+		t.Fatalf("image provider was rejected: %v", err)
 	}
 }

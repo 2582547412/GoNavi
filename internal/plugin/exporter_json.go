@@ -10,7 +10,7 @@ import (
 
 // UnmarshalJSON rejects ambiguous declarations atomically; validation checks semantic bounds.
 func (exporter *Exporter) UnmarshalJSON(raw []byte) error {
-	if err := validateExporterObject(raw, []string{"id", "name", "command", "extension", "contentType"}); err != nil {
+	if err := validateExporterObject(raw, []string{"id", "name", "command", "extension", "contentType"}, "streaming"); err != nil {
 		return err
 	}
 	type wireExporter Exporter
@@ -22,7 +22,7 @@ func (exporter *Exporter) UnmarshalJSON(raw []byte) error {
 	return nil
 }
 
-func validateExporterObject(raw []byte, required []string) error {
+func validateExporterObject(raw []byte, required []string, optional ...string) error {
 	if !utf8.Valid(raw) {
 		return fmt.Errorf("exporter JSON must be UTF-8")
 	}
@@ -34,11 +34,14 @@ func validateExporterObject(raw []byte, required []string) error {
 	if first != json.Delim('{') {
 		return fmt.Errorf("exporter JSON must be an object")
 	}
-	allowed := make(map[string]bool, len(required))
+	allowed := make(map[string]bool, len(required)+len(optional))
 	for _, key := range required {
 		allowed[key] = true
 	}
-	seen := make(map[string]bool, len(required))
+	for _, key := range optional {
+		allowed[key] = true
+	}
+	seen := make(map[string]bool, len(required)+len(optional))
 	for decoder.More() {
 		token, err := decoder.Token()
 		if err != nil {
@@ -75,7 +78,7 @@ func validateExporterArguments(raw json.RawMessage, exporterID string) error {
 	if len(raw) == 0 || len(raw) > maxExporterJSONBytes {
 		return fmt.Errorf("invalid or oversized exporter arguments")
 	}
-	if err := validateExporterObject(raw, []string{"protocolVersion", "exporterId", "columns", "rows"}); err != nil {
+	if err := validateExporterObject(raw, []string{"protocolVersion", "exporterId", "columns", "rows"}, "chunkIndex", "chunkCount"); err != nil {
 		return err
 	}
 	var header struct {
@@ -83,11 +86,25 @@ func validateExporterArguments(raw json.RawMessage, exporterID string) error {
 		ExporterID      string          `json:"exporterId"`
 		Columns         json.RawMessage `json:"columns"`
 		Rows            json.RawMessage `json:"rows"`
+		ChunkIndex      *int            `json:"chunkIndex"`
+		ChunkCount      *int            `json:"chunkCount"`
 	}
 	if err := json.Unmarshal(raw, &header); err != nil {
 		return fmt.Errorf("invalid exporter request binding")
 	}
-	if header.ProtocolVersion != 1 || header.ExporterID != exporterID || !exporterIDPattern.MatchString(exporterID) {
+	if header.ExporterID != exporterID || !exporterIDPattern.MatchString(exporterID) {
+		return fmt.Errorf("invalid exporter request binding")
+	}
+	switch header.ProtocolVersion {
+	case 1:
+		if header.ChunkIndex != nil || header.ChunkCount != nil {
+			return fmt.Errorf("exporter protocol version 1 has no chunk fields")
+		}
+	case 2:
+		if header.ChunkIndex == nil || header.ChunkCount == nil || *header.ChunkCount < 1 || *header.ChunkIndex < 0 || *header.ChunkIndex >= *header.ChunkCount || *header.ChunkCount > 1<<20 {
+			return fmt.Errorf("invalid exporter chunk binding")
+		}
+	default:
 		return fmt.Errorf("invalid exporter request binding")
 	}
 	for _, array := range []json.RawMessage{header.Columns, header.Rows} {

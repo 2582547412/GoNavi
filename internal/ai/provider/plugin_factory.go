@@ -43,7 +43,7 @@ func (f *PluginFactory) Bind(ctx context.Context, c ai.ProviderConfig) (json.Raw
 	if err != nil {
 		return nil, err
 	}
-	c = selectedPluginConfig(c)
+	c = selectedPluginConfig(c, decl.SupportsImages)
 	if err = bindPluginModel(&c, decl); err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (f *PluginFactory) Resolve(ctx context.Context, raw json.RawMessage) (Provi
 	if err != nil {
 		return nil, err
 	}
-	c := selectedPluginConfig(frozen.ProviderConfig)
+	c := selectedPluginConfig(frozen.ProviderConfig, decl.SupportsImages)
 	if c.ContextWindow == 0 {
 		return nil, ErrPluginProviderConfig
 	}
@@ -154,7 +154,7 @@ func findPluginProvider(statuses []plugin.Status, id, pid string) (plugin.Status
 			continue
 		}
 		for _, d := range s.Manifest.Contributes.AIProviders {
-			if d.ID == pid && plugin.AIProviderType(id, d) != "" && !d.SupportsImages {
+			if d.ID == pid && plugin.AIProviderType(id, d) != "" {
 				return s, d, true
 			}
 		}

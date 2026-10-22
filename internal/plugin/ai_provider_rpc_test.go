@@ -31,6 +31,26 @@ func aiRPCRequestID(t *testing.T, p *rpcProcess) uint64 {
 	}
 }
 
+func TestAIRequestPolicyWidensOnlyOptedInFrames(t *testing.T) {
+	large := strings.Repeat("x", maxRPCBytes+1024)
+	p := aiRPCFixture()
+	defer p.fail(errors.New("test cleanup"))
+	if _, err := p.callBounded(context.Background(), "plugin.invoke", large, rpcCallPolicy{maxResponseBytes: 256}); err == nil {
+		t.Fatal("ordinary frame limit relaxed")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() {
+		_, err := p.callBounded(ctx, "plugin.invoke", large, rpcCallPolicy{maxRequestBytes: maxAIProviderRequestBytes, maxResponseBytes: 256})
+		done <- err
+	}()
+	aiRPCRequestID(t, p)
+	cancel()
+	if !errors.Is(<-done, context.Canceled) {
+		t.Fatal("bounded ai image request was not dispatched")
+	}
+}
+
 func TestAIResponseCreditSurvivesCallerCancellation(t *testing.T) {
 	for _, oversized := range []bool{false, true} {
 		t.Run(map[bool]string{false: "valid late reply", true: "oversized late reply"}[oversized], func(t *testing.T) {

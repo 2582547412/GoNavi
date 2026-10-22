@@ -13,7 +13,7 @@ export function AIPluginProviderEditor(props: AISettingsProvidersSectionProps) {
   const type = editingProvider?.type || String(values?.type || props.watchedPresetKey || '');
   const source = catalog?.find(type); const modelId = String(values?.model ?? editingProvider?.model ?? '');
   const model = source?.models.find((item) => item.id === modelId);
-  const unsupported = hasForeignPluginProviderSettings({ ...editingProvider, ...form.getFieldsValue(true), ...values });
+  const unsupported = hasForeignPluginProviderSettings({ ...editingProvider, ...form.getFieldsValue(true), ...values }, source?.supportsImages === true);
   const models = (source?.models ?? []).map((item) => ({ value: item.id, label: item.name + ' · ' + item.id }));
   if (modelId && !models.some((item) => item.value === modelId)) models.unshift({ value: modelId, label: modelId + ' · ' + t('plugin.ai_provider.saved_model') });
   const clearUnsupported = () => { form.setFieldsValue(clearedPluginProviderSettings); props.onValuesChange?.(clearedPluginProviderSettings); };
@@ -35,7 +35,7 @@ export function AIPluginProviderEditor(props: AISettingsProvidersSectionProps) {
       <Form.Item name="temperature" label={t('plugin.ai_provider.temperature')}><InputNumber min={0} max={2} step={0.1} /></Form.Item>
       <Form.Item name="contextWindow" label={t('plugin.ai_provider.context')} extra={t('plugin.ai_provider.context_hint')}><InputNumber min={0} max={262144} step={1024} /></Form.Item>
       {model && <p>{t('plugin.ai_provider.model_limits', { context: model.contextWindow, output: model.maxOutputTokens })}</p>}
-      <p>{t(source?.supportsTools ? 'plugin.ai_provider.tools_supported' : 'plugin.ai_provider.tools_unavailable')} · {t('plugin.ai_provider.no_images')}</p>
+      <p>{t(source?.supportsTools ? 'plugin.ai_provider.tools_supported' : 'plugin.ai_provider.tools_unavailable')} · {t(source?.supportsImages ? 'plugin.ai_provider.images_supported' : 'plugin.ai_provider.no_images')}</p>
       <Form.Item name="headerRows" label={t('plugin.ai_provider.headers')}><AIProviderKeyValueRows namePlaceholder={t("plugin.ai_provider.header_name")} valuePlaceholder={t("plugin.ai_provider.header_value")} addLabel={t("plugin.ai_provider.add_header")} removeLabel={t("common.delete")} /></Form.Item>
       <Button onClick={clearUnsupported}>{t('plugin.ai_provider.clear_unsupported')}</Button>
     </Form>

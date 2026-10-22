@@ -29,7 +29,8 @@ export function PluginManagerPanel() {
     <header className="plugin-manager-heading"><Typography.Title level={4}>{t('plugin.manager.title')}</Typography.Title>
       <Typography.Paragraph type="secondary">{t('plugin.manager.description')}</Typography.Paragraph></header>
     {manager.runtime.safeMode && <Alert showIcon type="warning" message={t('plugin.manager.safe_mode')} />}
-    {!manager.loading && !manager.error && !manager.runtime.managementAllowed && <Alert showIcon type="info" message={t('plugin.manager.read_only')} />}
+    {!manager.loading && !manager.error && !manager.runtime.managementAllowed && <Alert showIcon type="info"
+      message={t(manager.runtime.webRuntime === true ? 'plugin.manager.read_only_web' : 'plugin.manager.read_only')} />}
     <Tabs destroyInactiveTabPane items={[
       { key: 'installed', label: t('plugin.manager.installed'), children: installed },
       { key: 'market', label: t('plugin.market.title'), children: <PluginMarketPanel allowed={manager.runtime.managementAllowed} onInstalled={() => void manager.refresh()} /> },

@@ -30,7 +30,10 @@ export function pluginDataSourceInitialValues(config: ConnectionConfig): Record<
     sslCertPath: config.sslCertPath ?? '', sslKeyPath: config.sslKeyPath ?? '', useSSH: config.useSSH === true,
     useProxy: config.useProxy === true, useHttpTunnel: config.useHttpTunnel === true,
     keepAliveEnabled: config.keepAliveEnabled === true, keepAliveSQL: config.keepAliveSQL ?? '',
-    restrictDataEdit: true, restrictStructureEdit: true, restrictScriptExecution: true, restrictDataImport: true };
+    restrictDataEdit: config.protection?.restrictDataEdit === true || !config.pluginWritable,
+    restrictStructureEdit: config.protection?.restrictStructureEdit === true || !config.pluginWritable,
+    restrictScriptExecution: config.protection?.restrictScriptExecution === true || !config.pluginWritable,
+    restrictDataImport: config.protection?.restrictDataImport === true || !config.pluginWritable };
 }
 export function buildPluginDataSourceConfig(values: Record<string, unknown>, forPersist: boolean, initial?: SavedConnection | null): ConnectionConfig {
   const type = typeof values.type === 'string' ? values.type : '';
@@ -40,8 +43,13 @@ export function buildPluginDataSourceConfig(values: Record<string, unknown>, for
   const port = Number(values.port ?? 0);
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error(t('plugin.datasource.invalid_port'));
   const text = (key: string) => typeof values[key] === 'string' ? values[key] as string : '';
+  const writable = findPluginDataSource(type)?.readOnly === false || (initial?.config.type === type && initial.config.pluginWritable === true);
+  const flag = (key: string) => !writable || values[key] === true;
+  const protection = { restrictDataEdit: flag('restrictDataEdit'), restrictStructureEdit: flag('restrictStructureEdit'),
+    restrictScriptExecution: flag('restrictScriptExecution'), restrictDataImport: flag('restrictDataImport') };
+  const readOnly = Object.values(protection).every(Boolean);
   return { id: initial?.id || text('id') || undefined, type, host: text('host'), port, user: text('user'), password: text('password'),
     database: text('database'), connectionParams: text('connectionParams'), savePassword: values.savePassword !== false,
-    timeout: Math.min(300, Math.max(1, Number(values.timeout) || 30)), readOnly: true, sslMode: 'disable',
-    protection: { restrictDataEdit: true, restrictStructureEdit: true, restrictScriptExecution: true, restrictDataImport: true } };
+    timeout: Math.min(300, Math.max(1, Number(values.timeout) || 30)), readOnly, pluginWritable: writable, sslMode: 'disable',
+    protection };
 }

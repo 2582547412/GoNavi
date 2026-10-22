@@ -40,13 +40,15 @@ type AIProviderToolFunction struct {
 	Parameters  json.RawMessage `json:"parameters"`
 }
 
-// AIProviderMessage mirrors the text-only host message shape. Images and opaque state are unsupported.
+// AIProviderMessage mirrors the host message shape. Images are bounded base64 data
+// URLs that only appear on user messages and only when the provider declares them.
 type AIProviderMessage struct {
 	Role             string               `json:"role"`
 	Content          string               `json:"content"`
 	ReasoningContent string               `json:"reasoning_content,omitempty"`
 	ToolCallID       string               `json:"tool_call_id,omitempty"`
 	ToolCalls        []AIProviderToolCall `json:"tool_calls,omitempty"`
+	Images           []string             `json:"images,omitempty"`
 }
 
 // AIProviderRequest is one stateless model turn. Zero MaxTokens selects the declared output cap.
@@ -106,9 +108,10 @@ type AIProviderGenerate func(context.Context, AIProviderStart, AIProviderEmit) (
 
 // AIProviderRegistration is copied into one dispatcher; registrations are not a global registry.
 type AIProviderRegistration struct {
-	Models        []AIModel
-	SupportsTools bool
-	Generate      AIProviderGenerate
+	Models         []AIModel
+	SupportsTools  bool
+	SupportsImages bool
+	Generate       AIProviderGenerate
 }
 
 // AIProviderLimits can lower, but never raise, v1 safety budgets. Zero selects defaults.

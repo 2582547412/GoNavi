@@ -74,7 +74,7 @@ func dataSourceInvocationCommand(manifest Manifest, sourceID string) (string, er
 		if source.ID != sourceID {
 			continue
 		}
-		if !source.ReadOnly || DataSourceType(manifest.ID, source) == "" {
+		if DataSourceType(manifest.ID, source) == "" {
 			return "", ErrDisabled
 		}
 		return source.Command, nil

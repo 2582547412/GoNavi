@@ -18,15 +18,19 @@ import (
 )
 
 func buildHostDataSourceExample(t *testing.T) string {
+	return buildHostDataSourcePackage(t, "read-only-database")
+}
+
+func buildHostDataSourcePackage(t *testing.T, example string) string {
 	t.Helper()
 	repo, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
-	output := filepath.Join(t.TempDir(), "readonly-package")
+	output := filepath.Join(t.TempDir(), "plugin-package")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	command := exec.CommandContext(ctx, "go", "run", "./package", "-source", "./read-only-database", "-manifest", "./read-only-database/gonavi.plugin.json", "-output", output)
+	command := exec.CommandContext(ctx, "go", "run", "./package", "-source", "./"+example, "-manifest", "./"+example+"/gonavi.plugin.json", "-output", output)
 	command.Dir = filepath.Join(repo, "examples", "plugins")
 	command.Env = append(os.Environ(), "GOWORK=off", "GOPROXY=off", "GOSUMDB=off")
 	logs, err := command.CombinedOutput()

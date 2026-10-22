@@ -56,7 +56,7 @@ Each contribution type has one SDK entry point. Use it instead of writing the JS
 
 | Contribution | Entry point | Notes |
 |---|---|---|
-| Read-only data source | `NewDataSourceDispatcher(operations DataSourceOperations) *DataSourceDispatcher` | The host owns sessions and sends queries; the plugin answers queries, metadata and cancellation. It cannot write, open transactions or stream. |
+| Data source | `NewDataSourceDispatcher(operations DataSourceOperations) *DataSourceDispatcher` | The host owns sessions and sends queries; the plugin answers queries, metadata, writes and transactions. `Exec`/`Begin`/`Commit`/`Rollback` are optional v2 callbacks. |
 | AI provider | `NewAIProviderDispatcher(root context.Context, options AIProviderOptions) (*AIProviderDispatcher, error)` | One root context bounds the whole provider session; the host projects only the selected credential. |
 | Exporter | `NewExporterDispatcher(handlers map[string]ExporterRender) (*ExporterDispatcher, error)` | One bounded render per request against already-materialized rows; the host owns the destination file. |
 | Exporter payload | `NewExporterCell(kind ExporterCellKind, value string) (ExporterCell, error)` | Tagged cell builder for `ExporterSnapshot` values. |
@@ -68,7 +68,7 @@ Each contribution type has one SDK entry point. Use it instead of writing the JS
 | Group | File | Types |
 |---|---|---|
 | Manifest, UI and wire | [types.go](<../../sdk/go/types.go>) | `Manifest`, `Contributions`, `UINode`, `InitializeParams`, `InvokeParams`, `SkillContent` |
-| Read-only data sources | [datasource_types.go](<../../sdk/go/datasource_types.go>) | `DataSourceConfig`, `DataSourceRequest`, `DataSourceQueryResult`, `DataSourceColumnDefinition`, `DataSourceColumnDefinitionWithTable`, `DataSourceIndexDefinition`, `DataSourceForeignKeyDefinition`, `DataSourceTriggerDefinition` |
+| Data sources | [datasource_types.go](<../../sdk/go/datasource_types.go>) | `DataSourceConfig`, `DataSourceRequest`, `DataSourceQueryResult`, `DataSourceColumnDefinition`, `DataSourceColumnDefinitionWithTable`, `DataSourceIndexDefinition`, `DataSourceForeignKeyDefinition`, `DataSourceTriggerDefinition` |
 | AI provider declarations | [ai_provider_manifest.go](<../../sdk/go/ai_provider_manifest.go>) | `AIProvider`, `AIModel` |
 | AI provider streaming | [aiprovider_types.go](<../../sdk/go/aiprovider_types.go>) | `AIProviderConfig`, `AIProviderRegistration`, `AIProviderRequest`, `AIProviderMessage`, `AIProviderTool`, `AIProviderToolFunction`, `AIProviderToolCall`, `AIProviderToolCallFunction`, `AIProviderLimits`, `AIProviderStart`, `AIProviderDelta`, `AIProviderEvent`, `AIProviderEmit`, `AIProviderGenerate`, `AIProviderCompletion`, `AIProviderBatch`, `AIProviderUsage` |
 | AI provider failures | [aiprovider_limits.go](<../../sdk/go/aiprovider_limits.go>) | `AIProviderFailure` |
@@ -79,10 +79,14 @@ Each contribution type has one SDK entry point. Use it instead of writing the JS
 
 | Group | Identifiers |
 |---|---|
-| Protocol | `APIVersion`, `DefaultMaxFrameBytes`, `DataSourceProtocolVersion` |
+| Protocol | `APIVersion`, `DefaultMaxFrameBytes`, `AIProviderImageFrameBytes`, `DataSourceProtocolVersion`, `DataSourceWriteProtocolVersion` |
 | Data source errors | `ErrDataSourceRequest`, `ErrDataSourceLimit`, `ErrDataSourceResult`, `ErrDataSourceSession`, `ErrDataSourceUnsupported` |
 | Manifest shapes | `Backend`, `Requirement`, `Panel` |
-| Exporter payload | `ExporterMaxEnvelopeBytes` and the cell kinds `ExporterBoolean`, `ExporterNumber`, `ExporterString`, `ExporterJSON`, `ExporterNull`, `ExporterMissing`, `ExporterBinary` |
+| Exporter payload | `ExporterChunkRows`, `EncodeExporterChunkRequest`, `ExporterChunkResult`, `ExporterMaxEnvelopeBytes` and the cell kinds `ExporterBoolean`, `ExporterNumber`, `ExporterString`, `ExporterJSON`, `ExporterNull`, `ExporterMissing`, `ExporterBinary` |
+
+### AI provider images
+
+Declare `supportsImages` in both `contributes.aiProviders` and the runtime registration. Images then arrive only on user messages (`AIProviderMessage.Images` in Go, `images` in TypeScript) as bounded base64 data URLs. The host forwards `image/png`, `image/jpeg`, `image/webp` and `image/gif` only; it never fetches a remote URL and never accepts images on system, assistant or tool messages. Limits are four images per message, 4 MiB decoded per image, 24 MiB encoded per request and a 32 MiB request frame. A plugin that declares the capability must raise its own frame budget to `AIProviderImageFrameBytes` (Go `Options.MaxFrameBytes`) or `AI_PROVIDER_IMAGE_MAX_REQUEST_BYTES` (TypeScript `FrameReader`); the defaults remain one MiB for text-only plugins.
 
 ## TypeScript
 
@@ -93,7 +97,7 @@ Exports include manifest, declarative UI, status and JSON-RPC types, and the sep
 Runtime helpers:
 
 - transport: `FrameReader`, `DEFAULT_MAX_FRAME_BYTES`, `Protocol`, `ProtocolError`
-- read-only data sources: `DataSourceDispatcher`, `DATA_SOURCE_PROTOCOL_VERSION`
+- data sources: `DataSourceDispatcher`, `DATA_SOURCE_PROTOCOL_VERSION`, `DATA_SOURCE_WRITE_PROTOCOL_VERSION`, `DataSourceExecResult`, `DataSourceTransactionID`
 - declaration checks: `validateCommand`, `validatePermissionNotes`, `validateSkillMetadata`, `validateSkillResources`, `validateSkillDocument`, `validateDataSource`, `validateDataSourceCommand`, `validateAIProvider`, `validateExporter`
 - manifest parsing: `parseManifest`
 
@@ -144,6 +148,8 @@ The helper uses the same default frame, active-handler and output-queue limits a
 ### Embedded panel
 
 Declare `contributes.panels` as data. Supported node types are `text`, `alert`, `column`, `row`, `button` and `table`. Buttons refer to declared commands. Strings render as text, not HTML. The host rejects unsupported or oversized trees; there is no eval, inline expression language, arbitrary CSS or third-party React component injection.
+
+A panel may instead declare `html: {source}` and exactly one body. This requires the `ui.html-panel` permission and at most 256 KiB of UTF-8 without NUL. The main window shows it in an iframe with `sandbox="allow-scripts"` and an opaque origin; the source never enters the host DOM. Its CSP sets every channel to `none` except inline styles/scripts and `data:` images/fonts/media, so page fetch/XHR/WebSocket, external subresources, forms, nested frames, objects and base-URL changes are blocked. Inline scripts can render interactive UI but receive no host bridge, cookies, storage, credentials or `window.gonaviPlugin`; use the backend command path for data. The iframe also denies sensitive browser permissions. This is an origin and resource-loading boundary, not an OS or network-stack sandbox: treat the plugin package as trusted code. Custom HTML and the separate custom window remain separate features.
 
 ### Separate custom window
 

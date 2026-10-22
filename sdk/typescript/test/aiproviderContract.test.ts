@@ -8,7 +8,7 @@ const all: AIProviderDispatcher[] = [];
 const signal = () => new AbortController().signal;
 const flush = async () => { for (let index = 0; index < 16; index++) await Promise.resolve(); };
 function create(generate: AIProviderGenerate, limits: Partial<AIProviderLimits> = {}) {
- const dispatcher = new AIProviderDispatcher({ providers: { provider: { models, supportsTools: true, generate } }, limits });
+ const dispatcher = new AIProviderDispatcher({ providers: { provider: { models, supportsTools: true, supportsImages: false, generate } }, limits });
  all.push(dispatcher); return dispatcher;
 }
 function wire(operation: string, id = 'request'): JSONValue {
@@ -82,6 +82,6 @@ describe('final provider contract boundaries', () => {
  });
 
  it('does not accept wildcard single-generator construction', () => {
-  expect(() => new AIProviderDispatcher({ models, supportsTools: true, generate: async () => ({ finishReason: 'stop' }) } as unknown as AIProviderRegistryOptions)).toThrow();
+  expect(() => new AIProviderDispatcher({ models, supportsTools: true, supportsImages: false, generate: async () => ({ finishReason: 'stop' }) } as unknown as AIProviderRegistryOptions)).toThrow();
  });
 });

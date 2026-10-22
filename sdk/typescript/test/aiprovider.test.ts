@@ -21,7 +21,7 @@ function wire(operation: string, requestId = 'A'.repeat(43), providerId = 'provi
 }
 function fixture(generate: AIProviderGenerate = async () => ({ finishReason: 'stop' }), options: Partial<AIProviderRegistration> & AIProviderLifecycleOptions & { providerId?: string } = {}) {
   const { limits, rootSignal, providerId, ...overrides } = options;
-  const registration = { models, supportsTools: true, generate: generate, ...overrides };
+  const registration = { models, supportsTools: true, supportsImages: false, generate: generate, ...overrides };
   const providers = providerId ? { [providerId]: registration } : { provider: registration, other: registration };
   const dispatcher = new AIProviderDispatcher({ providers, limits, rootSignal });
   dispatchers.push(dispatcher);

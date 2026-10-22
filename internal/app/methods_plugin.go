@@ -45,7 +45,11 @@ func (a *App) pluginResult(value any, err error) connection.QueryResult {
 
 // PluginRuntimeInfo describes core controls without loading plugin code.
 func (a *App) PluginRuntimeInfo() connection.QueryResult {
-	return connection.QueryResult{Success: true, Data: map[string]bool{"safeMode": pluginEnvEnabled("GONAVI_DISABLE_PLUGINS"), "managementAllowed": a.pluginManagementAllowed()}}
+	return connection.QueryResult{Success: true, Data: map[string]bool{
+		"safeMode":          pluginEnvEnabled("GONAVI_DISABLE_PLUGINS"),
+		"managementAllowed": a.pluginManagementAllowed(),
+		"webRuntime":        a != nil && a.webRuntime,
+	}}
 }
 
 // PluginList returns installed and actual runtime states without consulting plugins.

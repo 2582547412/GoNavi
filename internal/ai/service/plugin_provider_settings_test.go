@@ -592,7 +592,6 @@ func pluginProviderTestInvalidCases() []pluginProviderTestInvalidCase {
 		pluginProviderTestInvalidCase{name: "foreign CLI environment", mutate: func(c *ai.ProviderConfig) { c.CLIEnv = map[string]string{"OPENAI_API_KEY": pluginProviderTestKey} }},
 		pluginProviderTestInvalidCase{name: "foreign effort", mutate: func(c *ai.ProviderConfig) { c.Effort = "high" }},
 		pluginProviderTestInvalidCase{name: "foreign thinking", mutate: func(c *ai.ProviderConfig) { c.ThinkingIntensity = "high" }},
-		pluginProviderTestInvalidCase{name: "foreign image support", mutate: func(c *ai.ProviderConfig) { enabled := true; c.SupportsImages = &enabled }},
 		pluginProviderTestInvalidCase{name: "foreign header timeout", mutate: func(c *ai.ProviderConfig) { c.HeaderTimeoutSeconds = 1 }},
 		pluginProviderTestInvalidCase{name: "foreign bearer auth", mutate: func(c *ai.ProviderConfig) { c.AuthMode = "bearer" }},
 		pluginProviderTestInvalidCase{name: "foreign local CLI auth", mutate: func(c *ai.ProviderConfig) { c.AuthMode = "local-cli" }},

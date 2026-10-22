@@ -51,8 +51,10 @@ type pluginDatabaseRuntime interface {
 	InvokeDataSourceGeneration(context.Context, string, uint64, string, json.RawMessage) (json.RawMessage, error)
 }
 
-// PluginDatabase binds one read-only SQL session to one installed plugin generation.
-// It never registers a global driver, executes plugin code, reconnects or replays.
+// PluginDatabase binds one SQL session to one installed plugin generation.
+// Read-only declarations reject writes; writable declarations add explicit exec and
+// transaction operations. It never registers a global driver, executes plugin code,
+// reconnects or replays.
 type PluginDatabase struct {
 	mu               sync.Mutex
 	runtime          pluginDatabaseRuntime
@@ -77,8 +79,8 @@ var _ Database = (*PluginDatabase)(nil)
 var _ QueryContexter = (*PluginDatabase)(nil)
 var _ ColumnDefinitionContexter = (*PluginDatabase)(nil)
 
-// NewPluginDatabase accepts only a declared read-only source in the current
-// installed generation. The validator is the host's existing SQL safety policy.
+// NewPluginDatabase accepts only a declared source in the current installed
+// generation. The validator is the host's read-only SQL safety policy.
 func NewPluginDatabase(manager *plugin.Manager, status plugin.Status, source plugin.DataSource, validateReadOnly func(string) error) (*PluginDatabase, error) {
 	if manager == nil {
 		return nil, ErrPluginDatabaseUnavailable
@@ -135,7 +137,7 @@ func (p *PluginDatabase) runtimeCurrent() bool {
 }
 
 func pluginDatabaseSourceDeclared(status plugin.Status, source plugin.DataSource) bool {
-	if status.State != plugin.StateRunning || !status.DesiredEnabled || status.Manifest.Backend == nil || !source.ReadOnly {
+	if status.State != plugin.StateRunning || !status.DesiredEnabled || status.Manifest.Backend == nil {
 		return false
 	}
 	permission, command := false, false

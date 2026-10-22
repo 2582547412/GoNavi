@@ -49,6 +49,14 @@ func (p *pluginProvider) prepareRequest(req ai.ChatRequest) (ai.ChatRequest, map
 	if err := pluginRequestTextBudget(req); err != nil {
 		return req, nil, err
 	}
+	if !p.declaration.SupportsImages && pluginMessageHasImages(req.Messages) {
+		return req, nil, ErrPluginProviderConfig
+	}
+	if p.declaration.SupportsImages {
+		if _, err := validatePluginImages(req.Messages); err != nil {
+			return req, nil, err
+		}
+	}
 	req.Tools = append([]ai.Tool(nil), req.Tools...)
 	schemaBytes := 0
 	offered := make(map[string]bool, len(req.Tools))
@@ -68,7 +76,7 @@ func (p *pluginProvider) prepareRequest(req ai.ChatRequest) (ai.ChatRequest, map
 		offered[tool.Function.Name] = true
 	}
 	for _, message := range req.Messages {
-		if len(message.Images) != 0 || !pluginText(message.Content, 512<<10, true) || !pluginText(message.ReasoningContent, 512<<10, true) || !pluginText(message.ToolCallID, 128, true) {
+		if !pluginText(message.Content, 512<<10, true) || !pluginText(message.ReasoningContent, 512<<10, true) || !pluginText(message.ToolCallID, 128, true) {
 			return req, nil, ErrPluginProviderConfig
 		}
 		switch message.Role {
@@ -84,7 +92,7 @@ func (p *pluginProvider) prepareRequest(req ai.ChatRequest) (ai.ChatRequest, map
 		}
 	}
 	raw, err := json.Marshal(req)
-	if err != nil || pluginJSON(raw, 512<<10) != nil {
+	if err != nil || pluginJSON(raw, pluginRequestBytes(p.declaration.SupportsImages)) != nil {
 		return req, nil, ErrPluginProviderConfig
 	}
 	// Snapshot all maps/slices before asynchronous cancellation or caller mutation.

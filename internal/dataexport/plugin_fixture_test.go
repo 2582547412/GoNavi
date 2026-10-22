@@ -40,6 +40,7 @@ func pluginExporterFixture(t *testing.T, dependency bool) (*plugin.Manager, *Plu
 	if json.Unmarshal(raw, &manifest) != nil {
 		t.Fatal("invalid example manifest")
 	}
+	manifest.Contributes.Exporters[0].Streaming = true
 	manifest.Backend = &plugin.Backend{Default: &plugin.Entry{Executable: binary, Runtime: "native"}}
 	if dependency {
 		manifest.Requires = []plugin.Dependency{{ID: "test.export-dependency", MinVersion: "1.0.0"}}

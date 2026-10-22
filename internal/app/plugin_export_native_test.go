@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -102,4 +103,33 @@ func TestPluginExportNativeRejectsProtectedAndSuffixCollisionTargets(t *testing.
 	if _, err := os.Stat(filepath.Join(fixture.root, "protected.ndjson")); !os.IsNotExist(err) {
 		t.Fatal("protected target was created")
 	}
+}
+
+func TestPluginExportNativeStreamingBeyondOneShotRowCap(t *testing.T) {
+	fixture := newNativePluginExportFixture(t, false)
+	destination := filepath.Join(t.TempDir(), "large.ndjson")
+	rows := make([]map[string]any, 5000)
+	for index := range rows {
+		rows[index] = map[string]any{"id": index, "text": "value"}
+	}
+	options := fixture.options()
+	options.Columns = []string{"id", "text"}
+	fixture.app.saveFileDialog = func(context.Context, runtime.SaveDialogOptions) (string, error) {
+		return destination, nil
+	}
+	result := fixture.app.ExportDataWithOptions(rows, []string{"id", "text"}, "stream", options)
+	if !result.Success {
+		t.Fatalf("streaming native export: %+v", result)
+	}
+	content, err := os.ReadFile(destination)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if lines := strings.Count(string(content), "\n"); lines != 5000 {
+		t.Fatalf("streamed row count: %d", lines)
+	}
+	if !strings.Contains(string(content), `"id":{"kind":"number","value":4999}`) {
+		t.Fatal("last row missing from streamed document")
+	}
+	assertNoTempExportResidue(t, filepath.Dir(destination))
 }

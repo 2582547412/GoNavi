@@ -29,14 +29,15 @@ function validExporter(exporter: Record<string, unknown>, commands: Map<string, 
   return typeof exporter.id === 'string' && /^[a-z][a-z0-9_.-]{0,63}$/.test(exporter.id)
     && typeof exporter.name === 'string' && exporter.name.trim() !== '' && utf8Within(exporter.name, 256) && !exporter.name.includes('\u0000')
     && command != null && typeof exporter.extension === 'string' && /^[a-z0-9]{1,16}$/.test(exporter.extension)
-    && typeof exporter.contentType === 'string' && /^(text|application)\/[a-z0-9][a-z0-9.+-]{0,63}$/.test(exporter.contentType);
+    && typeof exporter.contentType === 'string' && /^(text|application)\/[a-z0-9][a-z0-9.+-]{0,63}$/.test(exporter.contentType)
+    && (exporter.streaming === undefined || typeof exporter.streaming === 'boolean');
 }
 function validAIProvider(provider: Record<string, unknown>, commands: Map<string, Record<string, unknown>>): boolean {
   const command = typeof provider.command === 'string' ? commands.get(provider.command) : undefined;
   const models = provider.models;
   if (typeof provider.id !== 'string' || !/^[a-z][a-z0-9_.-]{0,63}$/.test(provider.id)
     || typeof provider.name !== 'string' || provider.name.trim() === '' || !utf8Within(provider.name, 256) || provider.name.includes('\u0000')
-    || command == null || typeof provider.supportsTools !== 'boolean' || provider.supportsImages !== false
+    || command == null || typeof provider.supportsTools !== 'boolean' || typeof provider.supportsImages !== 'boolean'
     || !Array.isArray(models) || models.length < 1 || models.length > 32) return false;
   const seen = new Set<string>();
   for (const item of models) {
@@ -157,8 +158,19 @@ export function decodeManifest(data: unknown): PluginManifest {
       const seen = new Set<string>();
       for (const item of entries) {
         const entry = requireRecord(item);
-        onlyKeys(entry, key === 'commands' ? ['id', 'title', 'description', 'inputSchema', 'effect'] : ['id', 'title', 'body']);
-        if (key === 'panels' && entry.body != null) onlyUINode(requireRecord(entry.body));
+        onlyKeys(entry, key === 'commands' ? ['id', 'title', 'description', 'inputSchema', 'effect'] : ['id', 'title', 'body', 'html']);
+        if (key === 'panels') {
+          const hasBody = entry.body != null;
+          const hasHTML = entry.html != null;
+          if (hasBody === hasHTML) invalid();
+          if (hasBody) onlyUINode(requireRecord(entry.body));
+          if (hasHTML) {
+            if (!(m.permissions as string[]).includes('ui.html-panel')) invalid();
+            const html = requireRecord(entry.html);
+            onlyKeys(html, ['source']);
+            if (typeof html.source !== 'string' || html.source.trim() === '' || !utf8Within(html.source, 256 << 10) || html.source.includes('\u0000')) invalid();
+          }
+        }
         const id = entry.id;
         if (!validLocalID(id) || seen.has(id) || typeof entry.title !== 'string' || entry.title.trim() === '' || !utf8Within(entry.title, 256) || entry.title.includes('\u0000')) invalid();
         seen.add(id);
@@ -190,7 +202,7 @@ export function decodeManifest(data: unknown): PluginManifest {
       }
       for (const item of c.exporters) {
         const exporter = requireRecord(item);
-        onlyKeys(exporter, ['id', 'name', 'command', 'extension', 'contentType']);
+        onlyKeys(exporter, ['id', 'name', 'command', 'extension', 'contentType', 'streaming']);
         if (!validExporter(exporter, commands)) invalid();
       }
     }
@@ -264,6 +276,7 @@ export function decodeInspection(data: unknown): PluginInspection {
 }
 export function decodeRuntime(data: unknown): PluginRuntimeInfo {
   const r = requireRecord(data);
-  if (typeof r.safeMode !== 'boolean' || typeof r.managementAllowed !== 'boolean') invalid();
+  if (typeof r.safeMode !== 'boolean' || typeof r.managementAllowed !== 'boolean'
+    || (r.webRuntime !== undefined && typeof r.webRuntime !== 'boolean')) invalid();
   return r as unknown as PluginRuntimeInfo;
 }

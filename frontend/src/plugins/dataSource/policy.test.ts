@@ -39,6 +39,31 @@ describe('plugin datasource safety gates', () => {
     expect(isConnectionDataImportRestricted(value)).toBe(true); expect(registryAllowsImport(type, 'table')).toBe(false); expect(registryAllowsImport(type, 'sqlFile')).toBe(false);
     expect(supportsConnectionKeepAliveSQL(value)).toBe(false);
   });
+  it('keeps a writable source closed until the connection opts in', () => {
+    const type = 'plugin:demo.source:writer:sqlite';
+    replacePluginDataSources({ items: [{ type, pluginId: 'demo.source', id: 'writer', name: 'Writer', dialect: 'sqlite',
+      version: '1', generation: 1, defaultPort: 0, available: true, connectable: true, state: 'running', readOnly: false }] });
+    const closed = getDataSourceCapabilities(config(type));
+    expect(closed.transaction.supported).toBe(false);
+    expect(closed.contract.ui.forceReadOnlyQueryResult).toBe(true);
+    expect(closed.contract.ui.forceReadOnlyStructureDesigner).toBe(true);
+    const optedIn = getDataSourceCapabilities({ ...config(type), pluginWritable: true });
+    expect(optedIn.transaction.supported).toBe(true);
+    expect(optedIn.contract.ui.forceReadOnlyQueryResult).toBe(false);
+    expect(optedIn.contract.ui.forceReadOnlyStructureDesigner).toBe(false);
+    expect(buildRpcConnectionConfig({ ...config(type), pluginWritable: true }).readOnly).toBe(false);
+    expect(buildRpcConnectionConfig({ ...config(type), pluginWritable: true }).pluginWritable).toBe(true);
+    const readOnly = getDataSourceCapabilities({ ...config(type), pluginWritable: true, readOnly: true });
+    expect(readOnly.transaction.supported).toBe(false);
+    expect(readOnly.contract.ui.forceReadOnlyQueryResult).toBe(true);
+    const forged = { ...config(type), protection: { restrictDataEdit: true } };
+    expect(resolveConnectionProtectionConfig(forged)).toEqual(full);
+    expect(buildRpcConnectionConfig(forged).readOnly).toBe(true);
+    const partial = { ...config(type), pluginWritable: true, protection: { restrictDataEdit: true } };
+    expect(resolveConnectionProtectionConfig(partial)).toEqual({
+      ...full, restrictStructureEdit: false, restrictScriptExecution: false, restrictDataImport: false,
+    });
+  });
   it('denies even SELECT classification for malformed reserved identities', () => {
     expect(findConnectionMutatingStatements(config('plugin'), 'SELECT 1')).toHaveLength(1);
   });

@@ -14,7 +14,7 @@ export function decodePluginDataSources(data: unknown): PluginDataSourceDescript
     const item = requireRecord(value);
     const identity = parsePluginDataSourceType(item.type);
     if (!identity || item.pluginId !== identity.pluginId || item.id !== identity.id || item.dialect !== identity.dialect
-      || item.readOnly !== true || typeof item.available !== 'boolean' || typeof item.connectable !== 'boolean'
+      || typeof item.readOnly !== 'boolean' || typeof item.available !== 'boolean' || typeof item.connectable !== 'boolean'
       || typeof item.state !== 'string' || !['disabled', 'starting', 'running', 'stopping', 'faulted', 'blocked'].includes(item.state)
       || (item.available && (!item.connectable || item.state !== 'running'))
       || (item.connectable && ['stopping', 'faulted', 'blocked'].includes(String(item.state))) || !text(item.name, 256) || !text(item.version, 128)
@@ -25,6 +25,6 @@ export function decodePluginDataSources(data: unknown): PluginDataSourceDescript
     if (count > 8) return invalid();
     perPlugin.set(identity.pluginId, count); ids.add(identity.pluginId + ':' + identity.id);
     return { ...identity, name: item.name as string, defaultPort: Number(item.defaultPort ?? 0), version: item.version as string,
-      generation: item.generation, available: item.available, connectable: item.connectable, state: item.state as PluginDataSourceDescriptor['state'], readOnly: true, reason: item.reason as string | undefined };
+      generation: item.generation, available: item.available, connectable: item.connectable, state: item.state as PluginDataSourceDescriptor['state'], readOnly: item.readOnly, reason: item.reason as string | undefined };
   });
 }

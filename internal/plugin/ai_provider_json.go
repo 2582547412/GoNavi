@@ -18,9 +18,6 @@ func (provider *AIProvider) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &decoded); err != nil {
 		return fmt.Errorf("decode ai provider: %w", err)
 	}
-	if decoded.SupportsImages {
-		return fmt.Errorf("ai provider images are unsupported")
-	}
 	*provider = AIProvider(decoded)
 	return nil
 }

@@ -44,12 +44,19 @@ func (d *ExporterDispatcher) Handle(ctx context.Context, raw json.RawMessage) (a
 		return nil, err
 	}
 	rowCount := len(request.Rows)
-	text, err := callExporterRender(child, ExporterSnapshot{Columns: request.Columns, Rows: request.Rows}, render)
+	snapshot := ExporterSnapshot{Columns: request.Columns, Rows: request.Rows, ProtocolVersion: request.ProtocolVersion}
+	if request.ProtocolVersion == 2 && request.ChunkIndex != nil && request.ChunkCount != nil {
+		snapshot.ChunkIndex, snapshot.ChunkCount = *request.ChunkIndex, *request.ChunkCount
+	}
+	text, err := callExporterRender(child, snapshot, render)
 	if child.Err() != nil {
 		return nil, child.Err()
 	}
 	if err != nil {
 		return nil, exporterError("render_failed")
+	}
+	if request.ProtocolVersion == 2 {
+		return validateExporterChunkResult(child, request.ExporterID, snapshot.ChunkIndex, text, rowCount)
 	}
 	return validateExporterResult(child, text, rowCount)
 }

@@ -7,6 +7,7 @@ import { AIProviderQueue } from './aiproviderQueue.js';
 import { AIProviderFault, control, envelope, fault, providerID, record, registration, resolveLimits, rpcFault, start } from './aiproviderValidation.js';
 
 export { AI_PROVIDER_PROTOCOL_VERSION, AI_PROVIDER_DEFAULT_LIMITS } from './aiproviderTypes.js';
+export { AI_PROVIDER_IMAGE_MAX_REQUEST_BYTES } from './aiproviderImages.js';
 export type * from './aiproviderTypes.js';
 
 /** Independent pull-stream lifecycle. Start RPC signals never own generation callbacks.

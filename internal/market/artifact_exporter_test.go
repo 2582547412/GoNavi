@@ -47,6 +47,7 @@ func TestArtifactExportersAcceptBoundedDeclarations(t *testing.T) {
 		{name: "write command effect", change: func(f, e map[string]any) {
 			f["contributes"].(map[string]any)["commands"] = []any{map[string]any{"id": "Render", "title": "Render", "effect": "write"}}
 		}},
+		{name: "streaming declaration", change: func(f, e map[string]any) { e["streaming"] = true }},
 		{name: "eight shared commands", change: func(f, e map[string]any) { setArtifactExporters(f, e, 8) }},
 	}
 	for _, format := range []string{".zip", ".tgz"} {
@@ -125,6 +126,15 @@ func TestArtifactExportersRequirePermissionBackendAndDeclaredCommands(t *testing
 					t.Fatal("exporter prerequisite validation was bypassed")
 				}
 			})
+		}
+	}
+}
+
+func TestArtifactExportersRejectNonBooleanStreaming(t *testing.T) {
+	for _, value := range []any{"true", float64(1), nil} {
+		filename, _ := artifactExporterArchive(t, ".zip", artifactExporterManifest(t, func(f, e map[string]any) { e["streaming"] = value }))
+		if _, err := ValidatePackage(context.Background(), filename); err == nil {
+			t.Fatalf("non-boolean streaming %v was accepted", value)
 		}
 	}
 }

@@ -180,7 +180,6 @@ func TestDataSourceInvocationTargetValidation(t *testing.T) {
 		{"no permission", func(m *Manifest) { m.Permissions = []string{"ai.tools"} }, invocationTarget{sourceID: "fixture"}, ErrDisabled},
 		{"permission case", func(m *Manifest) { m.Permissions = []string{"Data.Sources"} }, invocationTarget{sourceID: "fixture"}, ErrDisabled},
 		{"no backend", func(m *Manifest) { m.Backend = nil }, invocationTarget{sourceID: "fixture"}, ErrDisabled},
-		{"not readonly", func(m *Manifest) { m.Contributes.DataSources[0].ReadOnly = false }, invocationTarget{sourceID: "fixture"}, ErrDisabled},
 		{"undeclared command", func(m *Manifest) { m.Contributes.DataSources[0].Command = "unknown" }, invocationTarget{sourceID: "fixture"}, ErrNotFound},
 		{"missing source", func(*Manifest) {}, invocationTarget{sourceID: "missing"}, ErrNotFound},
 		{"ambiguous authority", func(*Manifest) {}, invocationTarget{sourceID: "fixture", command: "database"}, ErrNotFound},
@@ -198,5 +197,10 @@ func TestDataSourceInvocationTargetValidation(t *testing.T) {
 	}
 	if command, err := resolveInvocationCommand(dataSourceManifest(), invocationTarget{sourceID: "fixture"}); err != nil || command != "database" {
 		t.Fatalf("command resolution: %q %v", command, err)
+	}
+	writable := dataSourceManifest()
+	writable.Contributes.DataSources[0].ReadOnly = false
+	if command, err := resolveInvocationCommand(writable, invocationTarget{sourceID: "fixture"}); err != nil || command != "database" {
+		t.Fatalf("writable command resolution: %q %v", command, err)
 	}
 }

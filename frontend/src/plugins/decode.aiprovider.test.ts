@@ -7,8 +7,8 @@ const inspection = (supportsImages: boolean = false) => ({
   digest: 'a'.repeat(64), sourcePath: 'fixture', sizeBytes: 10,
 });
 describe('ai provider manifest decoding', () => {
-  it('keeps a text provider and rejects image support', () => {
+  it('keeps declared text and image capabilities', () => {
     expect(decodeInspection(inspection()).manifest.contributes?.aiProviders?.[0].supportsImages).toBe(false);
-    expect(() => decodeInspection(inspection(true))).toThrow();
+    expect(decodeInspection(inspection(true)).manifest.contributes?.aiProviders?.[0].supportsImages).toBe(true);
   });
 });

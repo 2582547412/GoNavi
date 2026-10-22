@@ -118,6 +118,35 @@ func exporterUnicodeEscapes(raw []byte) bool {
 	return !quoted
 }
 
+func exporterObjectOptional(raw json.RawMessage, required, optional []string) (map[string]json.RawMessage, error) {
+	var object map[string]json.RawMessage
+	if json.Unmarshal(raw, &object) != nil || object == nil || len(object) < len(required) || len(object) > len(required)+len(optional) {
+		return nil, exporterError("invalid_request")
+	}
+	allowed := make(map[string]bool, len(required)+len(optional))
+	for _, name := range required {
+		value, ok := object[name]
+		if !ok || bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+			return nil, exporterError("invalid_request")
+		}
+		allowed[name] = true
+	}
+	for _, name := range optional {
+		if value, ok := object[name]; ok {
+			if bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+				return nil, exporterError("invalid_request")
+			}
+			allowed[name] = true
+		}
+	}
+	for name := range object {
+		if !allowed[name] {
+			return nil, exporterError("invalid_request")
+		}
+	}
+	return object, nil
+}
+
 func exporterObject(raw json.RawMessage, required ...string) (map[string]json.RawMessage, error) {
 	var object map[string]json.RawMessage
 	if json.Unmarshal(raw, &object) != nil || object == nil || len(object) != len(required) {

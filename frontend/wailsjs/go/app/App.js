@@ -1722,6 +1722,14 @@ export function SelectLogDirectory(arg1) {
   return window['go']['app']['App']['SelectLogDirectory'](arg1);
 }
 
+export function SelectPluginPackageDirectory(arg1) {
+  return window['go']['app']['App']['SelectPluginPackageDirectory'](arg1);
+}
+
+export function SelectPluginPackageFile(arg1) {
+  return window['go']['app']['App']['SelectPluginPackageFile'](arg1);
+}
+
 export function SelectSQLDirectory(arg1) {
   return window['go']['app']['App']['SelectSQLDirectory'](arg1);
 }

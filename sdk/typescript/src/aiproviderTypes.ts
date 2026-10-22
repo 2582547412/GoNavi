@@ -12,6 +12,8 @@ export type AIProviderTool = {
 export type AIProviderMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool'; content: string;
   reasoning_content?: string; tool_call_id?: string; tool_calls?: AIProviderToolCall[];
+  /** Bounded base64 data URLs; user messages only, and only for declared image providers. */
+  images?: string[];
 };
 /** Only selected credentials are supplied. Never log this value. */
 export type AIProviderConfig = { baseUrl: string; apiKey: string; model: string; headers?: Record<string, string> };
@@ -37,7 +39,7 @@ export type AIProviderEmit = (delta: AIProviderDelta) => Promise<void>;
 /** Join all producer work before resolving; never retain emit or launch detached producer tasks. */
 export type AIProviderGenerate = (start: AIProviderStart, signal: AbortSignal, emit: AIProviderEmit) => Promise<AIProviderCompletion>;
 export interface AIProviderRegistration {
-  models: readonly Readonly<AIModel>[]; supportsTools: boolean; generate: AIProviderGenerate;
+  models: readonly Readonly<AIModel>[]; supportsTools: boolean; supportsImages: boolean; generate: AIProviderGenerate;
 }
 export interface AIProviderLimits {
   maxWorkers: number; maxSessions: number; maxTombstones: number; maxRequestBytes: number;

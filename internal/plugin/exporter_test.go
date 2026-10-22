@@ -156,3 +156,38 @@ func FuzzParseExporterType(f *testing.F) {
 		}
 	})
 }
+
+func TestStreamingExporterDeclarationSurvivesManifestJSON(t *testing.T) {
+	m := exporterManifest()
+	m.Contributes.Exporters[0].Streaming = true
+	raw, err := json.Marshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var decoded Manifest
+	if err = json.Unmarshal(raw, &decoded); err != nil || len(decoded.Contributes.Exporters) != 1 || !decoded.Contributes.Exporters[0].Streaming {
+		t.Fatalf("streaming declaration did not round-trip: %v %#v", err, decoded.Contributes.Exporters)
+	}
+	bad := strings.Replace(string(raw), `"streaming":true`, `"streaming":"true"`, 1)
+	if err = json.Unmarshal([]byte(bad), &decoded); err == nil {
+		t.Fatal("non-boolean streaming declaration was accepted")
+	}
+}
+
+func TestStreamingExporterArgumentsRequireChunkIdentity(t *testing.T) {
+	row := `[{"kind":"string","value":"x"}]`
+	valid := fmt.Sprintf(`{"protocolVersion":2,"exporterId":"ndjson","columns":["a"],"chunkIndex":0,"chunkCount":1,"rows":[%s]}`, row)
+	if err := validateExporterArguments(json.RawMessage(valid), "ndjson"); err != nil {
+		t.Fatal(err)
+	}
+	for _, broken := range []string{
+		fmt.Sprintf(`{"protocolVersion":2,"exporterId":"ndjson","columns":["a"],"rows":[%s]}`, row),
+		fmt.Sprintf(`{"protocolVersion":2,"exporterId":"ndjson","columns":["a"],"chunkIndex":1,"chunkCount":1,"rows":[%s]}`, row),
+		fmt.Sprintf(`{"protocolVersion":2,"exporterId":"ndjson","columns":["a"],"chunkIndex":0,"chunkCount":0,"rows":[%s]}`, row),
+		fmt.Sprintf(`{"protocolVersion":1,"exporterId":"ndjson","columns":["a"],"chunkIndex":0,"chunkCount":1,"rows":[%s]}`, row),
+	} {
+		if err := validateExporterArguments(json.RawMessage(broken), "ndjson"); err == nil {
+			t.Fatalf("invalid streaming arguments accepted: %s", broken)
+		}
+	}
+}

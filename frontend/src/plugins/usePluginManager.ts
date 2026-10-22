@@ -8,7 +8,7 @@ import type { PluginStatus, PluginRuntimeInfo } from './types';
 
 export function usePluginManager() {
   const [plugins, setPlugins] = useState<PluginStatus[]>([]);
-  const [runtime, setRuntime] = useState<PluginRuntimeInfo>({ safeMode: false, managementAllowed: false });
+  const [runtime, setRuntime] = useState<PluginRuntimeInfo>({ safeMode: false, managementAllowed: false, webRuntime: false });
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
   const [loading, setLoading] = useState(true);

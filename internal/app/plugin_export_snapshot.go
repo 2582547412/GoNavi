@@ -24,7 +24,7 @@ func (a *App) exportPluginSnapshot(ctx context.Context, data []map[string]any, c
 	if !pluginExportJobID.MatchString(options.JobID) {
 		return a.pluginExportFailure("invalid_job")
 	}
-	snapshot, err := dataexport.PreparePluginExportSnapshot(ctx, data, columns, options.Columns)
+	chosen, err := dataexport.PreparePluginExportColumns(columns, options.Columns)
 	if err != nil {
 		return a.pluginExportStageFailure(ctx, "invalid_snapshot")
 	}
@@ -37,6 +37,16 @@ func (a *App) exportPluginSnapshot(ctx context.Context, data []map[string]any, c
 		return a.pluginExportStageFailure(ctx, "unavailable")
 	}
 	root := a.pluginRuntimeOwner().configDir
+	var snapshot dataexport.PluginExportSnapshot
+	var stream dataexport.PluginExportStream
+	if exporter.Descriptor().Streaming {
+		stream, err = dataexport.PreparePluginExportStream(ctx, data, columns, chosen)
+	} else {
+		snapshot, err = dataexport.PreparePluginExportSnapshot(ctx, data, columns, chosen)
+	}
+	if err != nil {
+		return a.pluginExportStageFailure(ctx, "invalid_snapshot")
+	}
 	taskCtx, finish, err := a.beginPluginExportTask(ctx, options.JobID)
 	if err != nil {
 		return a.pluginExportStageFailure(ctx, "busy")
@@ -49,17 +59,19 @@ func (a *App) exportPluginSnapshot(ctx context.Context, data []map[string]any, c
 	if targetPath == "" {
 		return a.exportTaskCanceledResult()
 	}
-	// User interaction has no artificial deadline. Only selected work is bounded.
+	options.TotalRowsKnown = true
+	options.TotalRowsHint = int64(len(data))
+	reporter := newExportProgressReporter(a, options, defaultName, targetPath)
+	reporter.Start(a.appText("data_export.progress.stage.preparing_export", nil))
+	if exporter.Descriptor().Streaming {
+		return a.exportPluginStream(taskCtx, exporter, stream, targetPath, reporter, manager, root)
+	}
 	workCtx, cancel := context.WithTimeout(taskCtx, 20*time.Second)
 	defer cancel()
 	check := func() error { return a.checkPluginExport(workCtx, manager, exporter, root, targetPath) }
 	if err := check(); err != nil {
 		return a.pluginExportStageFailure(workCtx, "unavailable")
 	}
-	options.TotalRowsKnown = true
-	options.TotalRowsHint = int64(len(snapshot.Rows))
-	reporter := newExportProgressReporter(a, options, defaultName, targetPath)
-	reporter.Start(a.appText("data_export.progress.stage.preparing_export", nil))
 	renderCtx, stopRender := context.WithTimeout(workCtx, 10*time.Second)
 	content, err := exporter.Render(renderCtx, snapshot)
 	stopRender()
@@ -74,6 +86,46 @@ func (a *App) exportPluginSnapshot(ctx context.Context, data []map[string]any, c
 		return result
 	}
 	return a.publishPluginExport(workCtx, targetPath, content, int64(len(snapshot.Rows)), reporter, check)
+}
+
+// exportPluginStream appends independently bounded chunks to the private target.
+func (a *App) exportPluginStream(ctx context.Context, exporter *dataexport.PluginExporter, stream dataexport.PluginExportStream, targetPath string, reporter *exportProgressReporter, manager *plugin.Manager, root string) connection.QueryResult {
+	target, err := createAtomicExportTarget(targetPath)
+	if err != nil {
+		result := a.pluginExportStageFailure(ctx, "write_failed")
+		reporter.Error(0, result.Message)
+		return result
+	}
+	defer target.abort()
+	check := func() error { return a.checkPluginExport(ctx, manager, exporter, root, targetPath) }
+	if err := check(); err != nil {
+		result := a.pluginExportStageFailure(ctx, "unavailable")
+		reporter.Error(0, result.Message)
+		return result
+	}
+	rows, err := dataexport.StreamPluginExport(ctx, exporter, stream, func(chunk []byte) error {
+		if err := check(); err != nil {
+			return err
+		}
+		written, writeErr := target.file.Write(chunk)
+		if writeErr == nil && written != len(chunk) {
+			writeErr = io.ErrShortWrite
+		}
+		return writeErr
+	}, func(current int64) {
+		reporter.Rows(current, a.appText("data_export.progress.stage.writing_file", nil))
+	})
+	if err != nil {
+		result := a.pluginExportStageFailure(ctx, "render_failed")
+		reporter.Error(rows, result.Message)
+		return result
+	}
+	if err := check(); err != nil {
+		result := a.pluginExportStageFailure(ctx, "unavailable")
+		reporter.Error(rows, result.Message)
+		return result
+	}
+	return a.finishPluginExport(ctx, target, rows, reporter, check)
 }
 
 func (a *App) checkPluginExport(ctx context.Context, expected *plugin.Manager, exporter *dataexport.PluginExporter, root, target string) error {

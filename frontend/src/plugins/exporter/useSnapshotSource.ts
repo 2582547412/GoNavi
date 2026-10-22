@@ -11,7 +11,7 @@ export function useSnapshotSource(source: Source) {
   useEffect(() => { current.current.alive = true; return () => { current.current.alive = false; }; }, []);
   return () => {
     const revision = current.current.revision;
-    return (values: DataExportDialogValues) => {
+    return (values: DataExportDialogValues, streaming = false) => {
       if (!current.current.alive || current.current.revision !== revision) return exporterError('source_changed');
       const input = current.current.source;
       if (!input.allowed || !['selected', 'page'].includes(String(values.scope))) return exporterError('scope');
@@ -22,7 +22,7 @@ export function useSnapshotSource(source: Source) {
         return key && 'value' in key && ['string', 'number'].includes(typeof key.value) && selected.has(input.keyString(key.value));
       });
       if (values.scope === 'selected' && !rows.length) return exporterError('selection');
-      return freezeExportSnapshot(values.format, rows, input.columns, values.columns);
+      return freezeExportSnapshot(values.format, rows, input.columns, values.columns, streaming);
     };
   };
 }

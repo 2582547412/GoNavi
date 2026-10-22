@@ -7,7 +7,7 @@ export interface PluginDataSourceDescriptor extends PluginDataSourceIdentity {
   available: boolean;
   connectable: boolean;
   state: 'disabled' | 'starting' | 'running' | 'stopping' | 'faulted' | 'blocked';
-  readOnly: true;
+  readOnly: boolean;
   reason?: string;
 }
 export interface PluginDataSourceSnapshot {

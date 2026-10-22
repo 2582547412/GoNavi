@@ -3,7 +3,32 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"unicode/utf8"
 )
+
+// CustomPanelPermission is the explicit trust a package declares to ship custom
+// HTML. Install previews and permission lists show it before anything runs.
+const CustomPanelPermission = "ui.html-panel"
+
+// MaxCustomPanelHTMLBytes bounds one custom HTML document. The host copies at
+// most this many bytes into the sandboxed frame and renders nothing beyond it.
+const MaxCustomPanelHTMLBytes = 256 << 10
+
+// validatePanelHTML accepts bounded UTF-8 text only. Markup is inert data here:
+// the host never renders it, so no sanitizer can be bypassed in the host DOM.
+func validatePanelHTML(p HTMLPanel) error {
+	if strings.TrimSpace(p.Source) == "" {
+		return fmt.Errorf("custom html panel is empty")
+	}
+	if len(p.Source) > MaxCustomPanelHTMLBytes {
+		return fmt.Errorf("custom html panel exceeds size limit")
+	}
+	if !utf8.ValidString(p.Source) || strings.ContainsRune(p.Source, 0) {
+		return fmt.Errorf("custom html panel is not valid text")
+	}
+	return nil
+}
 
 func validateNode(n UINode, commands map[string]bool, depth int, count *int) error {
 	*count++

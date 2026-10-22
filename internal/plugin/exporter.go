@@ -22,6 +22,8 @@ type Exporter struct {
 	Command     string `json:"command"`
 	Extension   string `json:"extension"`
 	ContentType string `json:"contentType"`
+	// Streaming lets the host render a large selection in bounded, ordered chunks.
+	Streaming bool `json:"streaming,omitempty"`
 }
 
 // ExporterType returns a canonical format identity, not execution authority.

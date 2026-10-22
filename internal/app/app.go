@@ -181,6 +181,9 @@ func NewApp() *App {
 func NewWebApp() *App {
 	app := NewApp()
 	app.webRuntime = true
+	if pluginEnvEnabled("GONAVI_WEB_PLUGIN_MANAGEMENT") {
+		logger.Warnf("Web 插件管理已启用：任何已认证会话都可以安装、启用并执行插件代码")
+	}
 	return app
 }
 

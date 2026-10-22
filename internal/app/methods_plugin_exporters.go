@@ -15,6 +15,7 @@ type PluginExporterView struct {
 	Name        string       `json:"name"`
 	Extension   string       `json:"extension"`
 	ContentType string       `json:"contentType"`
+	Streaming   bool         `json:"streaming,omitempty"`
 	Version     string       `json:"version"`
 	Digest      string       `json:"digest"`
 	Generation  uint64       `json:"generation"`

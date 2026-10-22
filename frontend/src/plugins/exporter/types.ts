@@ -2,7 +2,7 @@ import type { PluginState } from '../types';
 export interface PluginExporterPin { readonly digest: string; readonly generation: number }
 export interface PluginExporterDescriptor extends PluginExporterPin {
   readonly format: string; readonly pluginId: string; readonly id: string; readonly name: string;
-  readonly extension: string; readonly contentType: string; readonly version: string;
+  readonly extension: string; readonly contentType: string; readonly streaming: boolean; readonly version: string;
   readonly available: boolean; readonly state: PluginState; readonly reason?: string;
 }
 export interface PluginExporterCatalog { readonly items: readonly PluginExporterDescriptor[]; readonly truncated: boolean }

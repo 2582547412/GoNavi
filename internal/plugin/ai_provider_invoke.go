@@ -67,7 +67,7 @@ func (m *Manager) InvokeAIProviderGeneration(ctx context.Context, id string, gen
 	result, err := lease.instance.process.callBounded(request, "plugin.invoke", struct {
 		CommandID string          `json:"commandId"`
 		Arguments json.RawMessage `json:"arguments"`
-	}{CommandID: lease.provider.Command, Arguments: args}, rpcCallPolicy{maxResponseBytes: operation.responseBytes, settled: credit.release, dispatchTimeout: m.opts.InvocationTimeout, timeoutError: errAIInvocationDeadline})
+	}{CommandID: lease.provider.Command, Arguments: args}, rpcCallPolicy{maxRequestBytes: maxAIProviderRequestBytes, maxResponseBytes: operation.responseBytes, settled: credit.release, dispatchTimeout: m.opts.InvocationTimeout, timeoutError: errAIInvocationDeadline})
 
 	if err != nil {
 		return nil, err
@@ -88,9 +88,14 @@ func (m *Manager) CheckAIProviderGeneration(ctx context.Context, id string, gene
 	return err
 }
 
+// maxAIProviderRequestBytes is the only host request that may exceed maxRPCBytes:
+// provider starts may carry bounded base64 image content parts. Plugin output
+// frames keep the ordinary one MiB ceiling.
+const maxAIProviderRequestBytes = 32 << 20
+
 func decodeAIInvocation(raw json.RawMessage, providerID string) (aiInvocation, error) {
 	var empty aiInvocation
-	if len(raw) == 0 || len(raw) > maxRPCBytes || !aiProviderIDPattern.MatchString(providerID) {
+	if len(raw) == 0 || len(raw) > maxAIProviderRequestBytes || !aiProviderIDPattern.MatchString(providerID) {
 		return empty, fmt.Errorf("invalid ai provider arguments")
 	}
 	var header struct {

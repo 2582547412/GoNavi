@@ -29,7 +29,7 @@ func findPluginDataSource(statuses []plugin.Status, identity string) (plugin.Sta
 			return plugin.Status{}, plugin.DataSource{}, plugin.ErrDisabled
 		}
 		for _, source := range status.Manifest.Contributes.DataSources {
-			if source.ID == sourceID && source.Dialect == dialect && source.ReadOnly && plugin.DataSourceType(id, source) == identity {
+			if source.ID == sourceID && source.Dialect == dialect && plugin.DataSourceType(id, source) == identity {
 				return status, source, nil
 			}
 		}
@@ -148,7 +148,14 @@ func (a *App) openPluginDataSource(ctx context.Context, config connection.Connec
 }
 
 func (a *App) connectPluginDataSource(ctx context.Context, config connection.ConnectionConfig, binding pluginDataSourceBinding) (*db.PluginDatabase, error) {
-	instance, err := db.NewPluginDatabase(binding.manager, binding.status, binding.source, func(query string) error { return validatePluginReadOnlyQuery(config.Type, query, a.appText) })
+	validateQuery := func(query string) error { return nil }
+	// A declared writable source still stays query-read-only until this
+	// connection explicitly opts in. Exec and transaction entry points apply
+	// the same policy at the application layer.
+	if !pluginDataSourceWriteEnabled(binding.source.ReadOnly, config) {
+		validateQuery = func(query string) error { return validatePluginReadOnlyQuery(config.Type, query, a.appText) }
+	}
+	instance, err := db.NewPluginDatabase(binding.manager, binding.status, binding.source, validateQuery)
 	if err != nil {
 		return nil, err
 	}

@@ -21,6 +21,7 @@ type artifactExporter struct {
 	Command     string `json:"command"`
 	Extension   string `json:"extension"`
 	ContentType string `json:"contentType"`
+	Streaming   bool   `json:"streaming,omitempty"`
 }
 
 func validateArtifactExporters(manifest artifactManifest, commands map[string]bool) error {

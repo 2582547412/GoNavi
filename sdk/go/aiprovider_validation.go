@@ -26,7 +26,9 @@ type aiProviderEnvelope struct {
 
 func parseAIProviderEnvelope(raw json.RawMessage) (aiProviderEnvelope, error) {
 	var envelope aiProviderEnvelope
-	if err := strictAIProviderJSON(raw, aiProviderMaxRequestBytes); err != nil {
+	// The widest admitted frame covers a bounded image start; text-only requests
+	// are narrowed back to aiProviderMaxRequestBytes after decoding.
+	if err := strictAIProviderJSON(raw, aiProviderMaxImageRequestBytes); err != nil {
 		return envelope, err
 	}
 	if err := decodeAIProviderObject(raw, &envelope, "protocolVersion", "operation", "providerId", "requestId", "config", "request"); err != nil {
@@ -111,8 +113,18 @@ func validateAIProviderStart(envelope aiProviderEnvelope, registration AIProvide
 	}
 	for index, raw := range messages {
 		message := &start.Request.Messages[index]
-		if err := decodeAIProviderObject(raw, message, "role", "content", "reasoning_content", "tool_call_id", "tool_calls"); err != nil {
+		if err := decodeAIProviderObject(raw, message, "role", "content", "reasoning_content", "tool_call_id", "tool_calls", "images"); err != nil {
 			return start, nil, err
+		}
+		var fields map[string]json.RawMessage
+		if json.Unmarshal(raw, &fields) != nil {
+			return start, nil, aiProviderFailure("invalid_request")
+		}
+		if value, ok := fields["images"]; ok {
+			var images []string
+			if json.Unmarshal(value, &images) != nil || len(images) == 0 {
+				return start, nil, aiProviderFailure("invalid_request")
+			}
 		}
 		switch message.Role {
 		case "system", "user", "assistant", "tool":
@@ -130,6 +142,16 @@ func validateAIProviderStart(envelope aiProviderEnvelope, registration AIProvide
 				return start, nil, err
 			}
 		}
+	}
+	if err := validateAIProviderImages(start.Request.Messages, registration.SupportsImages); err != nil {
+		return start, nil, err
+	}
+	requestLimit := aiProviderMaxRequestBytes
+	if aiProviderRequestHasImages(start.Request) {
+		requestLimit = aiProviderMaxImageRequestBytes
+	}
+	if len(envelope.Request) > requestLimit {
+		return start, nil, aiProviderFailure("limit_exceeded")
 	}
 	return start, offered, nil
 }

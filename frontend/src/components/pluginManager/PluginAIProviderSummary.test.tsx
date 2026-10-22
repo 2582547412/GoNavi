@@ -16,6 +16,9 @@ describe('installed ai provider summary', () => {
     expect(view.root.findAllByType('code').map((node) => node.children.join('')).join(' ')).toContain('chat');
     expect(view.root.findAllByProps({ 'data-component': 'tag' }).map((tag) => String(tag.children))).toContain('plugin.ai_provider.no_images');
     view.unmount();
+    const imageView = create(<PluginAIProviderSummary manifest={{ ...manifest, contributes: { aiProviders: [{ ...manifest.contributes!.aiProviders![0], supportsImages: true }] } }} />);
+    expect(imageView.root.findAllByProps({ 'data-component': 'tag' }).map((tag) => String(tag.children))).toContain('plugin.ai_provider.images_supported');
+    imageView.unmount();
     const empty = create(<PluginAIProviderSummary manifest={{ ...manifest, contributes: undefined }} />);
     expect(empty.toJSON()).toBeNull();
     empty.unmount();

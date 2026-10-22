@@ -51,7 +51,7 @@ describe('bounded non-activating datasource discovery', () => {
   });
   it('retains identifiable entries but removes permissions after an invalid or failed response', async () => {
     store.replacePluginDataSources({ items: [item] });
-    host.PluginDataSources.mockResolvedValue({ success: true, data: { items: [{ ...item, readOnly: false }] } });
+    host.PluginDataSources.mockResolvedValue({ success: true, data: { items: [{ ...item, readOnly: 'no' }] } });
     await discovery.refreshPluginDataSources();
     expect(store.getPluginDataSourceSnapshot().items).toHaveLength(1);
     expect(store.findPluginDataSource(item.type)?.connectable).toBe(false); expect(store.getPluginDataSourceSnapshot().error).toBeTruthy();

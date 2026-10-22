@@ -15,12 +15,13 @@ export function PluginDataSourceFields({ type, form, identityRows, hasStoredPass
   const t = useOptionalI18n()?.t ?? translate;
   usePluginDataSources(false);
   const item = findPluginDataSource(type);
+  const writable = item?.readOnly === false;
   const reason = pluginDataSourceUnavailableReason(type);
   const values = Form.useWatch([], { form, preserve: true }) as Record<string, unknown> | undefined;
   return <div className="plugin-data-source-stack">
-    <div><Tag color="green">{t('plugin.datasource.read_only')}</Tag><Typography.Text strong>{pluginDataSourceDisplayName(type)}</Typography.Text></div>
+    <div><Tag color={writable ? 'orange' : 'green'}>{t(writable ? 'plugin.datasource.read_write' : 'plugin.datasource.read_only')}</Tag><Typography.Text strong>{pluginDataSourceDisplayName(type)}</Typography.Text></div>
     <Typography.Text code className="plugin-data-source-identity">{type}</Typography.Text>
-    <Alert type="info" showIcon message={t('plugin.datasource.read_only_description')} />
+    <Alert type={writable ? 'warning' : 'info'} showIcon message={t(writable ? 'plugin.datasource.read_write_description' : 'plugin.datasource.read_only_description')} />
     {reason && <Alert type="warning" showIcon message={reason} />}
     {item?.connectable && !item.available && <Alert type="info" showIcon message={t('plugin.datasource.start_on_connect')} />}
     {hasUnsupportedPluginTransport(values ?? form.getFieldsValue(true)) && <Alert type="error" showIcon message={t('plugin.datasource.unsupported_transport')} />}

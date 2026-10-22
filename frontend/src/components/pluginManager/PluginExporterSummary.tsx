@@ -7,5 +7,5 @@ export function PluginExporterSummary({ manifest }: { manifest: PluginManifest }
   const exporters = manifest.contributes?.exporters ?? [];
   if (!exporters.length) return null;
   return <div><Typography.Text strong>{t('plugin.exporter.hint')}</Typography.Text>
-    <ul>{exporters.map((exporter) => <li key={exporter.id}><code>{exporter.id}</code> <code>{exporter.extension}</code> <code>{exporter.contentType}</code></li>)}</ul></div>;
+    <ul>{exporters.map((exporter) => <li key={exporter.id}><code>{exporter.id}</code> <code>{exporter.extension}</code> <code>{exporter.contentType}</code>{exporter.streaming ? <> <code>{t('plugin.exporter.streaming')}</code></> : null}</li>)}</ul></div>;
 }

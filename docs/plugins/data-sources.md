@@ -1,8 +1,8 @@
-# Read-only data-source plugins
+# Data-source plugins
 
-This first data-source slice connects a trusted plugin process to GoNavi's query and metadata paths. It supports the SQL dialect labels **mysql**, **postgres** and **sqlite**, with **read-only access required**. A dialect label controls host safety and quoting; it does not turn a plugin into a built-in driver or implement an SQL engine.
+This data-source contract connects a trusted plugin process to GoNavi's query, metadata, write and transaction paths. It supports the SQL dialect labels **mysql**, **postgres** and **sqlite**. Sources default to the v1 read-only contract; an explicit `"readOnly": false` opts into the v2 `exec`, `begin`, `commit` and `rollback` operations. A dialect label controls host safety and quoting; it does not turn a plugin into a built-in driver or implement an SQL engine.
 
-The [fixture plugin](<../../examples/plugins/read-only-database/main.go>) serves three in-memory records through a documented SELECT subset. It uses no database dependency or external service. It is a runnable protocol example, **not a SQLite implementation**.
+The [read-only fixture plugin](<../../examples/plugins/read-only-database/main.go>) serves three in-memory records through a documented SELECT subset. It uses no database dependency or external service. It is a runnable v1 protocol example, **not a SQLite implementation**. The [writable fixture plugin](<../../examples/plugins/writable-database/main.go>) adds a bounded UPDATE and explicit begin/commit/rollback on the same mutable dataset; it is the v2 protocol example.
 
 ## Declare a data source
 
@@ -24,7 +24,7 @@ Add the explicit `data.sources` permission, a backend command and a data-source 
 }
 ```
 
-This fragment belongs inside a complete v1 manifest with a backend. A plugin may declare at most eight data sources. Each source ID starts with a lowercase letter and contains at most 64 lowercase letters, digits, underscores, dots or hyphens. The command must exist in the manifest. Missing or false `readOnly` is rejected rather than advertised as write support. The referenced command effect must be omitted, `read`, or `unknown`. Generic `plugin invoke`, desktop `PluginInvoke`, and the Agent tool catalog cannot call that command; only the host-managed connection path may dispatch it.
+This fragment belongs inside a complete v1 manifest with a backend. A plugin may declare at most eight data sources. Each source ID starts with a lowercase letter and contains at most 64 lowercase letters, digits, underscores, dots or hyphens. The command must exist in the manifest. `readOnly` is required; omit writes by declaring `true`, or opt in with `false` only after implementing the v2 write and transaction operations. A read-only source's command effect must be omitted, `read`, or `unknown`. Generic `plugin invoke`, desktop `PluginInvoke`, and the Agent tool catalog cannot call that command; only the host-managed connection path may dispatch it.
 
 The example's connection type is `plugin:sdk.examples.readonly:fixture:sqlite`. The host validates every component against the installed manifest. Missing, disabled and stale plugin types remain namespaced; they never become MySQL connections.
 
@@ -132,19 +132,25 @@ The SDK and examples are nested modules. Root Go tests do not include them:
 ```sh
 go -C sdk/go test ./...
 go -C sdk/go vet ./...
-go -C examples/plugins test ./read-only-database
-go -C examples/plugins vet ./read-only-database
+go -C examples/plugins test ./read-only-database ./writable-database
+go -C examples/plugins vet ./read-only-database ./writable-database
 node frontend/node_modules/typescript/bin/tsc -p sdk/typescript/tsconfig.json
 node frontend/node_modules/vitest/vitest.mjs run --root sdk/typescript --config vitest.config.mjs
 ```
 
-The [Go contract tests](<../../sdk/go/datasource_test.go>) and [TypeScript tests](<../../sdk/typescript/test/datasource.test.ts>) cover envelopes, metadata shapes, number precision, invalid arrays, cancellation, late connect and bounded tombstone retention. The [real subprocess test](<../../examples/plugins/read-only-database/process_test.go>) builds with module downloads disabled, initializes the child, connects, reads rows and metadata, rejects a write, cancels a slow query while heartbeat stays responsive, closes the session and reaps the process.
+The [Go contract tests](<../../sdk/go/datasource_test.go>) and [TypeScript tests](<../../sdk/typescript/test/datasource.test.ts>) cover envelopes, metadata shapes, number precision, invalid arrays, cancellation, late connect and bounded tombstone retention. The [real subprocess test](<../../examples/plugins/read-only-database/process_test.go>) builds with module downloads disabled, initializes the child, connects, reads rows and metadata, rejects a write, cancels a slow query while heartbeat stays responsive, closes the session and reaps the process. The writable fixture's in-process test drives begin, exec, rollback, commit and persistence without any external database; the host integration test builds the package and verifies the app-level transaction path.
+
+## Writable example
+
+Build and inspect the writable package the same way, replacing `read-only-database` with `writable-database`. Select **Writable fixture (SQL subset)** with explicit writable opt-in in the connection editor. It supports `UPDATE people SET name = 'New' WHERE id = N` inside an active transaction, plus `begin`, `commit` and `rollback`; ordinary `SELECT` remains available through protocol v1. Commit persists the name, rollback restores the previous rows, closing the session rolls back unfinished transactions, and any other statement fails. It is a teaching fixture, not a general SQL engine.
+
+Writable execution is never implied by installing a plugin. The connection must be configured for editing, the manifest must declare `readOnly:false`, and the host still classifies SQL and applies its connection protection. Read-only sources remain rejected at the adapter even if a caller forges a writable request.
 
 This verification uses no production service or database. It does not prove every host/UI integration or OS process-tree behavior. Run the host adapter/lifecycle tests separately. Local race-detector coverage requires a supported cgo compiler; a non-race test run is not a race-detector result.
 
 ## Scope boundaries
 
-This slice provides read-only queries and metadata. It deliberately omits writes, transactions, batch execution, imports, streaming, SSH, custom proxy forwarding, TLS-option forwarding and arbitrary engine support. The host rejects unsupported transport options and enforces its read-only SQL classification; plugins must implement their own truthful SQL subset and underlying transport. Existing built-in drivers keep their own behavior.
+Protocol v1 provides read-only queries and metadata. Protocol v2 adds one-statement `exec` and explicit plugin-managed transactions for writable sources. It deliberately omits batch execution, imports, streaming, SSH, custom proxy forwarding, TLS-option forwarding and arbitrary engine support. Read-only sources are fenced in the adapter before dispatch, and the host rejects unsupported transport options and enforces its SQL classification and connection protection. Plugins must implement their own truthful SQL subset and underlying transport. Existing built-in drivers keep their own behavior.
 
 **Native plugin trust is not database-server read-only enforcement.** A trusted native plugin can ignore host intent and act with the selected credentials. For real databases, use a server-enforced read-only account with the minimum grants needed; the manifest flag and host SQL classifier do not replace those grants.
 

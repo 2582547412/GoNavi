@@ -25,6 +25,22 @@ func EncodeExporterRequest(ctx context.Context, exporterID string, snapshot Expo
 	return encoded, nil
 }
 
+// EncodeExporterChunkRequest preflights one ordered chunk and encodes the exact version-two envelope.
+func EncodeExporterChunkRequest(ctx context.Context, exporterID string, chunk ExporterSnapshot) (json.RawMessage, error) {
+	if ctx == nil || !exporterLocalID.MatchString(exporterID) || chunk.ProtocolVersion != 2 || chunk.ChunkCount < 1 || chunk.ChunkIndex < 0 || chunk.ChunkIndex >= chunk.ChunkCount {
+		return nil, exporterError("invalid_request")
+	}
+	if err := preflightExporterChunk(ctx, chunk); err != nil {
+		return nil, err
+	}
+	index, count := chunk.ChunkIndex, chunk.ChunkCount
+	encoded, err := json.Marshal(ExporterRequest{ProtocolVersion: 2, ExporterID: exporterID, Columns: chunk.Columns, Rows: chunk.Rows, ChunkIndex: &index, ChunkCount: &count})
+	if err != nil || len(encoded) > ExporterMaxEnvelopeBytes {
+		return nil, exporterError("limit_exceeded")
+	}
+	return encoded, nil
+}
+
 // ValidateExporterSnapshot checks data budgets using a minimal identity; Handle checks the actual full wire envelope.
 func ValidateExporterSnapshot(ctx context.Context, snapshot ExporterSnapshot) error {
 	_, err := EncodeExporterRequest(ctx, "a", snapshot)
@@ -36,6 +52,18 @@ func preflightExporterSnapshot(ctx context.Context, snapshot ExporterSnapshot) e
 	if len(columns) == 0 || len(columns) > 256 || rows == nil || len(rows) > 4096 || len(rows)*len(columns) > 16384 {
 		return exporterError("invalid_request")
 	}
+	return preflightExporterRows(ctx, columns, rows)
+}
+
+func preflightExporterChunk(ctx context.Context, snapshot ExporterSnapshot) error {
+	columns, rows := snapshot.Columns, snapshot.Rows
+	if len(columns) == 0 || len(columns) > 256 || rows == nil || len(rows) > ExporterChunkRows || len(rows)*len(columns) > 131072 {
+		return exporterError("invalid_request")
+	}
+	return preflightExporterRows(ctx, columns, rows)
+}
+
+func preflightExporterRows(ctx context.Context, columns []string, rows [][]ExporterCell) error {
 	names := make(map[string]bool, len(columns))
 	size := 0
 	for _, name := range columns {

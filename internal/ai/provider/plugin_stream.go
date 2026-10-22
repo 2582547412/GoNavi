@@ -104,7 +104,7 @@ func (p *pluginProvider) rpc(ctx context.Context, request pluginRequestEnvelope,
 		return nil, err
 	}
 	raw, err := json.Marshal(request)
-	if err != nil || pluginJSON(raw, 512<<10) != nil {
+	if err != nil || pluginJSON(raw, pluginRequestBytes(p.declaration.SupportsImages)) != nil {
 		return nil, ErrPluginProviderConfig
 	}
 	call, cancel := context.WithTimeout(ctx, budget)

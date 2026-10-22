@@ -5,6 +5,9 @@ import "context"
 // ExporterMaxEnvelopeBytes bounds the complete encoded request or reply, not only row data.
 const ExporterMaxEnvelopeBytes = 512 << 10
 
+// ExporterChunkRows bounds one ordered streaming frame; the document total is unbounded.
+const ExporterChunkRows = 512
+
 // ExporterCellKind is an explicit data tag. Strings are never guessed to be JSON, numbers or binary.
 type ExporterCellKind string
 
@@ -27,22 +30,38 @@ type ExporterCell struct {
 
 // ExporterSnapshot contains only selected columns in user order and their materialized cell values.
 // A renderer owns this private snapshot and must not retain it after returning.
+// ProtocolVersion 2 identifies one ordered chunk of a larger document; renderers emit headers,
+// separators and footers according to ChunkIndex and ChunkCount.
 type ExporterSnapshot struct {
-	Columns []string         `json:"columns"`
-	Rows    [][]ExporterCell `json:"rows"`
+	Columns         []string         `json:"columns"`
+	Rows            [][]ExporterCell `json:"rows"`
+	ProtocolVersion int              `json:"protocolVersion,omitempty"`
+	ChunkIndex      int              `json:"chunkIndex,omitempty"`
+	ChunkCount      int              `json:"chunkCount,omitempty"`
 }
 
-// ExporterRequest is the version-one one-shot private command envelope.
+// ExporterRequest is the version-one one-shot or version-two ordered chunk envelope.
 type ExporterRequest struct {
 	ProtocolVersion int              `json:"protocolVersion"`
 	ExporterID      string           `json:"exporterId"`
 	Columns         []string         `json:"columns"`
 	Rows            [][]ExporterCell `json:"rows"`
+	ChunkIndex      *int             `json:"chunkIndex,omitempty"`
+	ChunkCount      *int             `json:"chunkCount,omitempty"`
 }
 
 // ExporterResult contains document text only; destination paths remain host-owned.
 type ExporterResult struct {
 	ProtocolVersion int    `json:"protocolVersion"`
+	RowCount        int    `json:"rowCount"`
+	Text            string `json:"text"`
+}
+
+// ExporterChunkResult identifies exactly which ordered frame the text belongs to.
+type ExporterChunkResult struct {
+	ProtocolVersion int    `json:"protocolVersion"`
+	ExporterID      string `json:"exporterId"`
+	ChunkIndex      int    `json:"chunkIndex"`
 	RowCount        int    `json:"rowCount"`
 	Text            string `json:"text"`
 }

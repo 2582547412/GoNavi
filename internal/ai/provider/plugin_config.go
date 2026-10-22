@@ -22,7 +22,7 @@ func ValidatePluginConfig(c ai.ProviderConfig) error {
 	if strings.EqualFold(strings.TrimSpace(c.ID), "gonavi-ai") || !pluginText(c.ID, 128, true) || !pluginText(c.Name, 256, true) || !pluginModelID.MatchString(c.Model) {
 		return ErrPluginProviderConfig
 	}
-	if c.APIFormat != "" || c.CLIPath != "" || len(c.CLIEnv) != 0 || c.Effort != "" || c.ThinkingIntensity != "" || c.HeaderTimeoutSeconds != 0 || (c.AuthMode != "" && c.AuthMode != "api-key") || (c.SupportsImages != nil && *c.SupportsImages) {
+	if c.APIFormat != "" || c.CLIPath != "" || len(c.CLIEnv) != 0 || c.Effort != "" || c.ThinkingIntensity != "" || c.HeaderTimeoutSeconds != 0 || (c.AuthMode != "" && c.AuthMode != "api-key") {
 		return ErrPluginProviderConfig
 	}
 	if !pluginText(c.APIKey, 16<<10, true) || !pluginText(c.BaseURL, 4096, true) || c.MaxTokens < 0 || c.MaxTokens > 65536 || c.ContextWindow < 0 || (c.ContextWindow > 0 && c.ContextWindow < 1024) || c.ContextWindow > 262144 || math.IsNaN(c.Temperature) || math.IsInf(c.Temperature, 0) || c.Temperature < 0 || c.Temperature > 2 {
@@ -62,8 +62,9 @@ func validatePluginHeaders(headers map[string]string) error {
 	return nil
 }
 
-func selectedPluginConfig(c ai.ProviderConfig) ai.ProviderConfig {
-	images := false
+// selectedPluginConfig pins the declared image capability; a caller claim never widens it.
+func selectedPluginConfig(c ai.ProviderConfig, supportsImages bool) ai.ProviderConfig {
+	images := supportsImages
 	headers := make(map[string]string, len(c.Headers))
 	for key, value := range c.Headers {
 		headers[key] = value

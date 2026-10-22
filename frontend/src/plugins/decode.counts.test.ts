@@ -5,7 +5,7 @@ const inspection = (contributes: Record<string, unknown>) => ({
   digest: 'a'.repeat(64), sourcePath: 'fixture', sizeBytes: 10,
 });
 const commands = (count: number) => Array.from({ length: count }, (_, index) => ({ id: 'cmd' + index, title: 'Run' }));
-const panels = (count: number) => Array.from({ length: count }, (_, index) => ({ id: 'panel' + index, title: 'Panel' }));
+const panels = (count: number) => Array.from({ length: count }, (_, index) => ({ id: 'panel' + index, title: 'Panel', body: { type: 'text', text: 'Panel' } }));
 describe('contribution counts', () => {
   it('allows 128 commands and 32 panels, and rejects one more', () => {
     expect(decodeInspection(inspection({ commands: commands(128), panels: panels(32) })).manifest.contributes?.commands).toHaveLength(128);

@@ -36,7 +36,6 @@ func TestDataSourceManifestValidation(t *testing.T) {
 		{"long name", func(m *Manifest) { m.Contributes.DataSources[0].Name = strings.Repeat("x", 257) }},
 		{"name byte limit", func(m *Manifest) { m.Contributes.DataSources[0].Name = strings.Repeat("中", 86) }},
 		{"nul name", func(m *Manifest) { m.Contributes.DataSources[0].Name = "name\x00" }},
-		{"false readOnly", func(m *Manifest) { m.Contributes.DataSources[0].ReadOnly = false }},
 		{"write effect", func(m *Manifest) { m.Contributes.Commands[0].Effect = "write" }},
 		{"upper write effect", func(m *Manifest) { m.Contributes.Commands[0].Effect = "WRITE" }},
 		{"other effect", func(m *Manifest) { m.Contributes.Commands[0].Effect = "sideeffect" }},

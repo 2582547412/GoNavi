@@ -41,33 +41,14 @@ func decodeDataSourceRequest(raw json.RawMessage) (DataSourceRequest, error) {
 	if !errors.Is(decoder.Decode(&extra), io.EOF) {
 		return request, ErrDataSourceRequest
 	}
-	if request.ProtocolVersion != DataSourceProtocolVersion || !dataSourceSessionPattern.MatchString(request.SessionID) {
+	if !dataSourceSessionPattern.MatchString(request.SessionID) {
 		return request, ErrDataSourceRequest
 	}
-	if len(request.Database) > 1024 || len(request.Table) > 1024 || len(request.Query) > 256<<10 {
+	if len(request.Database) > 1024 || len(request.Table) > 1024 || len(request.Query) > 256<<10 || len(request.TransactionID) > 128 {
 		return request, ErrDataSourceLimit
 	}
-	switch request.Operation {
-	case "connect":
-		if request.Config == nil || request.Database != "" || request.Table != "" || request.Query != "" {
-			return request, ErrDataSourceRequest
-		}
-		c := request.Config
-		if c.Port < 0 || c.Port > 65535 || len(c.Host) > 1024 || len(c.User) > 1024 || len(c.Password) > 8192 || len(c.Database) > 1024 || len(c.ConnectionParams) > 16384 {
-			return request, ErrDataSourceRequest
-		}
-	case "ping", "close", "databases", "tables", "query", "createStatement", "columns", "allColumns", "indexes", "foreignKeys", "triggers":
-		if request.Config != nil {
-			return request, ErrDataSourceRequest
-		}
-		if request.Operation == "query" && request.Query == "" {
-			return request, ErrDataSourceRequest
-		}
-		if request.Operation != "query" && request.Query != "" {
-			return request, ErrDataSourceRequest
-		}
-	default:
-		return request, ErrDataSourceUnsupported
+	if err := validateDataSourceOperation(request); err != nil {
+		return request, err
 	}
 	var envelope map[string]json.RawMessage
 	if json.Unmarshal(raw, &envelope) != nil {
@@ -90,6 +71,69 @@ func decodeDataSourceRequest(raw json.RawMessage) (DataSourceRequest, error) {
 		}
 	}
 	return request, nil
+}
+
+func validateDataSourceOperation(request DataSourceRequest) error {
+	switch request.ProtocolVersion {
+	case DataSourceProtocolVersion:
+		return validateDataSourceReadOperation(request)
+	case DataSourceWriteProtocolVersion:
+		return validateDataSourceWriteOperation(request)
+	default:
+		return ErrDataSourceRequest
+	}
+}
+
+func validateDataSourceReadOperation(request DataSourceRequest) error {
+	if request.TransactionID != "" {
+		return ErrDataSourceRequest
+	}
+	switch request.Operation {
+	case "connect":
+		if request.Config == nil || request.Database != "" || request.Table != "" || request.Query != "" {
+			return ErrDataSourceRequest
+		}
+		c := request.Config
+		if c.Port < 0 || c.Port > 65535 || len(c.Host) > 1024 || len(c.User) > 1024 || len(c.Password) > 8192 || len(c.Database) > 1024 || len(c.ConnectionParams) > 16384 {
+			return ErrDataSourceRequest
+		}
+	case "ping", "close", "databases", "tables", "query", "createStatement", "columns", "allColumns", "indexes", "foreignKeys", "triggers":
+		if request.Config != nil {
+			return ErrDataSourceRequest
+		}
+		if request.Operation == "query" && request.Query == "" {
+			return ErrDataSourceRequest
+		}
+		if request.Operation != "query" && request.Query != "" {
+			return ErrDataSourceRequest
+		}
+	default:
+		return ErrDataSourceUnsupported
+	}
+	return nil
+}
+
+func validateDataSourceWriteOperation(request DataSourceRequest) error {
+	if request.Config != nil || request.Database != "" || request.Table != "" {
+		return ErrDataSourceRequest
+	}
+	switch request.Operation {
+	case "begin":
+		if request.TransactionID != "" || request.Query != "" {
+			return ErrDataSourceRequest
+		}
+	case "query", "exec":
+		if !dataSourceSessionPattern.MatchString(request.TransactionID) || request.Query == "" {
+			return ErrDataSourceRequest
+		}
+	case "commit", "rollback":
+		if !dataSourceSessionPattern.MatchString(request.TransactionID) || request.Query != "" {
+			return ErrDataSourceRequest
+		}
+	default:
+		return ErrDataSourceUnsupported
+	}
+	return nil
 }
 
 func dataSourceArray[T any](key string, values []T, err error) (any, error) {

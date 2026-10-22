@@ -14,8 +14,9 @@ const maxAIProviderTypeBytes = len("plugin:") + 128 + 1 + 64
 var aiProviderIDPattern = regexp.MustCompile(`^[a-z][a-z0-9_.-]{0,63}$`)
 var aiModelIDPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.:/@+-]{0,127}$`)
 
-// AIProvider declares a native, host-managed text/tool model transport with static models.
-// Both capability booleans must be explicit in JSON. Images are unsupported in version one.
+// AIProvider declares a native, host-managed text/tool/image model transport with static models.
+// Both capability booleans must be explicit in JSON; supportsImages is an opt-in claim that the
+// plugin accepts bounded image content parts on its start request.
 type AIProvider struct {
 	ID             string    `json:"id"`
 	Name           string    `json:"name"`
@@ -82,9 +83,6 @@ func validateAIProviders(manifest Manifest, commands map[string]bool) error {
 		}
 		if !validAIProviderText(declaration.Name) || !commands[declaration.Command] {
 			return fmt.Errorf("invalid ai provider name or undeclared command")
-		}
-		if declaration.SupportsImages {
-			return fmt.Errorf("ai provider images are unsupported")
 		}
 		if err := validateAIModels(declaration.Models); err != nil {
 			return err

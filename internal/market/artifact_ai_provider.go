@@ -62,8 +62,8 @@ func validateArtifactAIProviders(manifest artifactManifest, commands map[string]
 		if !commands[provider.Command] {
 			return fmt.Errorf("ai provider command must name a declared command")
 		}
-		if provider.SupportsTools == nil || provider.SupportsImages == nil || *provider.SupportsImages {
-			return fmt.Errorf("ai provider capabilities require supportsTools and supportsImages=false")
+		if provider.SupportsTools == nil || provider.SupportsImages == nil {
+			return fmt.Errorf("ai provider capabilities require explicit supportsTools and supportsImages")
 		}
 		if err := validateArtifactAIModels(provider.Models); err != nil {
 			return err

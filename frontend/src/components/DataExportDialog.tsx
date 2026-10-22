@@ -127,7 +127,8 @@ const DataExportDialogContent: React.FC<{
   onChange: (values: DataExportDialogValues) => void;
   allowPluginExporter?: boolean;
   registerPluginGuard?: (guard: () => boolean) => void;
-}> = ({ scopeOptions, availableColumns, initialValues, allowInsertSql = false, allowColumnCommentHeaders = false, onChange, allowPluginExporter = false, registerPluginGuard }) => {
+  onPluginStreaming?: (streaming: boolean) => void;
+}> = ({ scopeOptions, availableColumns, initialValues, allowInsertSql = false, allowColumnCommentHeaders = false, onChange, allowPluginExporter = false, registerPluginGuard, onPluginStreaming }) => {
   const [values, setValues] = useState<DataExportDialogValues>(() => normalizeDataExportDialogValues(
     scopeOptions,
     initialValues,
@@ -136,9 +137,12 @@ const DataExportDialogContent: React.FC<{
   ));
   const choice = useExporterChoice(allowPluginExporter, values, setValues, registerPluginGuard);
   const plugin = isPluginExporterNamespace(values.format);
+  useEffect(() => {
+    onPluginStreaming?.(allowPluginExporter && choice.catalog.items.find((item) => item.format === values.format)?.streaming === true);
+  }, [allowPluginExporter, choice.catalog.items, onPluginStreaming, values.format]);
   const formatOptions = useMemo(() => {
     const options: Array<{ value: DataExportFormat; label: string; disabled?: boolean }> = [...resolveDataExportFormatOptions(allowInsertSql)];
-    if (allowPluginExporter) options.push(...choice.catalog.items.map((item) => ({ value: item.format, label: item.name + ' · .' + item.extension + ' · ' + item.pluginId, disabled: !item.available })));
+    if (allowPluginExporter) options.push(...choice.catalog.items.map((item) => ({ value: item.format, label: item.name + ' · .' + item.extension + ' · ' + item.pluginId + (item.streaming ? ' · ' + t('plugin.exporter.streaming') : ''), disabled: !item.available })));
     if (plugin && !options.some((item) => item.value === values.format)) options.push({ value: values.format, label: values.format + ' · ' + t('plugin.exporter.unavailable'), disabled: true });
     return options;
   }, [allowInsertSql, allowPluginExporter, choice.catalog.items, plugin, values.format]);
@@ -227,6 +231,7 @@ export async function showDataExportDialog(
     let resolved = false;
     let latestValues = initialValues;
     let pluginSelectionCurrent = () => false;
+    let pluginStreaming = false;
 
     const finish = (nextValue: DataExportDialogValues | null) => {
       if (resolved) return;
@@ -251,6 +256,7 @@ export async function showDataExportDialog(
           allowColumnCommentHeaders={options.allowColumnCommentHeaders}
           allowPluginExporter={typeof options.preparePluginSnapshot === "function"}
           registerPluginGuard={(guard) => { pluginSelectionCurrent = guard; }}
+          onPluginStreaming={(streaming) => { pluginStreaming = streaming; }}
           onChange={(values) => {
             latestValues = values;
           }}
@@ -272,7 +278,7 @@ export async function showDataExportDialog(
           const resolved = resolveDataExportFileOptions(latestValues);
           if (isPluginExporterNamespace(resolved.format)) {
             if (!pluginSelectionCurrent() || !options.preparePluginSnapshot || !resolved.pluginExporter) throw new PluginAPIError('plugin.exporter.error.selection');
-            const snapshot = options.preparePluginSnapshot(resolved);
+            const snapshot = options.preparePluginSnapshot(resolved, pluginStreaming);
             const operation = beginPluginExportOperation(resolved.format);
             finish({ ...resolved, confirmedPluginExport: Object.freeze({ format: resolved.format, pin: resolved.pluginExporter, snapshot, operation }) });
           } else finish(resolved);

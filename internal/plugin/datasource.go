@@ -15,8 +15,9 @@ var dataSourceIDPattern = regexp.MustCompile(`^[a-z][a-z0-9_.-]{0,63}$`)
 // ErrDataSourceWriteEffect means a read-only source points at a command that declares effect write.
 var ErrDataSourceWriteEffect = errors.New("data source command cannot declare a write effect")
 
-// DataSource declares one read-only SQL-family driver routed through a backend command.
-// ReadOnly must be explicitly true; this version does not advertise write support.
+// DataSource declares one SQL-family driver routed through a backend command.
+// ReadOnly must be explicit; writable sources opt in to host write and transaction
+// dispatch and are still subject to the connection's own protection settings.
 type DataSource struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
@@ -84,15 +85,14 @@ func validateDataSources(manifest Manifest, commands map[string]bool) error {
 		if !validText(source.Name, 256) {
 			return fmt.Errorf("invalid data source name")
 		}
-		if !source.ReadOnly {
-			return fmt.Errorf("data source contributions must explicitly declare readOnly true")
-		}
 		if !localIDPattern.MatchString(source.Command) || !commands[source.Command] {
 			return fmt.Errorf("data source references an undeclared command")
 		}
-		for _, command := range manifest.Contributes.Commands {
-			if command.ID == source.Command && command.Effect != "" && command.Effect != "read" && command.Effect != "unknown" {
-				return ErrDataSourceWriteEffect
+		if source.ReadOnly {
+			for _, command := range manifest.Contributes.Commands {
+				if command.ID == source.Command && command.Effect != "" && command.Effect != "read" && command.Effect != "unknown" {
+					return ErrDataSourceWriteEffect
+				}
 			}
 		}
 		if source.DefaultPort < 0 || source.DefaultPort > 65535 {

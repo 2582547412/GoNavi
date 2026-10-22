@@ -110,7 +110,6 @@ func TestArtifactAIProvidersRejectBeforeImmutableStorage(t *testing.T) {
 	}{
 		{name: "missing explicit tools", change: func(f, p, m map[string]any) { delete(p, "supportsTools") }},
 		{name: "missing explicit images", change: func(f, p, m map[string]any) { delete(p, "supportsImages") }},
-		{name: "images forbidden", change: func(f, p, m map[string]any) { p["supportsImages"] = true }},
 		{name: "missing permission", change: func(f, p, m map[string]any) { f["permissions"] = []string{"ai.tools"} }},
 		{name: "missing backend", change: func(f, p, m map[string]any) { delete(f, "backend") }},
 		{name: "undeclared command", change: func(f, p, m map[string]any) { p["command"] = "Missing" }},

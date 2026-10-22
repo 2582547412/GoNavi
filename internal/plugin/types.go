@@ -67,11 +67,20 @@ type Command struct {
 	Effect      string          `json:"effect,omitempty"`
 }
 
-// Panel declares a host-rendered bounded tree.
+// Panel declares exactly one body: a host-rendered bounded tree or a custom HTML
+// document that the host only ever shows inside a sandboxed cross-origin frame.
 type Panel struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
-	Body  UINode `json:"body"`
+	ID    string     `json:"id"`
+	Title string     `json:"title"`
+	Body  UINode     `json:"body,omitempty"`
+	HTML  *HTMLPanel `json:"html,omitempty"`
+}
+
+// HTMLPanel carries bounded custom markup as inert data. The host never parses,
+// rewrites or inlines it into the main window; only an opaque-origin sandbox
+// renders it, without host filesystem, network, storage or bindings access.
+type HTMLPanel struct {
+	Source string `json:"source"`
 }
 
 // UINode is a declarative element; HTML, scripts, expressions and styles are unsupported.

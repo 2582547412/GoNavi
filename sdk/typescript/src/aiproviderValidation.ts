@@ -1,6 +1,7 @@
 import { ProtocolError } from './protocol.js';
 import type { AIModel, JSONValue } from './types.js';
 import { AI_PROVIDER_DEFAULT_LIMITS } from './aiproviderTypes.js';
+import { AI_PROVIDER_IMAGE_MAX_REQUEST_BYTES, validateImages } from './aiproviderImages.js';
 import type { AIProviderConfig, AIProviderControl, AIProviderErrorCode, AIProviderLimits, AIProviderMessage,
   AIProviderRegistration, AIProviderRequest, AIProviderStart, AIProviderTool } from './aiproviderTypes.js';
 
@@ -90,7 +91,7 @@ export function resolveLimits(input: Partial<AIProviderLimits> | undefined): Rea
 }
 
 export function registration(input: AIProviderRegistration): AIProviderRegistration {
-  if (!record(input) || typeof input.supportsTools !== 'boolean' || typeof input.generate !== 'function' ||
+  if (!record(input) || typeof input.supportsTools !== 'boolean' || typeof input.supportsImages !== 'boolean' || typeof input.generate !== 'function' ||
       !Array.isArray(input.models) || input.models.length < 1 || input.models.length > 32) fault('invalid_request');
   const ids = new Set<string>();
   const models = input.models.map((model: Readonly<AIModel>) => {
@@ -101,11 +102,12 @@ export function registration(input: AIProviderRegistration): AIProviderRegistrat
     ids.add(model.id);
     return Object.freeze({ id: model.id, name: model.name, contextWindow: model.contextWindow, maxOutputTokens: model.maxOutputTokens });
   });
-  return Object.freeze({ models: Object.freeze(models), supportsTools: input.supportsTools, generate: input.generate });
+  return Object.freeze({ models: Object.freeze(models), supportsTools: input.supportsTools, supportsImages: input.supportsImages, generate: input.generate });
 }
 
 export function envelope(input: JSONValue, limits: Readonly<AIProviderLimits>): Record<string, unknown> {
-  const value = boundedJSON(input, limits.maxRequestBytes);
+  // Image starts can be far larger than a text request; text-only ones are narrowed back in start().
+  const value = boundedJSON(input, Math.max(limits.maxRequestBytes, AI_PROVIDER_IMAGE_MAX_REQUEST_BYTES));
   keys(value, ['protocolVersion', 'operation', 'providerId', 'requestId', 'config', 'request'], ['protocolVersion', 'operation', 'providerId', 'requestId']);
   if (value.protocolVersion !== 1 || typeof value.operation !== 'string' || !['start', 'pull', 'cancel'].includes(value.operation)) fault('unsupported');
   if (!providerID(value.providerId) || typeof value.requestId !== 'string' || value.requestId.length < 1 || value.requestId.length > 128 || /[^A-Za-z0-9_-]/.test(value.requestId)) fault('invalid_request');
@@ -205,20 +207,24 @@ function argumentsObject(input: string): void {
   }
 }
 
-function messages(value: unknown): AIProviderMessage[] {
+function messages(value: unknown, supportsImages: boolean): AIProviderMessage[] {
   if (!Array.isArray(value) || value.length < 1 || value.length > 512) fault('invalid_request');
-  return value.map((message) => {
-    keys(message, ['role', 'content', 'reasoning_content', 'tool_call_id', 'tool_calls'], ['role', 'content']);
+  const parsed = value.map((message) => {
+    keys(message, ['role', 'content', 'reasoning_content', 'tool_call_id', 'tool_calls', 'images'], ['role', 'content']);
     if (typeof message.role !== 'string' || !['system', 'user', 'assistant', 'tool'].includes(message.role) || !text(message.content, 512 * 1024, false, true)) fault('invalid_request');
     if ('reasoning_content' in message && !text(message.reasoning_content, 512 * 1024, false, true)) fault('invalid_request');
     if (message.role === 'tool' && !('tool_call_id' in message)) fault('invalid_request');
     if ('tool_call_id' in message && (message.role !== 'tool' || !text(message.tool_call_id, 128, true))) fault('invalid_request');
     if ('tool_calls' in message && message.role !== 'assistant') fault('invalid_request');
+    if ('images' in message && (!Array.isArray(message.images) || message.images.length < 1 || message.images.length > 4 || message.images.some((item) => typeof item !== 'string'))) fault('invalid_request');
     return { role: message.role as AIProviderMessage['role'], content: message.content,
       ...('reasoning_content' in message ? { reasoning_content: message.reasoning_content as string } : {}),
       ...('tool_call_id' in message ? { tool_call_id: message.tool_call_id as string } : {}),
-      ...('tool_calls' in message ? { tool_calls: toolCalls(message.tool_calls) } : {}) };
+      ...('tool_calls' in message ? { tool_calls: toolCalls(message.tool_calls) } : {}),
+      ...('images' in message ? { images: [...(message.images as string[])] } : {}) };
   });
+  validateImages(parsed, supportsImages);
+  return parsed;
 }
 
 export function start(value: Record<string, unknown>, provider: AIProviderRegistration): AIProviderStart {
@@ -227,7 +233,9 @@ export function start(value: Record<string, unknown>, provider: AIProviderRegist
   const input = value.request;
   const max = provider.models.find((model) => model.id === selected.model)!.maxOutputTokens;
   if (typeof input.temperature !== 'number' || !Number.isFinite(input.temperature) || input.temperature < 0 || input.temperature > 2 || !integer(input.maxTokens, 0, max)) fault('invalid_request');
-  const request: AIProviderRequest = { messages: messages(input.messages), temperature: input.temperature, maxTokens: input.maxTokens || max,
+  const request: AIProviderRequest = { messages: messages(input.messages, provider.supportsImages), temperature: input.temperature, maxTokens: input.maxTokens || max,
     ...('tools' in input ? { tools: tools(input.tools, provider.supportsTools) } : {}) };
+  const hasImages = request.messages.some((message) => (message.images?.length ?? 0) > 0);
+  if (!hasImages && bytes(request) > AI_PROVIDER_DEFAULT_LIMITS.maxRequestBytes) fault('limit_exceeded');
   return { protocolVersion: 1, operation: 'start', providerId: value.providerId as string, requestId: value.requestId as string, config: selected, request };
 }

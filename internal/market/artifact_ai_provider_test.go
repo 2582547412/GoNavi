@@ -35,6 +35,7 @@ func TestArtifactAIProvidersAcceptExplicitStaticModels(t *testing.T) {
 	}{
 		{name: "tools"},
 		{name: "text only", change: func(_ map[string]any, p map[string]any, _ map[string]any) { p["supportsTools"] = false }},
+		{name: "image input", change: func(_ map[string]any, p map[string]any, _ map[string]any) { p["supportsImages"] = true }},
 		{name: "minimum token limits", change: func(_ map[string]any, _ map[string]any, m map[string]any) {
 			m["contextWindow"] = 1024
 			m["maxOutputTokens"] = 1
@@ -111,7 +112,6 @@ func TestArtifactAIProvidersRejectInvalidProviderMetadata(t *testing.T) {
 		{name: "nul name", patch: map[string]any{"name": "secret\x00"}},
 		{name: "unknown command", patch: map[string]any{"command": "Missing"}},
 		{name: "case changed command", patch: map[string]any{"command": "generate"}},
-		{name: "images forbidden", patch: map[string]any{"supportsImages": true}},
 	}
 	for _, format := range []string{".zip", ".tgz"} {
 		for _, test := range cases {

@@ -874,6 +874,10 @@ export function SelectDriverPackageZipFile(arg1:string):Promise<connection.Query
 
 export function SelectLogDirectory(arg1:string):Promise<connection.QueryResult>;
 
+export function SelectPluginPackageDirectory(arg1:string):Promise<connection.QueryResult>;
+
+export function SelectPluginPackageFile(arg1:string):Promise<connection.QueryResult>;
+
 export function SelectSQLDirectory(arg1:string):Promise<connection.QueryResult>;
 
 export function SelectSQLFileForExecution():Promise<connection.QueryResult>;

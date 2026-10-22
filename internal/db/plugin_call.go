@@ -14,6 +14,7 @@ type pluginDatabaseRequest struct {
 	Database        string                `json:"database,omitempty"`
 	Table           string                `json:"table,omitempty"`
 	Query           string                `json:"query,omitempty"`
+	TransactionID   string                `json:"transactionId,omitempty"`
 }
 
 func (p *PluginDatabase) call(ctx context.Context, request pluginDatabaseRequest, connecting bool) (json.RawMessage, error) {
@@ -84,7 +85,9 @@ func (p *PluginDatabase) invoke(ctx context.Context, request pluginDatabaseReque
 	if !p.runtimeCurrent() {
 		return nil, ErrPluginDatabaseUnavailable
 	}
-	request.ProtocolVersion = 1
+	if request.ProtocolVersion == 0 {
+		request.ProtocolVersion = 1
+	}
 	request.SessionID = p.sessionID
 	arguments, err := json.Marshal(request)
 	if err != nil || len(arguments) > pluginDatabaseMaxJSON {

@@ -3,11 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { validateDataSource, validateDataSourceCommand } from '../src/datasourceValidation.js';
 import type { Manifest } from '../src/types.js';
 
-describe('read-only data source declaration', () => {
-  it('accepts sqlite and rejects writes or unknown dialects', () => {
+describe('data source declaration', () => {
+  it('accepts explicit read-only and writable sqlite declarations', () => {
     const source = { id: 'fixture', name: 'Fixture', dialect: 'sqlite', readOnly: true };
     expect(() => validateDataSource(source)).not.toThrow();
-    expect(() => validateDataSource({ ...source, readOnly: false })).toThrow(/readOnly true/);
+    expect(() => validateDataSource({ ...source, readOnly: false })).not.toThrow();
+    expect(() => validateDataSource({ ...source, readOnly: 'yes' as unknown as boolean })).toThrow(/explicitly/);
     expect(() => validateDataSource({ ...source, dialect: 'oracle' })).toThrow(/dialect/);
     expect(() => validateDataSource({ ...source, id: 'Fixture' })).toThrow(/identity/);
     expect(() => validateDataSource({ ...source, name: '中'.repeat(85) })).not.toThrow();
@@ -25,5 +26,6 @@ describe('read-only data source declaration', () => {
     const declared = { id: 'fixture', name: 'Fixture', dialect: 'sqlite', readOnly: true, command: 'database' };
     expect(() => validateDataSourceCommand(declared, { id: 'database', effect: 'write' })).toThrow(/read or unknown/);
     expect(() => validateDataSourceCommand(declared, { id: 'database', effect: 'WRITE' })).toThrow(/read or unknown/);
+    expect(() => validateDataSourceCommand({ ...declared, readOnly: false }, { id: 'database', effect: 'write' })).not.toThrow();
   });
 });

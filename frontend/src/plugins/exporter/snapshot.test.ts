@@ -47,4 +47,19 @@ describe('selected materialized exporter snapshot', () => {
     const data = decodePluginExporters({ items: [entry], truncated: true }); expect(data.truncated).toBe(true); expect(Object.isFrozen(data.items[0])).toBe(true);
     for (const patch of [{ extension: '.json' }, { contentType: 'application/json; charset=utf-8' }, { format: ' Plugin:sdk.examples.ndjson:ndjson' }, { generation: 0 }, { digest: entry.digest + '\n' }]) expect(() => decodePluginExporters({ items: [{ ...entry, ...patch }] })).toThrow();
   });
+  it('lifts document caps only for declared streaming exporters', () => {
+    const rows = Array.from({ length: 5000 }, (_, index) => ({ a: index }));
+    expect(() => freezeExportSnapshot(format, rows, ['a'])).toThrow();
+    const snapshot = freezeExportSnapshot(format, rows, ['a'], undefined, true);
+    expect(snapshot.rows).toHaveLength(5000); expect(snapshot.rows[4999].a).toBe(4999);
+    expect(() => freezeExportSnapshot(format, [{ a: 'x'.repeat(128 * 1024 + 1) }], ['a'], undefined, true)).toThrow();
+    const heavy = Array.from({ length: 512 }, () => ({ a: 'x'.repeat(2000), b: 'y'.repeat(2000) }));
+    expect(() => freezeExportSnapshot(format, heavy, ['a', 'b'], undefined, true)).toThrow();
+  });
+  it('decodes the optional streaming declaration without inventing one', () => {
+    const base = { format, pluginId: 'sdk.examples.ndjson', id: 'ndjson', name: 'NDJSON', extension: 'ndjson', contentType: 'application/x-ndjson', version: '1.0.0', digest: 'a'.repeat(64), generation: 1, available: true, state: 'running' };
+    expect(decodePluginExporters({ items: [base] }).items[0].streaming).toBe(false);
+    expect(decodePluginExporters({ items: [{ ...base, streaming: true }] }).items[0].streaming).toBe(true);
+    expect(() => decodePluginExporters({ items: [{ ...base, streaming: 'yes' }] })).toThrow();
+  });
 });

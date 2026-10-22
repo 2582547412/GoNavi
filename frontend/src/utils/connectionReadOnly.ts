@@ -20,7 +20,7 @@ export type ConnectionProtectionConfig = NonNullable<
 
 type ConnectionReadOnlyLike = Pick<
   ConnectionConfig,
-  "type" | "driver" | "oceanBaseProtocol" | "readOnly" | "protection"
+  "type" | "driver" | "oceanBaseProtocol" | "readOnly" | "pluginWritable" | "protection"
 > | null | undefined;
 
 export const CONNECTION_PROTECTION_KEYS: ConnectionProtectionKey[] = [
@@ -580,7 +580,14 @@ export const deriveLegacyConnectionReadOnlyFlag = (
 export const resolveConnectionProtectionConfig = (
   config: ConnectionReadOnlyLike,
 ): ConnectionProtectionConfig => {
-  if (pluginDataSourceConfigType(config)) return { ...FULL_CONNECTION_PROTECTION };
+  if (pluginDataSourceConfigType(config)) {
+    // Saved protection flags are honored only after this connection explicitly
+    // opts into plugin writes. A forged partial flag set must not open the rest.
+    if (config?.readOnly === true || config?.pluginWritable !== true) {
+      return { ...FULL_CONNECTION_PROTECTION };
+    }
+    return normalizeConnectionProtectionConfig(config?.protection);
+  }
   if (!supportsConnectionReadOnlyMode(config)) {
     return createEmptyConnectionProtectionConfig();
   }

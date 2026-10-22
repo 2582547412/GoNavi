@@ -23,7 +23,6 @@ func TestPluginConfigRejectsForeignAuthorityBeforeNormalization(t *testing.T) {
 		"effort":               func(c *ai.ProviderConfig) { c.Effort = "high" },
 		"thinking":             func(c *ai.ProviderConfig) { c.ThinkingIntensity = "high" },
 		"auth":                 func(c *ai.ProviderConfig) { c.AuthMode = "bearer" },
-		"images":               func(c *ai.ProviderConfig) { v := true; c.SupportsImages = &v },
 		"userinfo":             func(c *ai.ProviderConfig) { c.BaseURL = "https://secret@example.invalid" },
 		"header duplicate":     func(c *ai.ProviderConfig) { c.Headers = map[string]string{"X-Key": "a", "x-key": "b"} },
 		"header forbidden":     func(c *ai.ProviderConfig) { c.Headers = map[string]string{"Host": "example.invalid"} },
@@ -37,5 +36,22 @@ func TestPluginConfigRejectsForeignAuthorityBeforeNormalization(t *testing.T) {
 				t.Fatal("invalid configuration accepted")
 			}
 		})
+	}
+}
+
+func TestPluginConfigPinsDeclaredImages(t *testing.T) {
+	c := pluginTestConfig()
+	claimed := true
+	c.SupportsImages = &claimed
+	if err := ValidatePluginConfig(c); err != nil {
+		t.Fatalf("explicit image capability rejected: %v", err)
+	}
+	declared := selectedPluginConfig(c, true)
+	if declared.SupportsImages == nil || !*declared.SupportsImages {
+		t.Fatal("declared image capability dropped")
+	}
+	textOnly := selectedPluginConfig(c, false)
+	if textOnly.SupportsImages == nil || *textOnly.SupportsImages {
+		t.Fatal("caller claim widened image capability")
 	}
 }

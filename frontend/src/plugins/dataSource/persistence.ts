@@ -10,5 +10,7 @@ export function pluginDataSourcePersistenceOverrides(raw: Record<string, unknown
     useSSL: raw.useSSL === true, sslMode: raw.sslMode == null ? 'disable' : raw.sslMode,
     sslCAPath: text('sslCAPath'), sslCertPath: text('sslCertPath'), sslKeyPath: text('sslKeyPath'),
     useSSH: raw.useSSH === true, useProxy: raw.useProxy === true, useHttpTunnel: raw.useHttpTunnel === true,
-    hosts: raw.hosts, topology: raw.topology, keepAliveSQL: text('keepAliveSQL') };
+    hosts: raw.hosts, topology: raw.topology, keepAliveSQL: text('keepAliveSQL'),
+    readOnly: raw.readOnly === true, pluginWritable: raw.pluginWritable === true,
+    protection: raw.protection };
 }

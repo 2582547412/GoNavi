@@ -68,10 +68,10 @@ func (f *PluginFactory) Catalog(ctx context.Context) ([]PluginProviderView, erro
 		reason := pluginProviderReason(status, snapshot.Owned, snapshot.SafeMode)
 		for _, decl := range status.Manifest.Contributes.AIProviders {
 			typ := plugin.AIProviderType(status.Manifest.ID, decl)
-			if typ == "" || decl.SupportsImages {
+			if typ == "" {
 				continue
 			}
-			result = append(result, PluginProviderView{Type: typ, PluginID: status.Manifest.ID, ID: decl.ID, Name: decl.Name, Models: append([]plugin.AIModel{}, decl.Models...), SupportsTools: decl.SupportsTools, Version: status.Manifest.Version, Digest: status.Digest, Generation: status.Generation, Available: reason == "", State: status.State, Reason: reason})
+			result = append(result, PluginProviderView{Type: typ, PluginID: status.Manifest.ID, ID: decl.ID, Name: decl.Name, Models: append([]plugin.AIModel{}, decl.Models...), SupportsTools: decl.SupportsTools, SupportsImages: decl.SupportsImages, Version: status.Manifest.Version, Digest: status.Digest, Generation: status.Generation, Available: reason == "", State: status.State, Reason: reason})
 		}
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].Type < result[j].Type })

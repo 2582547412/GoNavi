@@ -8,8 +8,11 @@ func TestValidateDataSourceReadOnly(t *testing.T) {
 		t.Fatal(err)
 	}
 	source.ReadOnly = false
-	if err := ValidateDataSource(source); err == nil {
-		t.Fatal("write declaration was accepted")
+	if err := ValidateDataSource(source); err != nil {
+		t.Fatalf("writable declaration rejected: %v", err)
+	}
+	if err := ValidateDataSourceCommand(source, Command{ID: "db", Effect: "write"}); err != nil {
+		t.Fatalf("writable source rejected a write command: %v", err)
 	}
 	source.ReadOnly = true
 	source.Dialect = "oracle"

@@ -6,7 +6,9 @@ import * as sdk from '../src/index.js';
 // third-party plugins, so the docs and the entry point have to move together.
 const DOCUMENTED: Record<string, 'function' | 'number'> = {
   DEFAULT_MAX_FRAME_BYTES: 'number',
+  AI_PROVIDER_IMAGE_MAX_REQUEST_BYTES: 'number',
   DATA_SOURCE_PROTOCOL_VERSION: 'number',
+  DATA_SOURCE_WRITE_PROTOCOL_VERSION: 'number',
   FrameReader: 'function',
   Protocol: 'function',
   ProtocolError: 'function',

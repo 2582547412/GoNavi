@@ -199,7 +199,13 @@ func (a *App) pluginContext() context.Context {
 }
 
 func (a *App) pluginManagementAllowed() bool {
-	// Browser-server management stays fail-closed until an authenticated server
-	// explicitly provisions a management channel. Client flags cannot grant it.
-	return a != nil && !a.webRuntime
+	if a == nil {
+		return false
+	}
+	if !a.webRuntime {
+		return true
+	}
+	// Browser-server management is fail-closed unless the server operator opts in
+	// with GONAVI_WEB_PLUGIN_MANAGEMENT. Browser clients cannot grant it themselves.
+	return pluginEnvEnabled("GONAVI_WEB_PLUGIN_MANAGEMENT")
 }

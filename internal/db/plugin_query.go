@@ -40,9 +40,6 @@ func (p *PluginDatabase) QueryContext(ctx context.Context, query string) ([]map[
 	return rows, fields, nil
 }
 
-// Exec always rejects mutation; the adapter implements no transaction/batch APIs.
-func (*PluginDatabase) Exec(string) (int64, error) { return 0, ErrPluginDatabaseReadOnly }
-
 func (p *PluginDatabase) finishRead(ctx context.Context) error {
 	if ctx == nil {
 		return errors.New("plugin database context is required")

@@ -45,7 +45,7 @@ export type ShowDataExportDialogOptions = {
   allowInsertSql?: boolean;
   allowColumnCommentHeaders?: boolean;
   okText?: string;
-  preparePluginSnapshot?: (values: DataExportDialogValues) => FrozenExportSnapshot;
+  preparePluginSnapshot?: (values: DataExportDialogValues, streaming?: boolean) => FrozenExportSnapshot;
 };
 
 export const MAX_XLSX_ROWS_PER_SHEET = 1048575;

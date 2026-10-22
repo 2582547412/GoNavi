@@ -8,7 +8,7 @@ describe('validated plugin datasource catalog', () => {
     expect(values).toHaveLength(1); expect(values[0]).not.toHaveProperty('password'); expect(values[0]).not.toHaveProperty('ui');
     expect(decodePluginDataSources({ items: [{ ...item, defaultPort: undefined }] })[0].defaultPort).toBe(0);
   });
-  it.each([{ type: 'mysql' }, { pluginId: 'other.source' }, { id: 'other' }, { dialect: 'postgres' }, { readOnly: false },
+  it.each([{ type: 'mysql' }, { pluginId: 'other.source' }, { id: 'other' }, { dialect: 'postgres' }, { readOnly: 'no' },
     { state: ['running'], available: false }, { state: null }, { state: 'unknown' }, { defaultPort: null }, { defaultPort: -1 },
     { defaultPort: 65536 }, { reason: null }, { reason: [] }, { generation: Number.MAX_SAFE_INTEGER + 1 },
     { available: 'true' }, { connectable: 'true' }, { connectable: false }, { state: 'stopping' }])('rejects forged/malformed metadata %j', (patch) => {

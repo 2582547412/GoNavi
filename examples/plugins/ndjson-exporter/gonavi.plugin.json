@@ -33,7 +33,7 @@
           "properties": {
             "protocolVersion": {
               "type": "integer",
-              "const": 1
+              "enum": [1, 2]
             },
             "exporterId": {
               "type": "string",
@@ -44,6 +44,12 @@
             },
             "rows": {
               "type": "array"
+            },
+            "chunkIndex": {
+              "type": "integer"
+            },
+            "chunkCount": {
+              "type": "integer"
             }
           },
           "additionalProperties": false
@@ -56,7 +62,8 @@
         "name": "Typed NDJSON (lossless cell tags)",
         "command": "render",
         "extension": "ndjson",
-        "contentType": "application/x-ndjson"
+        "contentType": "application/x-ndjson",
+        "streaming": true
       }
     ]
   }

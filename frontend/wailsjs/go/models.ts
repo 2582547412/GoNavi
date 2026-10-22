@@ -2510,6 +2510,7 @@ export namespace connection {
 	    savePassword?: boolean;
 	    database: string;
 	    readOnly?: boolean;
+	    pluginWritable?: boolean;
 	    protection?: ConnectionProtectionConfig;
 	    useSSL?: boolean;
 	    sslMode?: string;
@@ -2567,6 +2568,7 @@ export namespace connection {
 	        this.savePassword = source["savePassword"];
 	        this.database = source["database"];
 	        this.readOnly = source["readOnly"];
+	        this.pluginWritable = source["pluginWritable"];
 	        this.protection = this.convertValues(source["protection"], ConnectionProtectionConfig);
 	        this.useSSL = source["useSSL"];
 	        this.sslMode = source["sslMode"];

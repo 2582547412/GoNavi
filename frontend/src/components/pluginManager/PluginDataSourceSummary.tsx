@@ -9,6 +9,6 @@ export function PluginDataSourceSummary({ manifest }: { manifest: PluginManifest
   return <div><Typography.Text strong>{t('plugin.datasource.group')}</Typography.Text>
     <ul>{sources.map((source) => {
       const effect = manifest.contributes?.commands?.find((command) => command.id === source.command)?.effect;
-      return <li key={source.id}><code>{source.id}</code> {source.dialect} <code>{effect ? `${source.command} (${effect})` : source.command}</code>{source.readOnly === true ? <Tag>{t('plugin.datasource.read_only')}</Tag> : null}</li>;
+      return <li key={source.id}><code>{source.id}</code> {source.dialect} <code>{effect ? `${source.command} (${effect})` : source.command}</code><Tag>{t(source.readOnly ? 'plugin.datasource.read_only' : 'plugin.datasource.read_write')}</Tag></li>;
     })}</ul></div>;
 }

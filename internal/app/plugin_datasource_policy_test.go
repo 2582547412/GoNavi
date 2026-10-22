@@ -457,3 +457,37 @@ func TestPluginDataSourcePolicyBuiltinDatabaseSelectionUnchanged(t *testing.T) {
 func pluginPolicyTestText(key string, _ map[string]any) string {
 	return "localized:" + key
 }
+
+func TestPluginWritableConnectionHonorsExplicitProtection(t *testing.T) {
+	t.Parallel()
+	partial := connection.ConnectionProtectionConfig{RestrictDataEdit: true}
+	full := connection.ConnectionProtectionConfig{
+		RestrictDataEdit: true, RestrictStructureEdit: true,
+		RestrictScriptExecution: true, RestrictDataImport: true,
+	}
+	tests := []struct {
+		name   string
+		config connection.ConnectionConfig
+		want   connection.ConnectionProtectionConfig
+	}{
+		{name: "writable default", config: connection.ConnectionConfig{Type: "plugin:example.writer:source:sqlite", PluginWritable: true}},
+		{name: "writable partial", config: connection.ConnectionConfig{Type: "plugin:example.writer:source:sqlite", PluginWritable: true, Protection: partial}, want: partial},
+		{name: "writable still read-only", config: connection.ConnectionConfig{Type: "plugin:example.writer:source:sqlite", PluginWritable: true, ReadOnly: true}, want: full},
+		{name: "legacy missing hint", config: connection.ConnectionConfig{Type: "plugin:example.writer:source:sqlite"}, want: full},
+		{name: "forged read-only config", config: connection.ConnectionConfig{Type: "plugin:example.writer:source:sqlite", ReadOnly: false}, want: full},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			if got := resolveConnectionProtectionConfig(test.config); got != test.want {
+				t.Fatalf("protection = %+v, want %+v", got, test.want)
+			}
+			if test.want != (connection.ConnectionProtectionConfig{}) {
+				return
+			}
+			if err := ensureConnectionAllowsQueryWithText(test.config, "DELETE FROM demo", pluginPolicyTestText); err != nil {
+				t.Fatalf("writable query blocked: %v", err)
+			}
+		})
+	}
+}

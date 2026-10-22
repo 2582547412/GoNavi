@@ -24,7 +24,7 @@ export function decodePluginAIProviders(data: unknown): readonly PluginAIProvide
   return Object.freeze(page.items.map((raw): PluginAIProviderView => {
     const value = requireRecord(raw); const identity = parsePluginAIProviderType(value.type);
     if (!identity || value.pluginId !== identity.pluginId || value.id !== identity.id || !pluginAIText(value.name, 256)
-      || typeof value.supportsTools !== 'boolean' || value.supportsImages !== false || !pluginAIText(value.version, 128)
+      || typeof value.supportsTools !== 'boolean' || typeof value.supportsImages !== 'boolean' || !pluginAIText(value.version, 128)
       || typeof value.digest !== 'string' || value.digest.length !== 64 || !/^[a-f0-9]{64}$/.test(value.digest)
       || typeof value.generation !== 'number' || !Number.isSafeInteger(value.generation) || value.generation < 0
       || typeof value.available !== 'boolean' || typeof value.state !== 'string'
@@ -35,7 +35,7 @@ export function decodePluginAIProviders(data: unknown): readonly PluginAIProvide
     if (seen.has(identity.type) || count > 8) return invalidPluginAICatalog();
     seen.add(identity.type); counts.set(identity.pluginId, count);
     return Object.freeze({ ...identity, name: value.name, models: decodeModels(value.models), supportsTools: value.supportsTools,
-      supportsImages: false, version: value.version, digest: value.digest, generation: value.generation,
+      supportsImages: value.supportsImages, version: value.version, digest: value.digest, generation: value.generation,
       available: value.available, state: value.state as PluginAIProviderView['state'], reason: value.reason as string | undefined });
   }));
 }

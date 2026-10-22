@@ -58,8 +58,14 @@ describe('plugin provider identity and immutable config', () => {
     for (const patch of [{ baseUrl: 'https://user:secret@host.test' }, { baseUrl: 'https://host.test/#fragment' }, { contextWindow: 1 }]) expect(() => buildPluginProviderPayload({ ...config(), ...patch }, config(), 'save')).toThrow();
     expect(() => buildPluginProviderPayload({ ...config(), id: 'gonavi-ai' }, { ...config(), id: 'gonavi-ai' }, 'save')).toThrow();
   });
-  it.each([{ state: ['running'] }, { reason: null }, { supportsImages: true }, { generation: Number.MAX_SAFE_INTEGER + 1 }, { type: 'custom' }, { models: [] }, { models: [{ id: 'x', name: 'X', contextWindow: 1024, maxOutputTokens: 1025 }] }])('rejects malformed provider metadata %j', (patch) => {
+  it.each([{ state: ['running'] }, { reason: null }, { supportsImages: 'true' }, { generation: Number.MAX_SAFE_INTEGER + 1 }, { type: 'custom' }, { models: [] }, { models: [{ id: 'x', name: 'X', contextWindow: 1024, maxOutputTokens: 1025 }] }])('rejects malformed provider metadata %j', (patch) => {
     expect(() => decodePluginAIProviders({ items: [{ ...view, ...patch }] })).toThrow();
+  });
+  it('derives image capability from the declaration instead of the saved config', () => {
+    const [imageSource] = decodePluginAIProviders({ items: [{ ...view, supportsImages: true }] });
+    const values = { ...config(), supportsImages: true };
+    expect(buildPluginProviderPayload(values, config(), 'save', imageSource).supportsImages).toBe(true);
+    expect(() => buildPluginProviderPayload(values, config(), 'save')).toThrow();
   });
   it('checks model ownership and context only on use and keeps static catalog frozen', () => {
     const [source] = decodePluginAIProviders({ items: [view] }); expect(Object.isFrozen(source.models)).toBe(true);

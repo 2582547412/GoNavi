@@ -1,6 +1,6 @@
 # Native AI provider plugins
 
-AI provider plugins connect an explicitly selected native backend to GoNavi chat, Agent runs and provider checks. Version 1 supports incremental text/reasoning, complete tool calls and usage. It does **not** support images, opaque upstream conversation state, automatic fallback or replay after an uncertain call.
+AI provider plugins connect an explicitly selected native backend to GoNavi chat, Agent runs and provider checks. Version 1 supports incremental text/reasoning, complete tool calls, usage and bounded image input. It does **not** support opaque upstream conversation state, automatic fallback or replay after an uncertain call.
 
 The [HTTP/SSE example](<../../examples/plugins/ai-provider/main.go>) forwards requests to a configured upstream. It does not implement a model. Automated tests use local HTTP fixtures and independently compiled processes; they do not prove live model availability, quality, pricing or account access.
 
@@ -33,7 +33,7 @@ The [example manifest](<../../examples/plugins/ai-provider/gonavi.plugin.json>) 
 
 This excerpt omits the package identity and command input schema; use the complete example as a template. Its provider type is exactly `plugin:sdk.examples.aiprovider:http`. Do not trim, case-fold or rewrite that namespace to OpenAI, custom or CLI when it is malformed or unavailable.
 
-A package may declare up to **8 providers**, each with **1–32 static models**. Provider IDs are lowercase; model IDs are exact and case-sensitive. Model context limits are 1,024–262,144 tokens; output limits are 1–65,536 and cannot exceed context limits. Both capability flags are required, and `supportsImages` must be false. The [contract](<ai-provider-contract.md>) defines complete identity, schema and inspection rules.
+A package may declare up to **8 providers**, each with **1–32 static models**. Provider IDs are lowercase; model IDs are exact and case-sensitive. Model context limits are 1,024–262,144 tokens; output limits are 1–65,536 and cannot exceed context limits. Both capability flags are required. Set `supportsImages` to true only when the backend actually forwards images; the example keeps it false because its transport handles text only. The [contract](<ai-provider-contract.md>) defines complete identity, schema and inspection rules.
 
 Provider commands are reserved. Generic plugin invocation, ordinary Agent tools and plugin UI/window command menus cannot call them—even if the package also requests `ai.tools`. The host routes model operations through its private generation/digest-bound API. A model's tool-call suggestion does not execute a tool or bypass approvals.
 
@@ -138,13 +138,14 @@ A terminal event or explicit failure must settle the operation. Partial text fol
 | Encoded event / encoded pull result | 64 KiB / 128 KiB; at most 16 events per pull |
 | Whole completion | 8 MiB encoded events, 65,536 events, five minutes |
 | Active idle lease | **30 seconds without a valid pull**; pending empty pulls renew it |
-| Start/request envelope | 512 KiB, JSON depth 32, bounded nodes and 512 messages |
+| Start/request envelope | 512 KiB text-only; 32 MiB when images are declared, JSON depth 32, bounded nodes and 512 messages |
+| Image parts | 4 per user message, 4 MiB decoded each, 24 MiB encoded per request; base64 `data:` URLs only |
 | Offered tool definitions / returned tool calls | **128 / 64** |
 | Returned tool-call JSON / one argument string | 48 KiB total / 32 KiB |
 
 The idle lease uses active timers: it cancels the worker context and clears output even if the host disappears or its callback stalls without issuing another request. Canceling never frees a still-running callback's slot. Finished but unread output also remains within the 16-record cap and expires.
 
-Oversize output produces a sticky failure; ignoring an emitter error cannot turn that result into a normal `done`. Bounds are independent of model token limits. Zero request `maxTokens` selects the declared output cap; a lower host-configured cap remains lower. Unsupported images, state, CLI/API-format/thinking fields and forbidden transport headers are errors, not silently discarded options.
+Oversize output produces a sticky failure; ignoring an emitter error cannot turn that result into a normal `done`. Bounds are independent of model token limits. Zero request `maxTokens` selects the declared output cap; a lower host-configured cap remains lower. Images on a provider that does not declare `supportsImages`, non-user images, remote image URLs and malformed base64 are errors, not silently discarded options. The same applies to opaque state, CLI/API-format/thinking fields and forbidden transport headers.
 
 ## HTTP/SSE example and tests
 

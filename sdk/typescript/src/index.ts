@@ -4,7 +4,7 @@ export { DEFAULT_MAX_FRAME_BYTES, FrameReader } from './framing.js';
 export { Protocol, ProtocolError } from './protocol.js';
 export type { Handler, ProtocolOptions } from './protocol.js';
 export { DataSourceDispatcher } from './datasource.js';
-export { DATA_SOURCE_PROTOCOL_VERSION } from './datasourceTypes.js';
+export { DATA_SOURCE_PROTOCOL_VERSION, DATA_SOURCE_WRITE_PROTOCOL_VERSION } from './datasourceTypes.js';
 export type * from './datasourceTypes.js';
 export * from './aiprovider.js';
 export * from './exporter.js';

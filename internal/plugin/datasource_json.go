@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-// UnmarshalJSON requires one unambiguous, explicitly read-only declaration.
+// UnmarshalJSON requires one unambiguous declaration with an explicit readOnly value.
 // The containing manifest decoder otherwise accepts case aliases and duplicate keys.
 func (source *DataSource) UnmarshalJSON(data []byte) error {
 	decoder := json.NewDecoder(bytes.NewReader(data))
@@ -56,9 +56,6 @@ func (source *DataSource) UnmarshalJSON(data []byte) error {
 	var decoded wireSource
 	if err := json.Unmarshal(data, &decoded); err != nil {
 		return fmt.Errorf("decode data source fields: %w", err)
-	}
-	if !decoded.ReadOnly {
-		return fmt.Errorf("data source contributions must explicitly declare readOnly true")
 	}
 	*source = DataSource(decoded)
 	return nil

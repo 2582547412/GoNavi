@@ -21,9 +21,10 @@ export function pluginProviderHeaders(rows: unknown, fallback?: Record<string, s
   }
   return result;
 }
-export function hasForeignPluginProviderSettings(values: Record<string, unknown>): boolean {
+export function hasForeignPluginProviderSettings(values: Record<string, unknown>, declaredImages = false): boolean {
   return ['apiFormat', 'cliPath', 'effort', 'thinkingIntensity'].some((key) => values[key] !== undefined && values[key] !== '')
-    || (values.authMode !== undefined && values.authMode !== '' && values.authMode !== 'api-key') || (values.supportsImages !== undefined && values.supportsImages !== false)
+    || (values.authMode !== undefined && values.authMode !== '' && values.authMode !== 'api-key')
+    || (values.supportsImages !== undefined && values.supportsImages !== false && values.supportsImages !== declaredImages)
     || (values.headerTimeoutSeconds !== undefined && values.headerTimeoutSeconds !== 0)
     || (values.cliEnv != null && (typeof values.cliEnv !== 'object' || Array.isArray(values.cliEnv) || Object.keys(values.cliEnv).length > 0))
     || (Array.isArray(values.cliEnvRows) && values.cliEnvRows.some((row) => row && (row.name !== '' || row.value !== '')));

@@ -1,7 +1,7 @@
 import type { Handler } from './protocol.js';
 import type { JSONValue } from './types.js';
 import type { DataSourceOperations, DataSourceRequest } from './datasourceTypes.js';
-import { dataSourceArray, dataSourceJSON, dataSourceQuery, datasourceError, decodeDataSourceRequest } from './datasourceValidation.js';
+import { dataSourceArray, dataSourceExec, dataSourceJSON, dataSourceQuery, dataSourceTransaction, datasourceError, decodeDataSourceRequest } from './datasourceValidation.js';
 
 interface Session { ready: boolean; closed: boolean; remembered: boolean; calls: Set<AbortController> }
 const cancelled = () => datasourceError('datasource request cancelled', -32800);
@@ -129,6 +129,10 @@ export class DataSourceDispatcher {
       case 'indexes': if (operations.indexes) return dataSourceArray('indexes', await operations.indexes(request, signal)); break;
       case 'foreignKeys': if (operations.foreignKeys) return dataSourceArray('foreignKeys', await operations.foreignKeys(request, signal)); break;
       case 'triggers': if (operations.triggers) return dataSourceArray('triggers', await operations.triggers(request, signal)); break;
+      case 'exec': if (operations.exec) return dataSourceExec(await operations.exec(request, signal)); break;
+      case 'begin': if (operations.begin) return dataSourceTransaction(await operations.begin(request, signal)); break;
+      case 'commit': if (operations.commit) { await operations.commit(request, signal); return { ok: true }; } break;
+      case 'rollback': if (operations.rollback) { await operations.rollback(request, signal); return { ok: true }; } break;
     }
     throw datasourceError('unsupported datasource operation', -32601);
   }

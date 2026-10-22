@@ -16,7 +16,7 @@ export function newPluginProviderSession(provider: PluginAIProviderView): Provid
 export function buildPluginProviderPayload(values: Record<string, unknown>, editing: AIProviderConfig | null, purpose: 'save' | 'test', source?: PluginAIProviderView): AIProviderConfig {
   const raw: Record<string, unknown> = { ...editing, ...values };
   if (['type', 'name', 'apiKey', 'baseUrl', 'model', 'inlineCompletionModel'].some((key) => raw[key] !== undefined && typeof raw[key] !== 'string')) throw new PluginAPIError('plugin.ai_provider.error.config');
-  if (hasForeignPluginProviderSettings(raw)) throw new PluginAPIError('plugin.ai_provider.error.unsupported_settings');
+  if (hasForeignPluginProviderSettings(raw, source?.supportsImages === true)) throw new PluginAPIError('plugin.ai_provider.error.unsupported_settings');
   const text = (key: string, fallback = '') => typeof raw[key] === 'string' ? raw[key] as string : fallback;
   const type = text('type');
   if (editing?.id && editing.type !== type) throw new PluginAPIError('plugin.ai_provider.error.identity');
@@ -27,7 +27,7 @@ export function buildPluginProviderPayload(values: Record<string, unknown>, edit
     hasSecret: apiKey !== '' || Boolean(editing?.hasSecret || editing?.secretRef || editing?.apiKey), secretRef: editing?.secretRef,
     baseUrl: text('baseUrl'), apiFormat: '', cliPath: '', cliEnv: raw.pluginUnsupportedCleared === true ? {} : undefined,
     effort: '', thinkingIntensity: '', headerTimeoutSeconds: 0, model: text('model'), inlineCompletionModel: text('inlineCompletionModel'), authMode: 'api-key',
-    headers: sendHeaders ? headers : undefined, supportsImages: false, models: [], maxTokens: 0,
+    headers: sendHeaders ? headers : undefined, supportsImages: source?.supportsImages ?? false, models: [], maxTokens: 0,
     temperature: raw.temperature === undefined ? 0.7 : Number(raw.temperature), contextWindow: raw.contextWindow === undefined ? 0 : Number(raw.contextWindow) };
   validatePluginProviderConfig(result);
   if (purpose === 'test') {

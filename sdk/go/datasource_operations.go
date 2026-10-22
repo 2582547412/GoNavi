@@ -59,6 +59,36 @@ func (d *DataSourceDispatcher) dispatch(ctx context.Context, r DataSourceRequest
 			values, err := o.Triggers(ctx, r)
 			return dataSourceArray("triggers", values, err)
 		}
+	case "exec":
+		if o.Exec != nil {
+			result, err := o.Exec(ctx, r)
+			if err != nil {
+				return nil, err
+			}
+			if result.RowsAffected < 0 {
+				return nil, ErrDataSourceResult
+			}
+			return map[string]any{"ok": true, "rowsAffected": result.RowsAffected}, nil
+		}
+	case "begin":
+		if o.Begin != nil {
+			id, err := o.Begin(ctx, r)
+			if err != nil {
+				return nil, err
+			}
+			if !dataSourceSessionPattern.MatchString(id) {
+				return nil, ErrDataSourceResult
+			}
+			return map[string]any{"ok": true, "transactionId": id}, nil
+		}
+	case "commit":
+		if o.Commit != nil {
+			return map[string]bool{"ok": true}, o.Commit(ctx, r)
+		}
+	case "rollback":
+		if o.Rollback != nil {
+			return map[string]bool{"ok": true}, o.Rollback(ctx, r)
+		}
 	}
 	return nil, ErrDataSourceUnsupported
 }

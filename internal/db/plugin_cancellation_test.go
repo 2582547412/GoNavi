@@ -104,14 +104,14 @@ func TestPluginDatabaseExplicitContextsAndInterfaces(t *testing.T) {
 		t.Fatal("nil column context accepted")
 	}
 	var driver Database = database
-	if _, ok := driver.(ExecContexter); ok {
-		t.Fatal("write interface advertised")
-	}
 	if _, ok := driver.(BatchApplier); ok {
 		t.Fatal("batch mutation interface advertised")
 	}
-	if _, ok := driver.(TransactionExecerProvider); ok {
-		t.Fatal("transaction interface advertised")
+	if _, err := driver.(ExecContexter).ExecContext(t.Context(), "DELETE FROM fixture"); !errors.Is(err, ErrPluginDatabaseReadOnly) {
+		t.Fatalf("read-only write fence: %v", err)
+	}
+	if _, err := driver.(TransactionExecerProvider).OpenTransactionExecer(t.Context()); !errors.Is(err, ErrPluginDatabaseReadOnly) {
+		t.Fatalf("read-only transaction fence: %v", err)
 	}
 }
 

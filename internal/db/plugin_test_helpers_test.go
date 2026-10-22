@@ -68,6 +68,12 @@ func pluginDatabaseTestReply(operation string) json.RawMessage {
 		return json.RawMessage(`{"names":["fixture"]}`)
 	case "createStatement":
 		return json.RawMessage(`{"statement":"CREATE TABLE fixture (id INTEGER)"}`)
+	case "exec":
+		return json.RawMessage(`{"ok":true,"rowsAffected":3}`)
+	case "begin":
+		return json.RawMessage(`{"ok":true,"transactionId":"tx-1"}`)
+	case "commit", "rollback":
+		return json.RawMessage(`{"ok":true}`)
 	case "columns":
 		return json.RawMessage(`{"columns":[{"name":"id","type":"INTEGER","nullable":"NO","key":"PRI","default":null,"extra":"","comment":""}]}`)
 	case "allColumns":

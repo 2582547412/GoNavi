@@ -12,7 +12,7 @@ export function buildPluginDataSourcePickerItems(items: readonly PluginDataSourc
 }
 export function pluginDataSourcePickerHint(type: string, translate: ConnectionTypeCatalogTranslator = t): string {
   const item = findPluginDataSource(type);
-  return pluginDataSourceUnavailableReason(type) || (item?.available ? translate('plugin.datasource.read_only_description') : translate('plugin.datasource.start_on_connect'));
+  return pluginDataSourceUnavailableReason(type) || (item?.available ? translate(item.readOnly ? 'plugin.datasource.read_only_description' : 'plugin.datasource.read_write_description') : translate('plugin.datasource.start_on_connect'));
 }
 export function PluginDataSourcePickerStatus({ type }: { type: string }) {
   const item = findPluginDataSource(type);

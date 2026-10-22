@@ -94,6 +94,7 @@ func ValidateManifest(m Manifest) error {
 	if err := validatePermissionNotes(m, seen); err != nil {
 		return err
 	}
+	permissions := seen
 	seen = make(map[string]bool)
 	for _, d := range m.Requires {
 		if !validPluginID(d.ID) || d.ID == m.ID || seen[d.ID] || (d.MinVersion != "" && !validVersion(d.MinVersion)) {
@@ -142,6 +143,21 @@ func ValidateManifest(m Manifest) error {
 			return fmt.Errorf("invalid or duplicate panel")
 		}
 		panels[p.ID] = true
+		if p.HTML != nil {
+			if p.Body.Type != "" {
+				return fmt.Errorf("panel declares both a declarative body and custom html")
+			}
+			if !permissions[CustomPanelPermission] {
+				return fmt.Errorf("custom html panel requires the %s permission", CustomPanelPermission)
+			}
+			if err := validatePanelHTML(*p.HTML); err != nil {
+				return err
+			}
+			continue
+		}
+		if p.Body.Type == "" {
+			return fmt.Errorf("panel declares no body")
+		}
 		if err := validateNode(p.Body, commands, 0, &nodes); err != nil {
 			return err
 		}

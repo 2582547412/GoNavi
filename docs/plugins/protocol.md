@@ -97,4 +97,4 @@ Inspection and static check do not execute native code, scripts, install hooks o
 
 The only plugin-to-host method is caller-bound `host.log`, and only for a live process whose package declared `host.log`. Every other host method is rejected. The SDKs do not expose arbitrary application methods. See [host.log](<host-log.md>).
 
-Custom HTML does not share this stdin/stdout transport or the main application's bridge. It runs in a separate native process with a plugin-scoped bridge, bounded packaged assets and independent UI heartbeat. See the [SDK UI guide](<sdk.md#separate-custom-window>) for the public window interface and limitations.
+A custom window does not share this stdin/stdout transport or the main application's bridge. It runs in a separate native process with a plugin-scoped bridge, bounded packaged assets and independent UI heartbeat. See the [SDK UI guide](<sdk.md#separate-custom-window>) for the public window interface and limitations. Embedded `panels[].html` is different: the host renders that declared text only inside an opaque-origin sandboxed iframe in the main window, without a bridge or external subresources.

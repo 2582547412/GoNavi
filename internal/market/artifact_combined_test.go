@@ -28,12 +28,12 @@ func TestCombinedContributionArchive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	badEntries := append(artifactTestEntries(string(raw)),
+	imageEntries := append(artifactTestEntries(string(raw)),
 		artifactTestEntry{name: "skills/guide/SKILL.md", body: []byte("guide")},
 		artifactTestEntry{name: "skills/guide/NOTES.md", body: []byte("notes")},
 	)
-	bad := artifactTestWrite(t, ".zip", artifactTestArchive(t, ".zip", badEntries))
-	if _, err = ValidatePackage(context.Background(), bad); err == nil {
-		t.Fatal("image provider was accepted")
+	image := artifactTestWrite(t, ".zip", artifactTestArchive(t, ".zip", imageEntries))
+	if _, err = ValidatePackage(context.Background(), image); err != nil {
+		t.Fatalf("image provider was rejected: %v", err)
 	}
 }

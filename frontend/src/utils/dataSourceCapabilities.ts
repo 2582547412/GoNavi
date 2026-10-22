@@ -12,7 +12,7 @@ import { isElasticsearchFamilyType } from './elasticsearchFamily';
 
 type ConnectionLike = Pick<
   ConnectionConfig,
-  'type' | 'driver' | 'oceanBaseProtocol' | 'readOnly' | 'protection' | 'database'
+  'type' | 'driver' | 'oceanBaseProtocol' | 'readOnly' | 'pluginWritable' | 'protection' | 'database'
 > | null | undefined;
 
 const normalizeDataSourceToken = (raw: string): string => {
@@ -280,7 +280,7 @@ const cloneCapabilityProfile = (
 
 export const getDataSourceCapabilityContract = (config: ConnectionLike): DataSourceCapabilityContract => {
   const type = resolveDataSourceType(config) || 'unknown';
-  if (isPluginDataSourceNamespace(type)) return pluginDataSourceCapabilities(type, isPluginDataSourceNamespace(config?.type));
+  if (isPluginDataSourceNamespace(type)) return pluginDataSourceCapabilities(type, isPluginDataSourceNamespace(config?.type), config);
   const customConnection = normalizeDataSourceToken(String(config?.type || '')) === 'custom';
   const profileName = DATA_SOURCE_CAPABILITY_REGISTRY.drivers[type]
     || (customConnection ? 'custom' : 'unknown');

@@ -56,6 +56,28 @@ func TestPluginDataSourceCatalogAvailabilityTruth(t *testing.T) {
 	}
 }
 
+func TestPluginDataSourceWritableRequiresExplicitConnectionOptIn(t *testing.T) {
+	for _, test := range []struct {
+		name         string
+		sourceReadOn bool
+		pluginWrite  bool
+		readOnly     bool
+		want         bool
+	}{
+		{name: "writable source without opt-in", sourceReadOn: false, pluginWrite: false, readOnly: false, want: false},
+		{name: "writable source opted in", sourceReadOn: false, pluginWrite: true, readOnly: false, want: true},
+		{name: "writable source with read-only switch", sourceReadOn: false, pluginWrite: true, readOnly: true, want: false},
+		{name: "read-only source with opt-in", sourceReadOn: true, pluginWrite: true, readOnly: false, want: false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config := connection.ConnectionConfig{PluginWritable: test.pluginWrite, ReadOnly: test.readOnly}
+			if got := pluginDataSourceWriteEnabled(test.sourceReadOn, config); got != test.want {
+				t.Fatalf("writable = %v, want %v", got, test.want)
+			}
+		})
+	}
+}
+
 func TestPluginDataSourceMalformedAPITypeNeverReachesBuiltinFactory(t *testing.T) {
 	originalFactory, originalDial := newDatabaseFunc, resolveDialConfigWithProxyFunc
 	t.Cleanup(func() { newDatabaseFunc = originalFactory; resolveDialConfigWithProxyFunc = originalDial })

@@ -15,7 +15,7 @@ function wire(operation: string, requestId = 'A'.repeat(43), providerId = 'provi
 }
 function fixture(generate: AIProviderGenerate = async () => ({ finishReason: 'stop' }), options: Partial<AIProviderRegistration> & AIProviderLifecycleOptions & { providerId?: string } = {}) {
   const { limits, rootSignal, providerId, ...overrides } = options;
-  const registration = { models, supportsTools: true, generate: generate, ...overrides };
+  const registration = { models, supportsTools: true, supportsImages: false, generate: generate, ...overrides };
   const providers = providerId ? { [providerId]: registration } : { provider: registration, other: registration };
   const dispatcher = new AIProviderDispatcher({ providers, limits, rootSignal });
   dispatchers.push(dispatcher); return dispatcher;
@@ -183,8 +183,8 @@ describe('AI provider admission limits and registry', () => {
     const blocked = gate();
     const selected: string[] = [];
     const providers = {
-      first: { models, supportsTools: false, generate: async () => { selected.push('first'); await blocked.promise; return { finishReason: 'stop' as const }; } },
-      second: { models, supportsTools: true, generate: async () => { selected.push('second'); return { finishReason: 'stop' as const }; } },
+      first: { models, supportsTools: false, supportsImages: false, generate: async () => { selected.push('first'); await blocked.promise; return { finishReason: 'stop' as const }; } },
+      second: { models, supportsTools: true, supportsImages: false, generate: async () => { selected.push('second'); return { finishReason: 'stop' as const }; } },
     };
     const dispatcher = new AIProviderDispatcher({ providers, limits: { maxWorkers: 1 } }); dispatchers.push(dispatcher);
     providers.second.generate = async () => { throw new Error('mutated'); };

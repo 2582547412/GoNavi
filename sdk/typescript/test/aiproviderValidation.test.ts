@@ -18,7 +18,7 @@ const offered = { type: 'function', function: { name: 'lookup', description: '',
 const call = (id = 'call-1', name = 'lookup', args = '{"city":"fixture"}') => ({ id, type: 'function', function: { name, arguments: args } });
 function fixture(value: unknown = { finishReason: 'stop' }, options: Partial<AIProviderRegistration> & AIProviderLifecycleOptions & { providerId?: string } = {}) {
   const { limits, rootSignal, providerId, ...overrides } = options;
-  const registration = { models, supportsTools: true, generate: async () => value as AIProviderCompletion, ...overrides };
+  const registration = { models, supportsTools: true, supportsImages: false, generate: async () => value as AIProviderCompletion, ...overrides };
   const providers = providerId ? { [providerId]: registration } : { provider: registration, other: registration };
   const dispatcher = new AIProviderDispatcher({ providers, limits, rootSignal });
   dispatchers.push(dispatcher); return dispatcher;
@@ -116,7 +116,7 @@ describe('AI provider request snapshots and budgets', () => {
   it('snapshots declarations and request input instead of trusting later mutations', async () => {
     const declarations = models.map((value) => ({ ...value }));
     const observed: AIProviderStart[] = [];
-    const options = { models: declarations, supportsTools: false, generate: async (value: AIProviderStart) => { observed.push(value); return { finishReason: 'stop' as const }; } };
+    const options = { models: declarations, supportsTools: false, supportsImages: false, generate: async (value: AIProviderStart) => { observed.push(value); return { finishReason: 'stop' as const }; } };
     const dispatcher = new AIProviderDispatcher({ providers: { provider: options } }); dispatchers.push(dispatcher);
     declarations[0].maxOutputTokens = 1; declarations[0].id = 'changed';
     options.generate = async () => { throw new Error('mutated callback'); };
@@ -154,7 +154,7 @@ describe('AI provider request snapshots and budgets', () => {
 
   it('rejects unsupported tools and pre-canceled start without running any callback', async () => {
     let calls = 0;
-    const dispatcher = fixture(undefined, { supportsTools: false, generate: async () => { calls++; return { finishReason: 'stop' }; } });
+    const dispatcher = fixture(undefined, { supportsTools: false, supportsImages: false, generate: async () => { calls++; return { finishReason: 'stop' }; } });
     await expect(invoke(dispatcher, withRequest({ tools: [offered] }))).rejects.toMatchObject({ message: 'unsupported' });
     const canceled = new AbortController(); canceled.abort();
     await expect(dispatcher.handle(wire(), canceled.signal)).rejects.toMatchObject({ message: 'canceled' });

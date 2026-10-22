@@ -24,7 +24,11 @@ type rpcResult struct {
 }
 
 // rpcCallPolicy is optional; ordinary RPC calls retain their original behavior.
+// maxRequestBytes widens only the outbound frame budget for the exact call that
+// opts in, so host-managed image requests can exceed the ordinary RPC ceiling
+// without relaxing it for any other method.
 type rpcCallPolicy struct {
+	maxRequestBytes  int
 	maxResponseBytes int
 	dispatchTimeout  time.Duration
 	timeoutError     error
@@ -226,13 +230,17 @@ func (p *rpcProcess) callBounded(ctx context.Context, method string, params any,
 	reply := make(chan rpcResult, 1) // One response can arrive after the caller cancels.
 	p.pending[id] = rpcPending{reply: reply, policy: policy}
 	p.mu.Unlock()
+	requestBytes := maxRPCBytes
+	if policy.maxRequestBytes > requestBytes {
+		requestBytes = policy.maxRequestBytes
+	}
 	frame, err := json.Marshal(struct {
 		JSONRPC string `json:"jsonrpc"`
 		ID      uint64 `json:"id"`
 		Method  string `json:"method"`
 		Params  any    `json:"params"`
 	}{"2.0", id, method, params})
-	if err != nil || len(frame) > maxRPCBytes {
+	if err != nil || len(frame) > requestBytes {
 		p.removePending(id)
 		return nil, fmt.Errorf("plugin request is invalid or too large")
 	}

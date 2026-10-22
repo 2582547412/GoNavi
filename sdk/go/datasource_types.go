@@ -5,6 +5,9 @@ import "context"
 // DataSourceProtocolVersion identifies the read-only driver command contract.
 const DataSourceProtocolVersion = 1
 
+// DataSourceWriteProtocolVersion adds exec, begin, commit and rollback with an explicit transaction id.
+const DataSourceWriteProtocolVersion = 2
+
 // DataSourceConfig contains only the selected connection's necessary fields. Never log this value.
 type DataSourceConfig struct {
 	Host             string `json:"host"`
@@ -24,7 +27,16 @@ type DataSourceRequest struct {
 	Database        string            `json:"database,omitempty"`
 	Table           string            `json:"table,omitempty"`
 	Query           string            `json:"query,omitempty"`
+	TransactionID   string            `json:"transactionId,omitempty"`
 }
+
+// DataSourceExecResult reports the affected-row count of one write statement.
+type DataSourceExecResult struct {
+	RowsAffected int64 `json:"rowsAffected"`
+}
+
+// DataSourceTransactionID is the provider-assigned opaque transaction handle, at most 128 ASCII characters.
+type DataSourceTransactionID = string
 
 // DataSourceQueryResult is a bounded single result set; use strings or json.Number for precise large numbers.
 type DataSourceQueryResult struct {
@@ -98,4 +110,8 @@ type DataSourceOperations struct {
 	Indexes         func(context.Context, DataSourceRequest) ([]DataSourceIndexDefinition, error)
 	ForeignKeys     func(context.Context, DataSourceRequest) ([]DataSourceForeignKeyDefinition, error)
 	Triggers        func(context.Context, DataSourceRequest) ([]DataSourceTriggerDefinition, error)
+	Exec            func(context.Context, DataSourceRequest) (DataSourceExecResult, error)
+	Begin           func(context.Context, DataSourceRequest) (string, error)
+	Commit          func(context.Context, DataSourceRequest) error
+	Rollback        func(context.Context, DataSourceRequest) error
 }
