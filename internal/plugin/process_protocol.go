@@ -166,7 +166,10 @@ func (p *rpcProcess) readDiagnostics() {
 			return
 		}
 		if err != nil {
-			if err != io.EOF {
+			// exec.Cmd.Wait closes the parent pipe ends before it publishes the exit status, so a
+			// closed stderr is the normal end of a crashed or stopped process; the wait worker owns
+			// the reason in that case, mirroring the ErrClosed exemption in readProtocol above.
+			if err != io.EOF && !errors.Is(err, os.ErrClosed) {
 				p.fail(fmt.Errorf("plugin diagnostic stream failed"))
 			}
 			return
