@@ -19,7 +19,7 @@ One MiB is the default maximum request/response frame. A malformed or oversized 
 | `plugin.invoke` | host → plugin | Run one declared command; cancellable and time-bounded |
 | `$/cancelRequest` | host → plugin | Notification that cancels the in-flight call with the given ID |
 | `plugin.shutdown` | host → plugin | Cooperative stop; the host still terminates an uncooperative process tree |
-| `plugin.lifecycle` | plugin → host | One-way `running` notification after initialization; see [lifecycle](<lifecycle.md>) |
+| `plugin.lifecycle` | host → plugin | One-way `running` notification after initialization; see [lifecycle](<lifecycle.md>) |
 | `host.describe` | plugin → host | Identity of the current process; see [host.describe](<host-describe.md>) |
 | `host.log` | plugin → host | Bounded diagnostics from the current process; see [host.log](<host-log.md>) |
 
