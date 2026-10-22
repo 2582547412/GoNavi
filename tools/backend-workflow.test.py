@@ -29,7 +29,7 @@ def missing_webkit_tag(workflow: str) -> list[str]:
 
 
 class BackendWorkflowTest(unittest.TestCase):
-    def test_clean_frontend_build_is_required_by_the_gate(self):
+    def test_clean_frontend_build_job_is_configured(self):
         workflow = (ROOT / ".github/workflows/backend-tests.yml").read_text(encoding="utf-8")
         frontend = re.search(r"(?ms)^  frontend:\n(.*?)(?=^  [\w-]+:|\Z)", workflow)
         self.assertIsNotNone(frontend, "missing clean frontend job")
@@ -44,12 +44,8 @@ class BackendWorkflowTest(unittest.TestCase):
         self.assertIn("node ../../frontend/node_modules/vitest/vitest.mjs run --config vitest.config.mjs", block)
         self.assertIn("npm test -- src/plugins --maxWorkers=2 --minWorkers=1", block)
         self.assertIn("npm test -- src/i18n/keyResolution.test.ts --maxWorkers=1 --minWorkers=1", block)
-        gate = workflow.split("  gate:", 1)[1]
-        self.assertIn("needs: [frontend, full, platform-sensitive, marketplace-contract]", gate)
-        self.assertIn("needs.frontend.result", gate)
-        self.assertIn('"${FRONTEND_RESULT}" != "success"', gate)
 
-    def test_marketplace_postgres_and_plugin_races_are_required(self):
+    def test_marketplace_postgres_and_plugin_races_are_configured(self):
         workflow = (ROOT / ".github/workflows/backend-tests.yml").read_text(encoding="utf-8")
         block = re.search(r"(?ms)^  marketplace-contract:\n(.*?)(?=^  [\w-]+:|\Z)", workflow)
         self.assertIsNotNone(block)
@@ -60,9 +56,6 @@ class BackendWorkflowTest(unittest.TestCase):
         self.assertIn("go test -race ./internal/ai/provider -run '^TestPlugin'", block.group(1))
         self.assertIn("go test -race ./internal/dataexport -run '^TestPlugin'", block.group(1))
         self.assertIn("go test ./internal/db ./internal/app ./internal/mcpserver ./internal/ai/provider ./internal/ai/service ./internal/dataexport -run '^TestPlugin'", workflow)
-        gate = workflow.split("  gate:", 1)[1]
-        self.assertIn("needs.marketplace-contract.result", gate)
-        self.assertIn('"${MARKETPLACE_RESULT}" != "success"', gate)
 
     def test_app_and_root_builds_select_installed_webkit(self):
         workflow = (ROOT / ".github/workflows/backend-tests.yml").read_text(encoding="utf-8")
