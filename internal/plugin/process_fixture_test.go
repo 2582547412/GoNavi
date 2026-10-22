@@ -153,6 +153,21 @@ func fixtureHostCall(reader *json.Decoder, writer *bufio.Writer, mode string) {
 			}
 			continue
 		}
+		if message.Method == "plugin.shutdown" {
+			content, marshalErr := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": message.ID, "result": struct{}{}})
+			if marshalErr != nil {
+				os.Exit(55)
+			}
+			if _, err = writer.Write(append(content, '\n')); err != nil || writer.Flush() != nil {
+				os.Exit(55)
+			}
+			os.Exit(0)
+		}
+		// Host notifications carry no ID (plugin.lifecycle) and may interleave with the pending
+		// describe call; only the log-1 response ends this wait.
+		if message.Method != "" || len(message.ID) == 0 {
+			continue
+		}
 		if string(message.ID) != `"log-1"` {
 			os.Exit(56)
 		}
