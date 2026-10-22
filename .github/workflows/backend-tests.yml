@@ -4,10 +4,6 @@ on:
   pull_request:
     branches:
       - dev
-  pull_request_target:
-    types: [opened, synchronize, reopened]
-    branches:
-      - dev
   push:
     branches:
       - dev
@@ -22,7 +18,6 @@ permissions:
 
 jobs:
   frontend:
-    if: ${{ github.event_name != 'pull_request_target' || github.event.pull_request.head.ref == 'automation/star-history' }}
     name: Frontend clean build
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -62,7 +57,6 @@ jobs:
         run: npm run build
 
   full:
-    if: ${{ github.event_name != 'pull_request_target' || github.event.pull_request.head.ref == 'automation/star-history' }}
     name: Full backend suite
     runs-on: ubuntu-latest
     steps:
@@ -122,7 +116,6 @@ jobs:
         run: go test -tags gonavi_sqlserver_driver ./internal/db/ -count=1 -timeout=30m
 
   marketplace-contract:
-    if: ${{ github.event_name != 'pull_request_target' || github.event.pull_request.head.ref == 'automation/star-history' }}
     name: Plugin and marketplace contract tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -161,7 +154,6 @@ jobs:
           go -C examples/plugins test ./... -count=1
 
   platform-sensitive:
-    if: ${{ github.event_name != 'pull_request_target' || github.event.pull_request.head.ref == 'automation/star-history' }}
     name: Platform-sensitive tests (${{ matrix.os }})
     strategy:
       fail-fast: false
@@ -208,7 +200,7 @@ jobs:
   gate:
     name: CI Gate
     needs: [frontend, full, platform-sensitive, marketplace-contract]
-    if: ${{ always() && !cancelled() && (github.event_name != 'pull_request_target' || github.event.pull_request.head.ref == 'automation/star-history') }}
+    if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - name: Require all CI jobs
